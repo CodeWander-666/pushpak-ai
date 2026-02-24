@@ -1,0 +1,635 @@
+@import url('https://fonts.googleapis.com/css2?family=Jost&display=swap');
+
+/* CSS Variables for theming */
+:root {
+  /* Dark theme (default) */
+  --text-primary: white;
+  --text-alternate: #dae2e6;
+  --link-color: #d0d0d0;
+
+  --bg-primary: #2b4353;
+  --bg-alternate: #426074;
+  --bg-tertiary: #7a97aa;
+
+  --nav-background: #1c3445;
+  --nav-active-item-bg: #4f6074;
+  
+  --button-primary-bg: rgb(175, 58, 190);
+  --button-alternate-bg: rgba(175, 58, 190, 0.521);
+  --button-shadow-color: rgba(65, 48, 124, 0.705);
+
+  --current-step-indicator: rgb(20, 43, 59);
+
+  --radio-button-group-bg: rgb(81, 114, 151);
+  --radio-button-group-hover: rgb(37, 65, 97);
+
+  --navigation-height: 40px;
+}
+
+/* Light theme */
+[data-theme="light"] {
+  --text-primary: #2c3e50;
+  --text-alternate: #96a5ac;
+  --link-color: #3b6081;
+
+  --nav-background: #d9e5ee;
+  --nav-active-item-bg: #b9d2d6;
+
+  --bg-primary: #ecf0f1;
+  --bg-alternate: #bac9d2;
+  --bg-tertiary: #8b9bac;
+
+  --button-primary-bg:  #73b6e2f8;
+  --button-alternate-bg: rgb(176, 216, 240);
+  --button-shadow-color: #70a3c5; 
+
+  --current-step-indicator: rgb(169, 205, 214);
+
+  --radio-button-group-bg: rgb(169, 193, 224);
+  --radio-button-group-hover: rgb(221, 227, 241);
+}
+
+/* SVG inversion for light theme using body class */
+body.light-theme img[src$=".svg"] ,
+body.light-theme img[src$=".png"] {
+  filter: invert(0.7);
+}
+
+nav {
+    width: 100vw;
+    height: var(--navigation-height);
+    background: var(--nav-background);
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid grey;
+    position: relative;
+    z-index: 1;
+}
+nav a, nav span {
+    font-size: 1rem;
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+    height: var(--navigation-height);
+    padding: 0 2rem;
+    transition: 0.5s all ease;
+    line-height: 100%;
+}
+
+nav .active-nav-item, nav a:hover {
+    background: var(--nav-active-item-bg);
+    text-decoration: none;
+}
+
+
+
+/* this was just a star (*) selector, but dark reader extension cannot parse that and crashes 
+ It really just targets text related elements, so just use those instead
+*/
+html, body, li, p, div, span, label, input, 
+h1, h2, h3, h4, h5, h6, input, button, select {
+    color: var(--text-primary);
+    font-family: 'Jost', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    display: inline-block;
+}
+
+div, p {
+    display: block;
+}
+
+ a {
+    color: var(--link-color);
+    font-size: 80%;
+ }
+ a:hover {
+    text-decoration: none;
+ }
+
+/* Icon toggle for show skeleton */
+.icon-toggle label {
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 6px;
+    transition: background 0.2s, color 0.2s;
+    color: #888;
+    background: none;
+    display: inline-flex;
+    align-items: center;
+}
+
+.icon-toggle input[type="checkbox"]:checked + label,
+.icon-toggle input[type="checkbox"] + label:hover {
+    background: var(--button-primary-bg);
+}
+.icon-toggle input[type="checkbox"]:checked + label:hover {
+    background: var(--button-alternate-bg);
+}
+
+
+
+#skinned-step-tools
+{
+    flex-direction: column;
+    row-gap: 1rem;
+}
+
+#animation-filter {
+    width: 95%;
+    padding: 0.5rem;
+    background-color: var(--bg-primary);
+    border: none;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+}
+#animation-listing-count {
+    position: absolute;
+    right: 3rem;
+    top: 5rem;
+    color: var(--text-alternate)
+}
+
+/* indicator on download buton with how many are selected */
+#animation-selection-count {
+    color: var(--text-primary);
+    padding: 0.1rem .5rem;
+    background-color: var(--bg-primary);
+    border-radius: 50%;
+    font-size: 80%;
+}
+
+hr {
+    border:1px solid var(--bg-alternate);
+    width: 100%;
+    margin: 1rem 0rem;
+}
+
+li{
+    display: list-item;
+    line-height: 135%;
+    color: var(--text-primary);
+}
+
+html {
+    height: 100%;
+}
+
+body {
+    background: var(--bg-primary);
+    background: linear-gradient(180deg, var(--bg-primary) 41%, var(--bg-tertiary) 100%);
+}
+
+#tool-selection-group {
+    /* helps last element have breathing room when a scroll bar is present */
+    margin-bottom: 2rem;
+}
+
+div {
+
+    padding: 0.25rem;
+}
+
+input[type="number"] {
+    padding: 0.5rem;
+    border: 1px solid #878787;
+    border-radius: 3px;
+    background: var(--bg-primary);
+    width: 40px;
+}
+
+input[type="text"] {
+    background-color: var(--bg-primary);
+    border: 1px solid var(--text-primary);
+    color: var(--text-primary);
+}
+
+/* used for animation play options */
+button.secondary-button {
+    background: linear-gradient(0deg, var(--bg-alternate) 0%, var(--bg-tertiary) 100%);
+    box-shadow: 2px 2px 3px var(--button-shadow-color);
+    border-radius: 3px;
+    border: 1px solid grey;
+    cursor: pointer;
+    transition: all 0.1s ease;
+}
+button.secondary-button:hover {
+    background: var(--bg-primary);
+}
+
+button.secondary-button.play
+{
+    padding: 0;
+    display: inline-flex;
+    background: var(--bg-primary);
+    flex-grow: 1;
+    align-items: center;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    margin-right: 0;
+    border: 1px solid var(--bg-tertiary);
+    transform: scale(1.0);
+}
+button.secondary-button.play:hover {
+    border: 1px solid var(--text-primary);
+    transition: all 0.4s ease;
+    transform: scale(1.0);
+}
+
+button, .button {
+    background: var(--button-primary-bg);
+    background: linear-gradient(180deg, var(--button-primary-bg) 0%, var(--button-alternate-bg) 100%);
+    box-shadow: 3px 3px 2px var(--button-shadow-color);
+    padding: 0.3rem 0.8rem;
+    margin-right: 0.5rem;
+    border: 1px solid var(--button-shadow-color);
+    border-radius: 0.25rem;
+    cursor: pointer;
+    text-align: center; /* useful for custom file upload label */
+    transition: all 0.1s ease;
+}
+button:hover, .button:hover {
+    /* background: var(--button-primary-bg);  */
+    transform: scale(1.05);
+}
+
+button:active, .button:active {
+    transform: scale(0.98);
+}
+
+button:disabled {
+    background: var(--button-alternate-bg);
+    opacity: 0.5;
+    cursor: not-allowed;
+    border: none;
+}
+
+
+
+.button-icon-group {
+    display: flex;
+    align-items: end;
+    justify-content: center;
+    column-gap: 6px;
+}
+.button-icon-group span{
+    align-self: center;
+}
+
+
+.transform-icons {
+    width: 25px;
+    height: 25px;
+    padding: 0.4rem;
+    border-radius: 4px;
+    border: 1px solid var(--text-primary);
+    cursor: pointer;
+}
+
+.transform-icons:hover {
+    background: var(--bg-primary);
+}
+
+canvas {
+    /* take up entire screen */
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -1;
+}
+
+select {
+    padding: 0.5rem;
+    background: var(--bg-alternate);
+    border: 1px solid var(--text-alternate);
+    border-radius: 4px;
+    color: var(--text-primary);
+}
+
+option {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    border: none;
+    border-radius: 0;
+}
+
+#current-step-index {
+    font-size: 15px;
+    background: var(--current-step-indicator);
+    padding: 0.5rem 1rem;
+    border-radius: 1rem;
+    color: var(--text-primary);    
+    text-align: center;
+}
+
+#current-step-label {
+    font-size: 20px;
+}
+
+#load-model-tools, #load-skeleton-tools, #transform-controls, #skeleton-step-actions {
+    display: flex;
+    flex-direction: column;
+    row-gap: 0.4rem;
+}
+
+#tool-panel {
+    position: fixed;
+    height: fit-content;
+
+    background: var(--bg-tertiary);
+    background: radial-gradient(circle, var(--bg-alternate) 0%, var(--bg-primary) 100%);
+
+    box-shadow: 1px 1px 8px 0px var(--bg-primary);
+    top: var(--navigation-height);
+    right: 0;
+    border-left: 1px solid var(--bg-tertiary);
+    padding: 1.0rem;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-sizing: border-box;
+}
+
+#animations-listing {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+
+  
+  /* Track */
+  ::-webkit-scrollbar-track {
+    background: var(--bg-tertiary);
+  }
+  
+  /* Handle */
+  ::-webkit-scrollbar-thumb {
+    background: var(--bg-alternate);
+    border-radius: 4px;
+  }
+  
+  /* Handle on hover */
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--bg-primary);
+  }
+
+
+
+
+#animations-items{
+    max-height: 27rem;
+    display: inline-flex;
+    overflow: auto;;
+    flex-direction: row;
+    margin-bottom: 1rem;
+    background: var(--bg-alternate);
+    border: 1px solid var(--bg-tertiary);
+    gap: 0.25rem;
+    flex-wrap: wrap;
+    overflow-x: hidden;
+    width: 24rem; /* creates 3 column of animation items */
+}
+
+#animations-items div {
+    display: inline-flex;
+    padding: 0;
+}
+/* have every other div child be a different background color */
+#animations-items > div:nth-child(odd) {
+    background: var(--bg-alternate);
+}
+
+
+
+
+.anim-item {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 0;
+
+    transition: box-shadow 0.2s ease-in-out;
+
+    /* specify dimensions helps grid layout without jumbling elements */
+    width: 103px;
+    height: 160px;
+}
+
+.anim-preview-label {
+    font-size: 90%;
+    cursor: pointer;
+    line-height: 110%;
+}
+
+
+input[type="file"] {
+    display: none;
+}
+
+#github-logo {
+    transition: opacity 0.5s ease-in-out;
+    text-decoration: none;
+    padding: 0.5rem;
+}
+#github-logo:hover {
+    opacity: 0.6;
+}
+
+#github-logo img {
+    width: 50px;
+    height: auto;
+}
+
+
+/* Dropdown Button */
+
+  /* The container <div> - needed to position the dropdown content */
+  .dropdown {
+    position: relative;
+    display: inline-block;
+  }
+  
+  /* Dropdown Content (Hidden by Default) */
+  .dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: var(--bg-tertiary);
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+  }
+  
+  /* Links inside the dropdown */
+  .dropdown-content a {
+    color: var(--text-primary);
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+  }
+  
+  /* Change color of dropdown links on hover */
+  .dropdown-content a:hover {background-color: var(--text-primary)}
+  
+  /* Show the dropdown menu (use JS to add this class to the .dropdown-content container when the user clicks on the dropdown button) */
+  .show {display:block;}
+
+#header-ui {
+    display: flex;
+    gap: 0.5rem;
+    flex-direction: column;
+    position: fixed;
+    left: 5px;
+    bottom: 140px;
+}
+
+.step-instructions {
+    max-width: 220px;
+}
+
+/* tooltip styles (tippy) */
+.tippy-box[data-theme~='mesh2motion'] {
+  background-color: var(--bg-primary); /* container background */
+  color: var(--text-primary);              /* text color */
+  box-shadow: 3px 3px 6px #1420276b;
+  padding: 0.5rem;
+}
+
+/* style checkbox */
+.styled-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.2rem; /* Space between checkbox and label */
+    margin-bottom: 0.4rem;
+    margin-top: 0.4rem;
+}
+
+.styled-checkbox input[type="checkbox"] {
+    width: 20px; /* Increase checkbox size */
+    height: 20px;
+    cursor: pointer;
+    accent-color: var(--text-alternate);
+}
+
+.styled-checkbox label {
+    cursor: pointer; /* Make the label clickable */
+    padding: 0.2rem 0.5rem; /* Add padding for a larger clickable area */
+    font-size: 1rem; /* Adjust font size for better readability */
+}
+
+#bone-selection-section {
+    margin: 0;
+    background: var(--bg-alternate);
+    padding: 0.5rem;
+    border-radius: 3px;
+    flex-direction: column;
+
+}
+
+.alternate-background-section {
+    display: flex; 
+    flex-direction: column; 
+    gap: 1rem; 
+    background-color: var(--bg-alternate); 
+    padding: 1rem;
+}
+
+/* Style for animation filter placeholder text */
+#animation-filter::placeholder {
+    color: var(--text-primary);
+    opacity: 1; /* Firefox needs this to ensure full opacity */
+    font-style: italic;;
+}
+
+/* Theme toggle button styles */
+#theme-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: all 0.2s ease;
+    box-shadow: none;
+    border-radius: 0;
+    padding: 0;
+}
+
+#theme-toggle:hover {
+    background: var(--bg-alternate);
+}
+
+#theme-toggle .theme-icon {
+    font-size: 30px;
+    transition: transform 0.2s ease;
+    padding: 0;
+}
+
+#theme-toggle:hover .theme-icon {
+    transform: rotate(20deg);
+}
+
+/* this is a weird view helper three.js thing
+   This helps place the view helper in the 3D scene by using a div
+   The event listener for the click events latches onto this
+*/
+#view-control-hitbox {
+    height: 120px;
+    width: 120px;
+    position: absolute;
+    bottom: 0px;
+    left: 0;
+}
+
+#animations-items .no-animations-message {
+    padding: 0.5rem;
+    font-style: italic;
+    font-size: 90%;
+}
+
+
+#current-animation-name {
+}
+
+#build-version {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    padding: 0.5rem 0.7rem;
+    font-size: 0.8rem;
+    color: var(--text-alternate);
+}
+
+/* loading progress bar for animations */
+#animation-progress-loader-container {
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    width: 100%;
+    margin-bottom: 1rem;
+}
+#animation-progress-loader-container #loading-progress-bar {
+    width: 0%;
+    height: 8px;
+    background-color: var(--button-primary-bg);
+    transition: width 0.3s ease;
+    justify-content: center;
+    display: flex;
+    height: auto;
+    border: 1px solid grey;
+}
+#animation-progress-loader-container #current-file-progress-bar {
+    width: 0%;
+    height: 4px;
+    background-color: var(--button-alternate-bg);
+    transition: width 0.3s ease;
+    margin-top: 2px;
+    border: 1px solid grey;
+}
+#animation-progress-loader-container #loading-status-text {
+    font-size: 1.1rem;
+    color: var(--text-primary);     
+}
