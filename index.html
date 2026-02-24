@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bio‑React – Ultimate Game</title>
+
+    <!-- Preconnect to CDNs (optional, Vite uses local deps) -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://unpkg.com">
+
+    <!-- Loading screen styles (glassmorphic, blueprint style) -->
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #0a0a1a; overflow: hidden; }
+        #loading-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #0a0a1a, #1a1a2a);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 10000; transition: opacity 0.5s;
+            backdrop-filter: blur(10px);
+        }
+        #loading-screen.hidden { opacity: 0; pointer-events: none; }
+        .loading-logo {
+            width: 200px; height: 200px;
+            background: url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Ccircle cx=\'50\' cy=\'50\' r=\'40\' fill=\'%2388ccff\' opacity=\'0.9\'/%3E%3Ctext x=\'50\' y=\'68\' font-size=\'24\' text-anchor=\'middle\' fill=\'white\' font-family=\'Inter\'%3EBR%3C/text%3E%3C/svg%3E') no-repeat center/contain;
+            filter: drop-shadow(0 0 20px rgba(100,200,255,0.5));
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0% { opacity:0.8; transform:scale(1); } 50% { opacity:1; transform:scale(1.05); } 100% { opacity:0.8; transform:scale(1); } }
+        .loading-text {
+            color: #88ccff; font-size: 1.8rem; margin: 20px 0 10px;
+            text-shadow: 0 0 10px rgba(136,204,255,0.5);
+            font-weight: 600;
+        }
+        .progress-bar-container {
+            width: 300px; height: 8px; background: #1a1e2a; border-radius: 10px;
+            overflow: hidden; margin: 10px 0;
+            border: 1px solid #335577;
+        }
+        .progress-bar-fill {
+            height: 100%; width: 0%; background: linear-gradient(90deg, #44aaff, #88ddff);
+            transition: width 0.3s;
+        }
+        .status-message {
+            color: #aaddff; font-size: 1rem; margin-top: 15px;
+            font-family: 'Inter', monospace;
+        }
+        .error-message {
+            color: #ff6666; background: rgba(255,0,0,0.2); padding: 20px; border-radius: 10px;
+            max-width: 500px; text-align: center; display: none;
+            border: 1px solid #ff6666;
+            backdrop-filter: blur(5px);
+        }
+        .error-message button {
+            background: #1e3a5a; border: 1px solid #88ccff; color: white;
+            padding: 10px 20px; border-radius: 40px; margin-top: 15px; cursor: pointer;
+            font-size: 1rem;
+            transition: 0.2s;
+        }
+        .error-message button:hover { background: #2a4a7a; }
+        @media (max-width: 600px) {
+            .loading-logo { width: 150px; height: 150px; }
+            .loading-text { font-size: 1.5rem; }
+            .progress-bar-container { width: 250px; }
+        }
+    </style>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Loading screen overlay -->
+    <div id="loading-screen">
+        <div class="loading-logo"></div>
+        <div class="loading-text">Bio‑React</div>
+        <div class="progress-bar-container">
+            <div id="progress-bar" class="progress-bar-fill"></div>
+        </div>
+        <div id="status-message" class="status-message">Initializing...</div>
+        <div id="error-message" class="error-message"></div>
+    </div>
+
+    <script>
+        // ---------- Global Loading Screen API ----------
+        window.loadingScreen = {
+            updateProgress: function(percent, message) {
+                const bar = document.getElementById('progress-bar');
+                const status = document.getElementById('status-message');
+                if (bar) bar.style.width = percent + '%';
+                if (status && message) status.textContent = message;
+            },
+            hide: function() {
+                const screen = document.getElementById('loading-screen');
+                if (screen) screen.classList.add('hidden');
+            },
+            showError: function(message, fatal = true) {
+                const errorDiv = document.getElementById('error-message');
+                const screen = document.getElementById('loading-screen');
+                if (errorDiv) {
+                    errorDiv.innerHTML = `<p>${message}</p><button onclick="location.reload()">Reload</button>`;
+                    errorDiv.style.display = 'block';
+                }
+                if (screen) screen.classList.remove('hidden');
+                console.error('FATAL:', message);
+            }
+        };
+
+        // WebGL check
+        (function() {
+            try {
+                const canvas = document.createElement('canvas');
+                const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
+                if (!gl) throw new Error('WebGL not supported');
+            } catch (e) {
+                window.loadingScreen.showError('Your browser does not support WebGL.');
+            }
+        })();
+
+        // Global error handlers
+        window.addEventListener('error', (e) => {
+            if (e.target && e.target.tagName === 'LINK' && e.target.rel === 'icon') return;
+            if (e.target && e.target.tagName === 'SCRIPT') {
+                window.loadingScreen.showError(`Failed to load script: ${e.target.src}`);
+            } else {
+                console.error('Uncaught error:', e.error || e.message);
+            }
+        }, true);
+
+        window.addEventListener('unhandledrejection', (event) => {
+            console.error('Unhandled rejection:', event.reason);
+            if (!window.gameStarted) {
+                window.loadingScreen.showError('A critical error occurred. Please reload.');
+            }
+        });
+
+        window.gameStarted = false;
+        console.log('Loading main module...');
+    </script>
+
+    <!-- ---------- Main game module ---------- -->
+    <script type="module" src="./components/main.js"></script>
+</body>
+</html>
