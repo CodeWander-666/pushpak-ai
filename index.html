@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OSOS RIGIFIER · PRO ANIMATIONS</title>
+    <title>OSOS RIGIFIER · BONE‑MAPPED ANIMATIONS</title>
     <!-- Import Map (CORS‑safe, verified URLs) -->
     <script type="importmap">
         {
@@ -81,7 +81,7 @@
         }
         .bottom-panel {
             bottom:30px; left:50%; transform:translateX(-50%);
-            width:90%; max-width:1200px;
+            width:90%; max-width:1400px;
             background: rgba(10,10,20,0.7);
             backdrop-filter: blur(30px);
             border:1px solid rgba(0,255,255,0.3);
@@ -126,6 +126,12 @@
             border:1px solid rgba(255,100,255,0.3);
             border-radius: 40px;
             padding:25px;
+            transition: opacity 0.3s, transform 0.3s;
+        }
+        .right-panel.hidden {
+            opacity:0;
+            transform: translateX(100%);
+            pointer-events: none;
         }
         .right-panel h3 {
             color:#ff88ff;
@@ -204,7 +210,6 @@
             max-width:500px;
             text-align:center;
         }
-        /* Procedural animation buttons group */
         .proc-anim-group {
             display: flex;
             gap:8px;
@@ -221,6 +226,14 @@
             background: #ff88ff;
             color:#000;
             border-color:#ff88ff;
+        }
+        .toggle-manual {
+            background: rgba(255,100,255,0.2);
+            border-color: #ff88ff;
+        }
+        .toggle-manual.active {
+            background: #ff88ff;
+            color:#000;
         }
     </style>
 </head>
@@ -250,7 +263,7 @@
     </div>
 
     <!-- Right panel (manual controls) -->
-    <div class="overlay right-panel">
+    <div class="overlay right-panel" id="right-panel">
         <h3><i class="fas fa-hand"></i> JOINT CONTROL</h3>
         <select id="bone-select" style="width:100%; padding:10px; background:#1a1a2a; border:1px solid #ff88ff; color:white; border-radius:40px; margin-bottom:20px;">
             <option value="cube">JELLY CUBE (default)</option>
@@ -284,14 +297,18 @@
             <option value="run">RUN</option>
             <option value="jump">JUMP</option>
         </select>
-        <!-- New procedural animation buttons -->
+        <!-- Procedural animation buttons -->
         <div class="proc-anim-group">
             <button id="anim-wave" disabled title="Wave right arm">👋 WAVE</button>
             <button id="anim-kick" disabled title="Kick right leg">🦵 KICK</button>
             <button id="anim-dance" disabled title="Simple dance">💃 DANCE</button>
-            <button id="anim-none" class="active" title="Stop procedural animation">⏹️ NONE</button>
+            <button id="anim-walk" disabled title="Walk in place">🚶 WALK</button>
+            <button id="anim-run" disabled title="Run in place">🏃 RUN</button>
+            <button id="anim-jump" disabled title="Jump">🦘 JUMP</button>
+            <button id="anim-idle" class="active" title="Idle pose">😴 IDLE</button>
         </div>
         <button id="physics-toggle" class="active"><i class="fas fa-heartbeat"></i> PHYSICS ON</button>
+        <button id="manual-toggle" class="toggle-manual" title="Toggle manual rig controls"><i class="fas fa-cog"></i> MANUAL RIG</button>
         <span id="status-msg"><i class="fas fa-circle" style="color:#44ff44;"></i> READY</span>
     </div>
 
@@ -317,18 +334,16 @@
         import { TransformControls } from 'three/addons/controls/TransformControls.js';
         import * as CANNON from 'cannon-es';
 
-        // ========== DYNAMIC OSOS LOAD (NO 404 RISK) ==========
+        // ========== OSOS LOAD FROM JSDELIVR (MORE RELIABLE) ==========
         let OSOS = null;
         let ososAvailable = false;
         try {
-            // Use dynamic import to catch failure gracefully
-            const module = await import('https://unpkg.com/ossos@0.0.10/index.js');
+            const module = await import('https://cdn.jsdelivr.net/npm/ossos@0.0.10/index.js');
             OSOS = module;
             ososAvailable = true;
             console.log('OSOS loaded successfully');
         } catch (e) {
             console.warn('OSOS failed to load – auto‑rig disabled', e);
-            // No 404 in console, error is caught
         }
 
         // ========== SETUP ==========
@@ -340,12 +355,15 @@
         let currentAction = null;
         let physicsEnabled = true;
         let xp = 0;
-        let fallbackCube = null; // default jelly cube
-        let isFallback = true;    // start with fallback
-        let selectedBone;          // declare before any function uses it
+        let fallbackCube = null;
+        let isFallback = true;
+        let selectedBone;
+
+        // Manual rig mode toggle
+        let manualMode = false;
 
         // Procedural animation state
-        let procAnim = 'none'; // 'none', 'wave', 'kick', 'dance'
+        let procAnim = 'idle';
         let procAnimTime = 0;
 
         const clock = new THREE.Clock();
@@ -358,9 +376,8 @@
         const tposeToIdleBtn = document.getElementById('tpose-to-idle');
         const animSelect = document.getElementById('animation-select');
         const physicsToggle = document.getElementById('physics-toggle');
+        const manualToggle = document.getElementById('manual-toggle');
         const statusMsg = document.getElementById('status-msg');
-        const statusLed = document.getElementById('status-led');
-        const statusText = document.getElementById('status-text');
         const boneSelect = document.getElementById('bone-select');
         const rotX = document.getElementById('rot-x');
         const rotY = document.getElementById('rot-y');
@@ -371,12 +388,16 @@
         const xpFill = document.getElementById('xp-fill');
         const xpCount = document.getElementById('xp-count');
         const xpDisplay = document.getElementById('xp-display');
+        const rightPanel = document.getElementById('right-panel');
 
         // Procedural animation buttons
         const animWave = document.getElementById('anim-wave');
         const animKick = document.getElementById('anim-kick');
         const animDance = document.getElementById('anim-dance');
-        const animNone = document.getElementById('anim-none');
+        const animWalk = document.getElementById('anim-walk');
+        const animRun = document.getElementById('anim-run');
+        const animJump = document.getElementById('anim-jump');
+        const animIdle = document.getElementById('anim-idle');
 
         function setStatus(msg, type = 'info') {
             statusMsg.innerHTML = type === 'success' ? '<i class="fas fa-check-circle" style="color:#44ff44;"></i> ' + msg :
@@ -409,7 +430,7 @@
 
             transformControls = new TransformControls(camera, renderer.domElement);
             transformControls.addEventListener('dragging-changed', (e) => { controls.enabled = !e.value; });
-            scene.add(transformControls);
+            scene.add(transformControls); // Add to scene so it can be attached
 
             // Lights
             scene.add(new THREE.AmbientLight(0x404060, 0.6));
@@ -431,14 +452,13 @@
             scene.add(ground);
             scene.add(new THREE.GridHelper(20,20,0x00ffff,0x335577));
 
-            // Create default jelly cube so there's always something visible
+            // Create default jelly cube
             createJellyCube();
         } catch (e) {
             showFatalError('Failed to initialize Three.js: ' + e.message);
         }
 
         function createJellyCube() {
-            // Remove previous model if any
             if (currentModel) scene.remove(currentModel);
             currentModel = null;
             if (fallbackCube) scene.remove(fallbackCube);
@@ -459,39 +479,63 @@
             fallbackCube = cube;
             isFallback = true;
 
-            // Set bone select to cube
             boneSelect.innerHTML = '<option value="cube">JELLY CUBE (default)</option>';
             boneSelect.disabled = false;
             selectedBone = cube;
+            // Ensure cube is in scene before attaching
             transformControls.attach(cube);
 
-            // Enable basic controls
             tposeToIdleBtn.disabled = false;
             physicsToggle.disabled = false;
-            autoRigBtn.disabled = !ososAvailable; // only enable if OSOS loaded
+            autoRigBtn.disabled = !ososAvailable;
             forceRigBtn.disabled = true;
             animSelect.disabled = true;
 
-            // Disable procedural animation buttons (they need bones)
-            animWave.disabled = true;
-            animKick.disabled = true;
-            animDance.disabled = true;
-            animNone.disabled = false; // none always available
-            setProcAnim('none');
+            // Enable only idle for cube
+            [animWave, animKick, animDance, animWalk, animRun, animJump].forEach(btn => btn.disabled = true);
+            animIdle.disabled = false;
+            setProcAnim('idle');
 
             setStatus('Default jelly cube active. Upload a model to rig.', 'info');
         }
 
-        // Helper to set procedural animation and update UI
+        // Comprehensive bone mapping (synonyms for each joint)
+        const boneMappings = {
+            spine: /spine|chest|torso|upperbody|back/i,
+            head: /head|neck|skull/i,
+            leftArm: /leftarm|upperarm_l|arm_l|l_arm|leftshoulder|shoulder_l/i,
+            rightArm: /rightarm|upperarm_r|arm_r|r_arm|rightshoulder|shoulder_r/i,
+            leftForeArm: /leftforearm|forearm_l|lowerarm_l|elbow_l/i,
+            rightForeArm: /rightforearm|forearm_r|lowerarm_r|elbow_r/i,
+            leftHand: /lefthand|hand_l|palm_l/i,
+            rightHand: /righthand|hand_r|palm_r/i,
+            leftLeg: /leftupleg|thigh_l|upleg_l|leftthigh/i,
+            rightLeg: /rightupleg|thigh_r|upleg_r|rightthigh/i,
+            leftCalf: /leftleg|calf_l|shin_l|lowerleg_l/i,
+            rightCalf: /rightleg|calf_r|shin_r|lowerleg_r/i,
+            leftFoot: /leftfoot|foot_l|ankle_l/i,
+            rightFoot: /rightfoot|foot_r|ankle_r/i,
+            hips: /hips|pelvis|root|lowerback|waist/i
+        };
+
+        function findBone(type) {
+            if (!bones.length) return null;
+            const pattern = boneMappings[type];
+            if (!pattern) return null;
+            return bones.find(b => pattern.test(b.name));
+        }
+
         function setProcAnim(anim) {
             procAnim = anim;
-            // Update active class on buttons
-            [animWave, animKick, animDance, animNone].forEach(btn => btn.classList.remove('active'));
+            [animWave, animKick, animDance, animWalk, animRun, animJump, animIdle].forEach(btn => btn.classList.remove('active'));
             if (anim === 'wave') animWave.classList.add('active');
             else if (anim === 'kick') animKick.classList.add('active');
             else if (anim === 'dance') animDance.classList.add('active');
-            else animNone.classList.add('active');
-            procAnimTime = 0; // reset time for smooth start
+            else if (anim === 'walk') animWalk.classList.add('active');
+            else if (anim === 'run') animRun.classList.add('active');
+            else if (anim === 'jump') animJump.classList.add('active');
+            else animIdle.classList.add('active');
+            procAnimTime = 0;
         }
 
         // ========== UPLOAD HANDLER ==========
@@ -515,14 +559,9 @@
             tposeToIdleBtn.disabled = true;
             animSelect.disabled = true;
             physicsToggle.disabled = true;
-            // Disable procedural anim buttons during load
-            animWave.disabled = true;
-            animKick.disabled = true;
-            animDance.disabled = true;
-            animNone.disabled = true;
+            [animWave, animKick, animDance, animWalk, animRun, animJump, animIdle].forEach(btn => btn.disabled = true);
 
             try {
-                // Remove fallback cube temporarily
                 if (fallbackCube) scene.remove(fallbackCube);
                 fallbackCube = null;
 
@@ -541,19 +580,18 @@
                 currentModel.position.sub(center);
                 currentModel.position.y += size.y/2;
 
-                // Forceful bone search: traverse every node
                 bones = [];
                 currentModel.traverse(obj => { if (obj.isBone) bones.push(obj); });
 
                 if (bones.length === 0) {
                     setStatus('NO BONES FOUND – returning to jelly cube', 'info');
-                    createJellyCube(); // restore cube
+                    createJellyCube();
                     return;
                 }
 
-                // Bones found!
                 isFallback = false;
                 setStatus(`${bones.length} BONES FOUND`, 'success');
+
                 // Populate bone select
                 boneSelect.innerHTML = '<option>Select bone...</option>';
                 bones.forEach(b => {
@@ -563,19 +601,15 @@
                     boneSelect.appendChild(opt);
                 });
                 boneSelect.disabled = false;
-                autoRigBtn.disabled = !ososAvailable; // enable only if OSOS loaded
+
+                autoRigBtn.disabled = !ososAvailable;
                 forceRigBtn.disabled = true;
                 tposeToIdleBtn.disabled = false;
                 physicsToggle.disabled = false;
-                // Enable procedural animation buttons
-                animWave.disabled = false;
-                animKick.disabled = false;
-                animDance.disabled = false;
-                animNone.disabled = false;
-                setProcAnim('none'); // default to none
+                [animWave, animKick, animDance, animWalk, animRun, animJump, animIdle].forEach(btn => btn.disabled = false);
+                setProcAnim('idle');
                 addXP(50);
 
-                // Load animations if any
                 if (gltf.animations && gltf.animations.length) {
                     mixer = new THREE.AnimationMixer(currentModel);
                     gltf.animations.forEach(clip => {
@@ -585,14 +619,15 @@
                         else if (name.includes('run')) animations.run = clip;
                         else if (name.includes('jump')) animations.jump = clip;
                     });
-                    if (Object.keys(animations).length > 0) {
-                        animSelect.disabled = false;
-                    }
+                    if (Object.keys(animations).length > 0) animSelect.disabled = false;
                 }
+
+                // Detach transformControls if manual mode is off
+                if (!manualMode) transformControls.detach();
             } catch (err) {
                 setStatus('LOAD FAILED: ' + err.message, 'error');
                 console.error(err);
-                createJellyCube(); // restore cube
+                createJellyCube();
             }
         }
 
@@ -601,7 +636,6 @@
             if (!currentModel || bones.length === 0 || isFallback || !ososAvailable) return;
             setStatus('AUTO‑RIGGING...', 'info');
             try {
-                // Build OSOS armature
                 const armature = new OSOS.Armature();
                 const boneIndices = new Map();
                 bones.forEach((b, i) => boneIndices.set(b, i));
@@ -621,7 +655,7 @@
             }
         });
 
-        // ========== FORCE RIG (placeholder) ==========
+        // ========== FORCE RIG ==========
         forceRigBtn.addEventListener('click', () => {
             alert('Force rig would attempt procedural rigging. For now, please use a model with bones or enjoy the jelly cube.');
         });
@@ -629,18 +663,15 @@
         // ========== T‑POSE TO IDLE ==========
         tposeToIdleBtn.addEventListener('click', () => {
             if (isFallback && fallbackCube) {
-                // For cube, we just set a flag; animation loop handles squash
-                fallbackCube.userData.idlePhase = 0; // reset
                 setStatus('JELLY CUBE IDLE ACTIVATED', 'success');
                 addXP(30);
             } else if (currentModel && bones.length > 0) {
-                // Apply subtle idle pose to bones
-                const spine = bones.find(b => /spine/i.test(b.name));
-                const head = bones.find(b => /head/i.test(b.name));
-                const lArm = bones.find(b => /leftarm|upperarm_l/i.test(b.name));
-                const rArm = bones.find(b => /rightarm|upperarm_r/i.test(b.name));
-                const lLeg = bones.find(b => /leftupleg|thigh_l/i.test(b.name));
-                const rLeg = bones.find(b => /rightupleg|thigh_r/i.test(b.name));
+                const spine = findBone('spine');
+                const head = findBone('head');
+                const lArm = findBone('leftArm');
+                const rArm = findBone('rightArm');
+                const lLeg = findBone('leftLeg');
+                const rLeg = findBone('rightLeg');
 
                 if (spine) spine.rotation.x = 0.1;
                 if (head) head.rotation.x = -0.05;
@@ -657,8 +688,7 @@
         // ========== ANIMATION SELECT ==========
         animSelect.addEventListener('change', () => {
             if (!mixer || !animations[animSelect.value]) return;
-            // Stop any procedural animation when playing a clip
-            setProcAnim('none');
+            setProcAnim('idle'); // stop procedural
             if (currentAction) currentAction.stop();
             currentAction = mixer.clipAction(animations[animSelect.value]);
             currentAction.play();
@@ -672,19 +702,34 @@
             physicsToggle.innerHTML = physicsEnabled ? '<i class="fas fa-heartbeat"></i> PHYSICS ON' : '<i class="fas fa-heartbeat"></i> PHYSICS OFF';
         });
 
+        // ========== MANUAL RIG TOGGLE ==========
+        manualToggle.addEventListener('click', () => {
+            manualMode = !manualMode;
+            manualToggle.classList.toggle('active', manualMode);
+            if (manualMode) {
+                rightPanel.classList.remove('hidden');
+                if (selectedBone) transformControls.attach(selectedBone);
+            } else {
+                rightPanel.classList.add('hidden');
+                transformControls.detach();
+            }
+        });
+
         // ========== PROCEDURAL ANIMATION BUTTONS ==========
         animWave.addEventListener('click', () => setProcAnim('wave'));
         animKick.addEventListener('click', () => setProcAnim('kick'));
         animDance.addEventListener('click', () => setProcAnim('dance'));
-        animNone.addEventListener('click', () => setProcAnim('none'));
+        animWalk.addEventListener('click', () => setProcAnim('walk'));
+        animRun.addEventListener('click', () => setProcAnim('run'));
+        animJump.addEventListener('click', () => setProcAnim('jump'));
+        animIdle.addEventListener('click', () => setProcAnim('idle'));
 
         // ========== BONE SELECTION & MANUAL ROTATION ==========
         boneSelect.addEventListener('change', (e) => {
             const boneName = e.target.value;
             if (isFallback && boneName === 'cube') {
                 selectedBone = fallbackCube;
-                transformControls.attach(fallbackCube);
-                // Update sliders (Euler)
+                if (manualMode) transformControls.attach(fallbackCube);
                 const rot = fallbackCube.rotation;
                 rotX.value = rot.x;
                 rotY.value = rot.y;
@@ -694,8 +739,8 @@
                 rotZval.textContent = rot.z.toFixed(2);
             } else {
                 selectedBone = bones.find(b => b.name === boneName);
+                if (selectedBone && manualMode) transformControls.attach(selectedBone);
                 if (selectedBone) {
-                    transformControls.attach(selectedBone);
                     const rot = selectedBone.rotation;
                     rotX.value = rot.x;
                     rotY.value = rot.y;
@@ -730,64 +775,71 @@
         function animate() {
             requestAnimationFrame(animate);
             const delta = clock.getDelta();
-            const time = performance.now() * 0.001; // seconds
+            const time = performance.now() * 0.001;
 
             try {
                 if (mixer) mixer.update(delta);
 
-                // Procedural physics (breathing / jelly)
+                // Physics (breathing)
                 if (physicsEnabled) {
                     if (isFallback && fallbackCube) {
-                        // Jelly cube squash and stretch
                         const scaleX = 1 + Math.sin(time * 5) * 0.1;
                         const scaleY = 1 + Math.sin(time * 5 + 2) * 0.1;
                         const scaleZ = 1 + Math.sin(time * 5 + 4) * 0.1;
                         fallbackCube.scale.set(scaleX, scaleY, scaleZ);
                     } else if (currentModel && bones.length > 0) {
-                        // Breathing on chest
-                        const chest = bones.find(b => /spine|chest/i.test(b.name));
-                        if (chest) {
-                            chest.scale.y = 1 + Math.sin(time * 3) * 0.02;
-                        }
-                        // Slight sway
-                        const hips = bones.find(b => /hips|pelvis/i.test(b.name));
-                        if (hips) {
-                            hips.rotation.z = Math.sin(time * 0.8) * 0.02;
-                        }
+                        const chest = findBone('spine');
+                        if (chest) chest.scale.y = 1 + Math.sin(time * 3) * 0.02;
+                        const hips = findBone('hips');
+                        if (hips) hips.rotation.z = Math.sin(time * 0.8) * 0.02;
                     }
                 }
 
-                // Procedural animations (only when not fallback)
-                if (!isFallback && currentModel && bones.length > 0 && procAnim !== 'none') {
+                // Procedural animations (only on mesh with bones)
+                if (!isFallback && currentModel && bones.length > 0 && procAnim !== 'idle') {
                     procAnimTime += delta;
-                    // Find key bones
-                    const spine = bones.find(b => /spine/i.test(b.name));
-                    const rArm = bones.find(b => /rightarm|upperarm_r/i.test(b.name));
-                    const lArm = bones.find(b => /leftarm|upperarm_l/i.test(b.name));
-                    const rLeg = bones.find(b => /rightupleg|thigh_r/i.test(b.name));
-                    const lLeg = bones.find(b => /leftupleg|thigh_l/i.test(b.name));
-                    const head = bones.find(b => /head/i.test(b.name));
+                    const spine = findBone('spine');
+                    const head = findBone('head');
+                    const rArm = findBone('rightArm');
+                    const lArm = findBone('leftArm');
+                    const rLeg = findBone('rightLeg');
+                    const lLeg = findBone('leftLeg');
+                    const hips = findBone('hips');
 
                     switch (procAnim) {
                         case 'wave':
                             if (rArm) {
-                                // Wave right arm: rotate in Z and X with sine
                                 rArm.rotation.z = Math.sin(procAnimTime * 8) * 0.5 + 0.2;
                                 rArm.rotation.x = Math.sin(procAnimTime * 8) * 0.3;
                             }
                             break;
                         case 'kick':
-                            if (rLeg) {
-                                // Kick right leg: rotate forward and back
-                                rLeg.rotation.x = Math.sin(procAnimTime * 6) * 0.8;
-                            }
+                            if (rLeg) rLeg.rotation.x = Math.sin(procAnimTime * 6) * 0.8;
                             break;
                         case 'dance':
-                            // Simple dance: sway hips, move arms
                             if (spine) spine.rotation.z = Math.sin(procAnimTime * 4) * 0.1;
                             if (rArm) rArm.rotation.z = Math.sin(procAnimTime * 6) * 0.5;
                             if (lArm) lArm.rotation.z = Math.sin(procAnimTime * 6 + 2) * 0.5;
                             if (head) head.rotation.z = Math.sin(procAnimTime * 4) * 0.1;
+                            break;
+                        case 'walk':
+                            if (rLeg) rLeg.rotation.x = Math.sin(procAnimTime * 5) * 0.4;
+                            if (lLeg) lLeg.rotation.x = Math.sin(procAnimTime * 5 + Math.PI) * 0.4;
+                            if (rArm) rArm.rotation.x = Math.sin(procAnimTime * 5 + Math.PI) * 0.3;
+                            if (lArm) lArm.rotation.x = Math.sin(procAnimTime * 5) * 0.3;
+                            break;
+                        case 'run':
+                            if (rLeg) rLeg.rotation.x = Math.sin(procAnimTime * 10) * 0.8;
+                            if (lLeg) lLeg.rotation.x = Math.sin(procAnimTime * 10 + Math.PI) * 0.8;
+                            if (rArm) rArm.rotation.x = Math.sin(procAnimTime * 10 + Math.PI) * 0.6;
+                            if (lArm) lArm.rotation.x = Math.sin(procAnimTime * 10) * 0.6;
+                            break;
+                        case 'jump':
+                            // Simple jump: squat then extend
+                            const jumpPhase = Math.sin(procAnimTime * 6);
+                            if (lLeg) lLeg.rotation.x = Math.max(0, jumpPhase) * 0.5;
+                            if (rLeg) rLeg.rotation.x = Math.max(0, jumpPhase) * 0.5;
+                            if (hips) hips.position.y = 1 + Math.abs(jumpPhase) * 0.3;
                             break;
                     }
                 }
@@ -796,19 +848,16 @@
                 renderer.render(scene, camera);
             } catch (e) {
                 console.error('Animation loop error:', e);
-                // Non-fatal, continue
             }
         }
         animate();
 
-        // ========== RESIZE ==========
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        // ========== HIDE LOADING ==========
         setTimeout(() => {
             document.getElementById('loading').classList.add('fadeout');
         }, 2000);
