@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OSOS RIGIFIER · PROFESSIONAL ERROR HANDLING</title>
+    <title>OSOS RIGIFIER · ALWAYS VISIBLE</title>
     <!-- Import Map (CORS‑safe) -->
     <script type="importmap">
         {
@@ -237,7 +237,7 @@
     <div class="overlay right-panel">
         <h3><i class="fas fa-hand"></i> JOINT CONTROL</h3>
         <select id="bone-select" style="width:100%; padding:10px; background:#1a1a2a; border:1px solid #ff88ff; color:white; border-radius:40px; margin-bottom:20px;">
-            <option>Select bone...</option>
+            <option value="default">JELLY CUBE (default)</option>
         </select>
         <div class="slider-group">
             <label>X <span id="rot-x-val">0.0</span></label>
@@ -261,14 +261,14 @@
         <input type="file" id="file-input" accept=".glb,.gltf" style="display:none;">
         <button id="auto-rig-btn" disabled><i class="fas fa-bolt"></i> AUTO‑RIG (OSOS)</button>
         <button id="force-rig-btn" disabled><i class="fas fa-exclamation-triangle"></i> FORCE RIG</button>
-        <button id="tpose-to-idle" disabled><i class="fas fa-child"></i> T‑POSE → IDLE</button>
+        <button id="tpose-to-idle"><i class="fas fa-child"></i> T‑POSE → IDLE</button>
         <select id="animation-select" disabled>
             <option value="idle">IDLE (BREATHING)</option>
             <option value="walk">WALK</option>
             <option value="run">RUN</option>
             <option value="jump">JUMP</option>
         </select>
-        <button id="physics-toggle" class="active" disabled><i class="fas fa-heartbeat"></i> PHYSICS ON</button>
+        <button id="physics-toggle" class="active"><i class="fas fa-heartbeat"></i> PHYSICS ON</button>
         <span id="status-msg"><i class="fas fa-circle" style="color:#44ff44;"></i> READY</span>
     </div>
 
@@ -303,8 +303,8 @@
         let currentAction = null;
         let physicsEnabled = true;
         let xp = 0;
-        let fallbackCube = null; // if no bones, we create this
-        let isFallback = false;
+        let fallbackCube = null; // default jelly cube
+        let isFallback = true;    // start with fallback
 
         const clock = new THREE.Clock();
 
@@ -333,7 +333,7 @@
         function setStatus(msg, type = 'info') {
             statusMsg.innerHTML = type === 'success' ? '<i class="fas fa-check-circle" style="color:#44ff44;"></i> ' + msg :
                                  type === 'error' ? '<i class="fas fa-times-circle" style="color:#ff4444;"></i> ' + msg :
-                                 '<i class="fas fa-circle" style="color:#ffaa44;"></i> ' + msg;
+                                 '<i class="fas fa-info-circle" style="color:#ffaa44;"></i> ' + msg;
         }
 
         function addXP(amount) {
@@ -382,8 +382,49 @@
             ground.receiveShadow = true;
             scene.add(ground);
             scene.add(new THREE.GridHelper(20,20,0x00ffff,0x335577));
+
+            // Create default jelly cube so there's always something visible
+            createJellyCube();
         } catch (e) {
             showFatalError('Failed to initialize Three.js: ' + e.message);
+        }
+
+        function createJellyCube() {
+            // Remove previous model if any
+            if (currentModel) scene.remove(currentModel);
+            currentModel = null;
+            if (fallbackCube) scene.remove(fallbackCube);
+
+            const geometry = new THREE.BoxGeometry(1, 1, 1);
+            const material = new THREE.MeshPhongMaterial({
+                color: 0xff88aa,
+                emissive: 0x331122,
+                shininess: 30,
+                transparent: true,
+                opacity: 0.9
+            });
+            const cube = new THREE.Mesh(geometry, material);
+            cube.castShadow = true;
+            cube.receiveShadow = true;
+            cube.position.set(0, 1, 0);
+            scene.add(cube);
+            fallbackCube = cube;
+            isFallback = true;
+
+            // Set bone select to cube
+            boneSelect.innerHTML = '<option value="cube">JELLY CUBE (default)</option>';
+            boneSelect.disabled = false;
+            selectedBone = cube;
+            transformControls.attach(cube);
+
+            // Enable basic controls
+            tposeToIdleBtn.disabled = false;
+            physicsToggle.disabled = false;
+            autoRigBtn.disabled = true;
+            forceRigBtn.disabled = true;
+            animSelect.disabled = true;
+
+            setStatus('Default jelly cube active. Upload a model to rig.', 'info');
         }
 
         // ========== UPLOAD HANDLER ==========
@@ -409,11 +450,9 @@
             physicsToggle.disabled = true;
 
             try {
-                // Remove previous model/fallback
-                if (currentModel) scene.remove(currentModel);
+                // Remove fallback cube temporarily
                 if (fallbackCube) scene.remove(fallbackCube);
-                bones = [];
-                isFallback = false;
+                fallbackCube = null;
 
                 const loader = new GLTFLoader();
                 const gltf = await new Promise((resolve, reject) => {
@@ -435,89 +474,48 @@
                 currentModel.traverse(obj => { if (obj.isBone) bones.push(obj); });
 
                 if (bones.length === 0) {
-                    setStatus('NO BONES FOUND – USING JELLY CUBE FALLBACK', 'info');
-                    // Create fallback jelly cube
-                    createJellyCube();
-                    isFallback = true;
-                    // Disable bone-dependent features
-                    autoRigBtn.disabled = true;
-                    forceRigBtn.disabled = true;
-                    // But we still enable manual control (the cube itself)
-                    boneSelect.innerHTML = '<option value="cube">JELLY CUBE (whole)</option>';
-                    boneSelect.disabled = false;
-                    selectedBone = fallbackCube; // we'll treat cube as a "bone"
-                    transformControls.attach(fallbackCube);
-                    tposeToIdleBtn.disabled = false; // we can still apply idle animation to cube
-                    animSelect.disabled = true; // no real animations
-                    physicsToggle.disabled = false;
-                    addXP(50);
-                } else {
-                    setStatus(`${bones.length} BONES FOUND`, 'success');
-                    // Populate bone select
-                    boneSelect.innerHTML = '<option>Select bone...</option>';
-                    bones.forEach(b => {
-                        const opt = document.createElement('option');
-                        opt.value = b.name;
-                        opt.textContent = b.name;
-                        boneSelect.appendChild(opt);
-                    });
-                    boneSelect.disabled = false;
-                    autoRigBtn.disabled = false;
-                    forceRigBtn.disabled = true;
-                    tposeToIdleBtn.disabled = false;
-                    physicsToggle.disabled = false;
-                    addXP(50);
+                    setStatus('NO BONES FOUND – returning to jelly cube', 'info');
+                    createJellyCube(); // restore cube
+                    return;
+                }
 
-                    // Load animations if any
-                    if (gltf.animations && gltf.animations.length) {
-                        mixer = new THREE.AnimationMixer(currentModel);
-                        gltf.animations.forEach(clip => {
-                            const name = clip.name.toLowerCase();
-                            if (name.includes('idle')) animations.idle = clip;
-                            else if (name.includes('walk')) animations.walk = clip;
-                            else if (name.includes('run')) animations.run = clip;
-                            else if (name.includes('jump')) animations.jump = clip;
-                        });
-                        if (Object.keys(animations).length > 0) {
-                            animSelect.disabled = false;
-                        }
+                // Bones found!
+                isFallback = false;
+                setStatus(`${bones.length} BONES FOUND`, 'success');
+                // Populate bone select
+                boneSelect.innerHTML = '<option>Select bone...</option>';
+                bones.forEach(b => {
+                    const opt = document.createElement('option');
+                    opt.value = b.name;
+                    opt.textContent = b.name;
+                    boneSelect.appendChild(opt);
+                });
+                boneSelect.disabled = false;
+                autoRigBtn.disabled = false;
+                forceRigBtn.disabled = true; // not needed
+                tposeToIdleBtn.disabled = false;
+                physicsToggle.disabled = false;
+                addXP(50);
+
+                // Load animations if any
+                if (gltf.animations && gltf.animations.length) {
+                    mixer = new THREE.AnimationMixer(currentModel);
+                    gltf.animations.forEach(clip => {
+                        const name = clip.name.toLowerCase();
+                        if (name.includes('idle')) animations.idle = clip;
+                        else if (name.includes('walk')) animations.walk = clip;
+                        else if (name.includes('run')) animations.run = clip;
+                        else if (name.includes('jump')) animations.jump = clip;
+                    });
+                    if (Object.keys(animations).length > 0) {
+                        animSelect.disabled = false;
                     }
                 }
             } catch (err) {
                 setStatus('LOAD FAILED: ' + err.message, 'error');
                 console.error(err);
-                // Create fallback cube anyway
-                createJellyCube();
-                isFallback = true;
-                boneSelect.innerHTML = '<option value="cube">JELLY CUBE (whole)</option>';
-                boneSelect.disabled = false;
-                selectedBone = fallbackCube;
-                transformControls.attach(fallbackCube);
-                tposeToIdleBtn.disabled = false;
-                physicsToggle.disabled = false;
+                createJellyCube(); // restore cube
             }
-        }
-
-        function createJellyCube() {
-            // Remove previous model if any
-            if (currentModel) scene.remove(currentModel);
-            currentModel = null;
-
-            const geometry = new THREE.BoxGeometry(1, 1, 1);
-            const material = new THREE.MeshPhongMaterial({
-                color: 0xff88aa,
-                emissive: 0x331122,
-                shininess: 30,
-                transparent: true,
-                opacity: 0.9
-            });
-            const cube = new THREE.Mesh(geometry, material);
-            cube.castShadow = true;
-            cube.receiveShadow = true;
-            cube.position.set(0, 1, 0);
-            scene.add(cube);
-            fallbackCube = cube;
-            // For manual control, we'll treat the cube as a "bone"
         }
 
         // ========== AUTO‑RIG (OSOS) ==========
@@ -553,9 +551,8 @@
         // ========== T‑POSE TO IDLE ==========
         tposeToIdleBtn.addEventListener('click', () => {
             if (isFallback && fallbackCube) {
-                // Apply idle animation to cube (squash/stretch)
-                fallbackCube.userData.idlePhase = 0;
-                // We'll handle in animate loop
+                // For cube, we just set a flag; animation loop handles squash
+                fallbackCube.userData.idlePhase = 0; // reset
                 setStatus('JELLY CUBE IDLE ACTIVATED', 'success');
                 addXP(30);
             } else if (currentModel && bones.length > 0) {
@@ -596,7 +593,7 @@
         });
 
         // ========== BONE SELECTION & MANUAL ROTATION ==========
-        let selectedBone = null;
+        let selectedBone = fallbackCube; // start with cube
         boneSelect.addEventListener('change', (e) => {
             const boneName = e.target.value;
             if (isFallback && boneName === 'cube') {
