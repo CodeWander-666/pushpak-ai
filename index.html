@@ -1,788 +1,1015 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bio‑React · Auto‑Rig + IK Puppet</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bio‑React · Crystalline Rigging Playground</title>
+    <!-- Premium fonts & icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        /* ----- RESET & BASE (Crystalline Minimalism) ----- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-deep: #0a0c12;
+            --bg-glass: rgba(255, 255, 255, 0.03);
+            --glass-edge: rgba(255, 255, 255, 0.08);
+            --glass-glow: rgba(160, 240, 255, 0.15);
+            --accent-ice: #A0F0FF;
+            --accent-lavender: #C0B0FF;
+            --accent-rose: #FFC0E0;
+            --text-primary: #FFFFFF;
+            --text-soft: rgba(255, 255, 255, 0.7);
+            --text-dim: rgba(255, 255, 255, 0.4);
+            --blur-heavy: blur(40px) saturate(200%);
+            --blur-soft: blur(20px) saturate(160%);
+            --shadow-card: 0 25px 50px -12px rgba(0, 0, 0, 0.8), inset 0 1px 1px rgba(255, 255, 255, 0.05);
+            --ease-gold: cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
         body {
             font-family: 'Inter', sans-serif;
-            background: #0a0a1a;
-            color: #fff;
-            overflow: hidden;
+            background: var(--bg-deep);
+            color: var(--text-primary);
+            overflow: hidden; /* no scroll on body, we handle sections via JS */
+            height: 100vh;
+            width: 100vw;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
         }
-        #info {
-            position: absolute; top: 20px; left: 20px;
-            background: rgba(10,15,25,0.8);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(100,180,255,0.3);
-            border-radius: 60px;
-            padding: 12px 28px;
-            font-weight: 500;
-            font-size: 15px;
-            color: #aaddff;
-            z-index: 100;
-            pointer-events: none;
+
+        /* ----- CANVAS (full‑screen, behind UI) ----- */
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            pointer-events: none; /* canvas receives events via its own element */
         }
-        #stats-container {
-            position: absolute; top: 20px; right: 20px;
-            z-index: 100;
+        #canvas-container canvas {
+            pointer-events: auto; /* allow 3d interaction */
         }
-        #main-panel {
-            position: absolute; top: 20px; right: 20px;
-            width: 480px;
-            background: rgba(12,18,28,0.9);
-            backdrop-filter: blur(20px);
-            border: 1px solid #446688;
-            border-radius: 30px;
-            padding: 25px;
-            color: white;
-            z-index: 200;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.8);
-            max-height: calc(100vh - 40px);
-            overflow-y: auto;
-            pointer-events: auto;
-        }
-        .section-title {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 15px;
-            color: #88ccff;
-            border-bottom: 1px solid #335577;
-            padding-bottom: 8px;
-        }
-        .control-group {
-            margin-bottom: 20px;
-        }
-        .control-row {
+
+        /* ----- TOP NEURAL STRIP (frosted glass) ----- */
+        .neural-strip {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            height: 70px;
+            background: var(--bg-glass);
+            backdrop-filter: var(--blur-heavy);
+            -webkit-backdrop-filter: var(--blur-heavy);
+            border: 1px solid var(--glass-edge);
+            border-radius: 100px;
+            padding: 0 30px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin: 8px 0;
+            z-index: 100;
+            box-shadow: var(--shadow-card);
         }
-        .control-label {
-            font-size: 14px;
-            color: #bbddff;
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.6rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, var(--accent-ice), var(--accent-lavender), var(--accent-rose));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
-        input[type="range"] {
-            width: 180px;
-            background: #1a1e2a;
-            border: 1px solid #446688;
-            border-radius: 10px;
-            height: 6px;
-            accent-color: #88ccff;
+
+        .logo i {
+            font-size: 2.2rem;
+            background: none;
+            -webkit-text-fill-color: var(--accent-ice);
+            filter: drop-shadow(0 0 8px var(--accent-ice));
         }
-        input[type="color"] {
-            width: 60px;
-            height: 30px;
-            border: 1px solid #446688;
-            border-radius: 6px;
-            background: transparent;
-            cursor: pointer;
+
+        .nav-pills {
+            display: flex;
+            gap: 8px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 4px;
+            border-radius: 60px;
+            border: 1px solid var(--glass-edge);
         }
-        select, .ik-select {
-            background: #1a1e2a;
-            border: 1px solid #446688;
-            border-radius: 20px;
-            padding: 8px 12px;
-            color: white;
-            font-size: 14px;
-            width: 100%;
-            margin: 5px 0;
-        }
-        button {
-            background: linear-gradient(145deg, #1e3a5a, #122a40);
-            border: none;
-            border-radius: 40px;
-            padding: 10px 16px;
-            font-size: 14px;
+
+        .nav-pills a {
+            color: var(--text-soft);
+            text-decoration: none;
             font-weight: 500;
-            color: white;
+            padding: 8px 24px;
+            border-radius: 40px;
+            transition: all 0.3s var(--ease-gold);
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .nav-pills a:hover {
+            background: rgba(160, 240, 255, 0.1);
+            color: var(--accent-ice);
+            border: 1px solid var(--accent-ice);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .profile-chip {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 6px 20px 6px 10px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--glass-edge);
+            border-radius: 60px;
+            backdrop-filter: var(--blur-soft);
+        }
+
+        .avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-ice), var(--accent-lavender));
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .xp-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .level {
+            font-size: 0.8rem;
+            color: var(--accent-ice);
+            text-transform: uppercase;
+        }
+
+        #xp-display {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            color: var(--text-soft);
+            font-size: 1.5rem;
             cursor: pointer;
-            border: 1px solid #2a6a9a;
-            transition: 0.2s;
-            margin: 4px 2px;
+            transition: all 0.2s;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            border: 1px solid transparent;
         }
-        button:hover {
-            background: linear-gradient(145deg, #2a4a7a, #1a3a60);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(0,80,160,0.6);
+
+        .icon-btn:hover {
+            color: var(--accent-ice);
+            border-color: var(--accent-ice);
+            background: rgba(160, 240, 255, 0.05);
+            transform: scale(1.05);
         }
-        button.primary {
-            background: linear-gradient(145deg, #3a6a9a, #2a4a7a);
-            border-color: #88ccff;
+
+        /* ----- RIGHT ADAPTIVE HUB ----- */
+        .right-hub {
+            position: fixed;
+            top: 110px;
+            right: 20px;
+            width: 360px;
+            bottom: 100px;
+            background: var(--bg-glass);
+            backdrop-filter: var(--blur-heavy);
+            -webkit-backdrop-filter: var(--blur-heavy);
+            border: 1px solid var(--glass-edge);
+            border-radius: 40px;
+            padding: 24px;
+            z-index: 90;
+            box-shadow: var(--shadow-card);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
         }
-        .file-area {
-            background: #1a1e2a;
-            border: 2px dashed #446688;
-            border-radius: 20px;
-            padding: 20px;
-            text-align: center;
-            margin: 10px 0;
+
+        .hub-tabs {
+            display: flex;
+            gap: 8px;
+            background: rgba(0,0,0,0.2);
+            padding: 4px;
+            border-radius: 40px;
+            border: 1px solid var(--glass-edge);
+        }
+
+        .hub-tab {
+            flex: 1;
+            background: none;
+            border: none;
+            color: var(--text-soft);
+            font-weight: 600;
+            padding: 10px;
+            border-radius: 40px;
             cursor: pointer;
-            transition: 0.2s;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
         }
-        .file-area:hover {
-            border-color: #88aaff;
-            background: #1a2a3a;
+
+        .hub-tab.active {
+            background: rgba(160, 240, 255, 0.15);
+            color: var(--accent-ice);
+            border: 1px solid var(--accent-ice);
         }
-        #file-input, #rigged-file-input {
-            display: none;
+
+        .quick-stats {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 30px;
+            padding: 18px;
+            border: 1px solid var(--glass-edge);
         }
-        #status-message {
-            font-size: 14px;
-            color: #aaddff;
-            margin-top: 8px;
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            color: var(--text-soft);
+            font-size: 0.9rem;
         }
-        .grid-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+
+        .stat-value {
+            color: var(--accent-ice);
+            font-weight: 600;
+            font-family: 'Monaco', 'Menlo', monospace;
+        }
+
+        .active-widgets {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 30px;
+            padding: 18px;
+            border: 1px solid var(--glass-edge);
+            flex: 1;
+        }
+
+        .active-widgets h4 {
+            color: var(--accent-lavender);
+            margin-bottom: 15px;
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.9rem;
+        }
+
+        .leaderboard-snip {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 30px;
+            padding: 18px;
+            border: 1px solid var(--glass-edge);
+        }
+
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 12px 0;
+            color: var(--text-soft);
+        }
+
+        .leaderboard-item i {
+            color: gold;
+        }
+
+        /* ----- BOTTOM DYNAMIC DECK ----- */
+        .bottom-deck {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 380px; /* space for right hub */
+            background: var(--bg-glass);
+            backdrop-filter: var(--blur-heavy);
+            -webkit-backdrop-filter: var(--blur-heavy);
+            border: 1px solid var(--glass-edge);
+            border-radius: 80px;
+            padding: 16px 30px;
+            z-index: 95;
+            box-shadow: var(--shadow-card);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .deck-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .deck-btn {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--glass-edge);
+            color: var(--text-soft);
+            padding: 12px 28px;
+            border-radius: 60px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.95rem;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
             gap: 8px;
         }
-        .value-display {
-            font-family: monospace;
-            color: #88ccff;
-            font-size: 14px;
+
+        .deck-btn:hover:not(:disabled) {
+            border-color: var(--accent-ice);
+            background: rgba(160, 240, 255, 0.1);
+            color: var(--accent-ice);
         }
-        .note {
-            font-size: 12px;
-            color: #88aadd;
-            margin-top: 8px;
-            padding: 8px;
-            background: rgba(0,0,0,0.2);
-            border-radius: 20px;
-            border-left: 3px solid #88ccff;
+
+        .deck-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
         }
-        footer {
-            margin-top: 20px;
-            font-size: 12px;
-            color: #6688aa;
-            text-align: center;
+
+        .deck-select {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--glass-edge);
+            color: var(--text-primary);
+            padding: 12px 24px;
+            border-radius: 60px;
+            font-weight: 500;
+            cursor: pointer;
+            min-width: 140px;
+        }
+
+        .progress {
+            width: 120px;
+            height: 6px;
+            background: rgba(0,0,0,0.4);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid var(--glass-edge);
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--accent-ice), var(--accent-lavender));
+            transition: width 0.3s;
+        }
+
+        #status-message {
+            color: var(--text-soft);
+            font-size: 0.9rem;
+            max-width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* ----- FLOATING WIDGETS ----- */
+        /* XP Orb (replaces old xp-bar) */
+        .xp-orb {
+            position: fixed;
+            bottom: 120px;
+            right: 30px;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8), rgba(160,240,255,0.3));
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.2);
+            box-shadow: 0 0 40px rgba(160,240,255,0.5);
+            z-index: 200;
+            cursor: pointer;
+            transition: transform 0.3s var(--ease-gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .xp-orb:hover {
+            transform: scale(1.1);
+        }
+
+        #xp-fill-orb {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 0%;
+            background: linear-gradient(0deg, var(--accent-ice), var(--accent-lavender));
+            transition: height 0.5s;
+            z-index: -1;
+            opacity: 0.5;
+        }
+
+        .xp-orb span {
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: white;
+            text-shadow: 0 0 10px black;
+            z-index: 1;
+        }
+
+        /* Ambient Companion */
+        .companion {
+            position: fixed;
+            bottom: 230px;
+            right: 40px;
+            width: 60px;
+            height: 60px;
+            border-radius: 30px;
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-edge);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent-ice);
+            font-size: 2rem;
+            z-index: 190;
+            cursor: help;
+            transition: all 0.3s;
+        }
+
+        .companion:hover {
+            border-color: var(--accent-ice);
+            box-shadow: 0 0 30px var(--accent-ice);
+        }
+
+        /* Notification Center (collapsible) */
+        .notif-center {
+            position: fixed;
+            top: 100px;
+            right: 400px;
+            width: 300px;
+            background: var(--bg-glass);
+            backdrop-filter: var(--blur-heavy);
+            border: 1px solid var(--glass-edge);
+            border-radius: 30px;
+            padding: 20px;
+            z-index: 180;
+            box-shadow: var(--shadow-card);
+            transition: transform 0.4s var(--ease-gold);
+            transform: translateX(0);
+        }
+
+        .notif-center.collapsed {
+            transform: translateX(320px);
+        }
+
+        .notif-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            color: var(--accent-ice);
+        }
+
+        /* Quick Action Wheel (hidden by default, shown on right-click) */
+        .quick-wheel {
+            position: fixed;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: var(--blur-heavy);
+            border: 2px solid var(--accent-ice);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 80px var(--accent-ice);
+        }
+
+        /* Keep existing drawer but restyle */
+        .drawer {
+            background: var(--bg-glass) !important;
+            backdrop-filter: var(--blur-heavy) !important;
+            border-left: 1px solid var(--glass-edge) !important;
+        }
+
+        /* Hide old playground panel, we have bottom-deck now */
+        /* But we keep its elements and move them */
+
+        /* Override some old styles */
+        #xp-bar {
+            display: none; /* replaced by orb */
+        }
+
+        #playground-panel {
+            display: none; /* we use bottom-deck */
+        }
+
+        /* Runner stays */
+        .runner {
+            background: linear-gradient(90deg, var(--accent-ice), var(--accent-rose)) !important;
+        }
+
+        /* Toast stays */
+        .toast {
+            background: var(--bg-glass) !important;
+            backdrop-filter: var(--blur-heavy) !important;
+            border-color: var(--accent-ice) !important;
         }
     </style>
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div id="info">🧬 Bio‑React · Auto‑Rig + IK Puppet</div>
-    <div id="stats-container"></div>
+    <div id="canvas-container"></div>
 
-    <div id="main-panel">
-        <div class="section-title">📁 Model</div>
-        <div class="file-area" id="upload-area">
-            <span style="font-size:24px;">📤</span>
-            <div>Upload GLB/GLTF (static or rigged)</div>
-            <input type="file" id="file-input" accept=".glb,.gltf" />
-            <div id="status-message">No model loaded</div>
+    <!-- TOP NEURAL STRIP -->
+    <header class="neural-strip">
+        <div class="logo">
+            <i class="fas fa-bolt"></i> Bio‑React
+        </div>
+        <nav class="nav-pills">
+            <a href="#hero">Home</a>
+            <a href="#features">Features</a>
+            <a href="#showcase">Showcase</a>
+            <a href="#playground">Playground</a>
+            <a href="#community">Community</a>
+        </nav>
+        <div class="user-profile">
+            <div class="profile-chip" id="profile-chip">
+                <div class="avatar"></div>
+                <div class="xp-info">
+                    <span class="level" id="level-display">Neophyte</span>
+                    <span id="xp-display">0 XP</span>
+                </div>
+            </div>
+            <button class="icon-btn" id="menu-dots"><i class="fas fa-ellipsis-h"></i></button>
+        </div>
+    </header>
+
+    <!-- RIGHT ADAPTIVE HUB -->
+    <aside class="right-hub">
+        <div class="hub-tabs">
+            <button class="hub-tab active" data-tab="puppet">Puppet</button>
+            <button class="hub-tab" data-tab="model">Model</button>
+            <button class="hub-tab" data-tab="scene">Scene</button>
         </div>
 
-        <div class="section-title">🔄 Auto‑Rig</div>
-        <div class="control-group">
-            <p style="font-size:13px; color:#bbddff;">Use Mixamo to rig your static mesh:</p>
-            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                <button id="mixamo-btn" class="primary" style="flex:1;">🚀 Open Mixamo</button>
-                <button id="load-rigged-btn" style="flex:1;">📥 Load Rigged Model</button>
-            </div>
-            <input type="file" id="rigged-file-input" accept=".glb,.gltf" style="display:none;">
-            <div class="note">
-                <strong>How to use:</strong><br>
-                1. Upload your static T‑pose to Mixamo (free account).<br>
-                2. Download the rigged GLB (with "With Skin" and "Format: GLB").<br>
-                3. Click "Load Rigged Model" and select the downloaded file.
-            </div>
+        <div class="quick-stats">
+            <div class="stat-row"><span>Level</span><span class="stat-value" id="hub-level">Neophyte</span></div>
+            <div class="stat-row"><span>XP</span><span class="stat-value" id="hub-xp">0</span></div>
+            <div class="stat-row"><span>FPS</span><span class="stat-value" id="fps-display">60</span></div>
+            <div class="stat-row"><span>Tris</span><span class="stat-value">12.4k</span></div>
         </div>
 
-        <div class="section-title">🎬 Animation</div>
-        <div class="control-group">
-            <select id="anim-select" disabled>
-                <option>No animations</option>
+        <div class="active-widgets" id="active-widgets">
+            <h4><i class="fas fa-hand-fist"></i> Puppet Controls</h4>
+            <!-- We'll keep original limb select and IK toggle here but also keep them in bottom deck -->
+            <!-- For simplicity, we keep them only in bottom deck, but can add duplicates if needed -->
+            <p style="color: var(--text-dim);">Use bottom deck for IK & rigging</p>
+        </div>
+
+        <div class="leaderboard-snip">
+            <h4 style="color: var(--accent-lavender); margin-bottom: 15px;">🏆 Top Riggers</h4>
+            <div class="leaderboard-item"><i class="fas fa-crown"></i> <span>NeonRigger</span> <span style="margin-left: auto;">12.4k XP</span></div>
+            <div class="leaderboard-item"><i class="fas fa-medal"></i> <span>MorphMaster</span> <span style="margin-left: auto;">9.8k XP</span></div>
+            <div class="leaderboard-item"><i class="fas fa-medal"></i> <span>IKWizard</span> <span style="margin-left: auto;">8.2k XP</span></div>
+        </div>
+    </aside>
+
+    <!-- BOTTOM DYNAMIC DECK (replaces old playground panel) -->
+    <div class="bottom-deck" id="bottom-deck">
+        <div class="deck-section">
+            <button class="deck-btn" id="upload-btn"><i class="fas fa-upload"></i> Upload</button>
+            <input type="file" id="file-input" accept=".glb,.gltf,.obj,.fbx" style="display:none;">
+            <button class="deck-btn" id="auto-rig-btn" disabled><i class="fas fa-magic"></i> Auto‑Rig</button>
+        </div>
+
+        <div class="deck-section">
+            <select class="deck-select" id="limb-select">
+                <option value="rightArm">Right Arm</option>
+                <option value="leftArm">Left Arm</option>
+                <option value="rightLeg">Right Leg</option>
+                <option value="leftLeg">Left Leg</option>
             </select>
-            <div class="grid-container" style="margin-top:10px;">
-                <button id="play-btn" disabled>▶ Play</button>
-                <button id="pause-btn" disabled>⏸️ Pause</button>
-                <button id="stop-btn" disabled>⏹️ Stop</button>
-                <button id="loop-btn" style="grid-column: span 2;">🔁 Toggle Loop</button>
-            </div>
-            <div style="margin-top:15px; display: flex; gap: 8px;">
-                <button id="walk-btn" class="primary" disabled>🚶 Walk</button>
-                <button id="walk-stop-btn" disabled>⏹️ Stop Walking</button>
-            </div>
+            <button class="deck-btn" id="ik-toggle" disabled><i class="fas fa-hand-fist"></i> IK</button>
         </div>
 
-        <div class="section-title">🎨 Material</div>
-        <div class="control-group">
-            <div class="control-row">
-                <span class="control-label">Base Color</span>
-                <input type="color" id="base-color" value="#88aaff">
+        <div class="deck-section">
+            <div class="progress" id="auto-rig-progress" style="display:none;">
+                <div class="progress-bar" id="auto-rig-progress-bar"></div>
             </div>
-            <div class="control-row">
-                <span class="control-label">Roughness</span>
-                <input type="range" id="roughness" min="0" max="1" step="0.01" value="0.4">
-                <span id="roughness-val" class="value-display">0.40</span>
-            </div>
-            <div class="control-row">
-                <span class="control-label">Metalness</span>
-                <input type="range" id="metalness" min="0" max="1" step="0.01" value="0.1">
-                <span id="metalness-val" class="value-display">0.10</span>
-            </div>
-            <div class="control-row">
-                <span class="control-label">Emissive</span>
-                <input type="color" id="emissive" value="#000000">
-            </div>
+            <span id="status-message"><i class="fas fa-circle-check" style="color: var(--accent-ice);"></i> Ready</span>
+            <div id="loading-spinner" class="loading-spinner" style="display:none;"></div>
         </div>
-
-        <div class="section-title">💡 Lighting</div>
-        <div class="control-group">
-            <div class="control-row">
-                <span class="control-label">Ambient Intensity</span>
-                <input type="range" id="ambient-int" min="0" max="2" step="0.1" value="0.4">
-                <span id="ambient-int-val" class="value-display">0.4</span>
-            </div>
-            <div class="control-row">
-                <span class="control-label">Dir Light Intensity</span>
-                <input type="range" id="dir-int" min="0" max="3" step="0.1" value="1.2">
-                <span id="dir-int-val" class="value-display">1.2</span>
-            </div>
-            <div class="control-row">
-                <span class="control-label">Dir Light Color</span>
-                <input type="color" id="dir-color" value="#ffffff">
-            </div>
-            <div class="control-row">
-                <span class="control-label">Fill Light Intensity</span>
-                <input type="range" id="fill-int" min="0" max="2" step="0.1" value="0.6">
-                <span id="fill-int-val" class="value-display">0.6</span>
-            </div>
-        </div>
-
-        <div class="section-title">🌍 Environment</div>
-        <div class="control-group">
-            <div class="control-row">
-                <span class="control-label">Show Grid</span>
-                <input type="checkbox" id="show-grid" checked>
-            </div>
-            <div class="control-row">
-                <span class="control-label">Show Ground</span>
-                <input type="checkbox" id="show-ground" checked>
-            </div>
-        </div>
-
-        <div class="section-title">🦾 IK PUPPET</div>
-        <div class="control-group">
-            <div class="control-row">
-                <span class="control-label">Enable IK Mode</span>
-                <input type="checkbox" id="ik-mode">
-            </div>
-            <div class="control-row">
-                <span class="control-label">Limb</span>
-                <select id="ik-limb" class="ik-select">
-                    <option value="rightArm">Right Arm</option>
-                    <option value="leftArm">Left Arm</option>
-                    <option value="rightLeg">Right Leg</option>
-                    <option value="leftLeg">Left Leg</option>
-                </select>
-            </div>
-            <div style="margin-top:10px;">
-                <button id="ik-attach">🎮 Attach Controller</button>
-                <button id="ik-detach" style="margin-left:5px;">🔓 Detach</button>
-            </div>
-            <p style="font-size:12px; color:#88aadd; margin-top:8px;">
-                Drag the controller sphere to pose the limb naturally. IK solves joint angles automatically.
-            </p>
-        </div>
-
-        <footer>⚡ High‑End 3D Studio · Real‑time PBR</footer>
     </div>
 
-    <!-- Three.js and addons -->
+    <!-- FLOATING WIDGETS -->
+    <!-- XP Orb (replaces old xp bar) -->
+    <div class="xp-orb" id="xp-orb">
+        <div id="xp-fill-orb"></div>
+        <span id="orb-xp">0</span>
+    </div>
+
+    <!-- Ambient Companion -->
+    <div class="companion" id="companion">
+        <i class="fas fa-robot"></i>
+    </div>
+
+    <!-- Notification Center (collapsible) -->
+    <div class="notif-center" id="notif-center">
+        <div class="notif-header">
+            <span><i class="fas fa-bell"></i> Notifications</span>
+            <button class="icon-btn" id="notif-close" style="font-size:1rem;">✕</button>
+        </div>
+        <div>✨ First Upload +50 XP</div>
+        <div>🎯 Daily Quest: Rig 3 models</div>
+    </div>
+
+    <!-- Quick Action Wheel (hidden by default) -->
+    <div class="quick-wheel" id="quick-wheel">
+        <!-- content populated by JS later -->
+    </div>
+
+    <!-- Keep original drawer (slide-out) but restyled via CSS override -->
+    <div id="drawer" class="drawer">
+        <button class="drawer-close" id="drawer-close">✕</button>
+        <div class="drawer-section"><h3>Lighting Preset</h3>
+            <div class="preset-grid">
+                <button class="preset-btn" data-preset="cinematic">Cinematic</button>
+                <button class="preset-btn" data-preset="neon">Neon</button>
+                <button class="preset-btn" data-preset="shadow">Shadow</button>
+            </div>
+        </div>
+        <div class="drawer-section"><h3>Sound</h3><div class="toggle-switch"><label>Ambient</label><input type="checkbox" id="sound-toggle" checked></div></div>
+        <div class="drawer-section"><h3>Performance</h3><select id="performance-select"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option></select></div>
+        <div class="drawer-section"><h3>Quests</h3><ul class="quest-list"><li>🔲 First Upload (0/1)</li><li>🔲 Auto‑Rig Master (0/3)</li><li>🔲 IK Virtuoso (0/5)</li></ul></div>
+        <div class="drawer-section"><h3>Achievements</h3><div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px;"><div>🏆<br>Rookie</div><div>⚡<br>Rigger</div><div>🦾<br>Puppeteer</div></div></div>
+    </div>
+
+    <!-- Keep runner and toast -->
+    <div class="runner" id="runner"></div>
+    <div id="toast" class="toast"></div>
+
+    <!-- Original main sections (for scroll, but we hide them behind viewport? We'll keep minimal) -->
+    <main style="display: none;"> <!-- hidden because we use fixed UI, but we keep for structure -->
+        <section id="hero"></section>
+        <section id="features"></section>
+        <section id="showcase"></section>
+        <section id="playground"></section>
+        <section id="community"></section>
+    </main>
+
+    <!-- Scripts (unchanged except we need to adapt xp bar to orb) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/stats.js@0.17.0/build/stats.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/TransformControls.js"></script>
-    <!-- three-ik library for inverse kinematics -->
-    <script src="https://cdn.jsdelivr.net/npm/three-ik@0.5.0/build/three-ik.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stats.js@0.17.0/build/stats.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
+    <!-- IK Solver -->
     <script>
         (function() {
-            // --- Stats ---
-            const stats = new Stats();
-            stats.dom.style.position = 'absolute';
-            stats.dom.style.top = '20px';
-            stats.dom.style.right = '20px';
-            stats.dom.style.zIndex = '300';
-            document.getElementById('stats-container').appendChild(stats.dom);
-
-            // --- Scene setup ---
-            const scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x111122);
-
-            const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(4, 2, 8);
-
-            const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.shadowMap.enabled = true;
-            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-            renderer.toneMapping = THREE.ACESFilmicToneMapping;
-            renderer.toneMappingExposure = 1.2;
-            document.body.appendChild(renderer.domElement);
-
-            const controls = new THREE.OrbitControls(camera, renderer.domElement);
-            controls.enableDamping = true;
-            controls.maxPolarAngle = Math.PI / 2;
-            controls.target.set(0, 1, 0);
-
-            // --- TransformControls (for IK controller) ---
-            const transformControls = new THREE.TransformControls(camera, renderer.domElement);
-            transformControls.addEventListener('dragging-changed', (event) => {
-                controls.enabled = !event.value;
-            });
-            scene.add(transformControls); // adds the gizmo
-
-            // --- Lighting ---
-            const ambientLight = new THREE.AmbientLight(0x404060, 0.4);
-            scene.add(ambientLight);
-
-            const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
-            dirLight.position.set(5, 10, 7);
-            dirLight.castShadow = true;
-            dirLight.receiveShadow = true;
-            dirLight.shadow.mapSize.width = 1024;
-            dirLight.shadow.mapSize.height = 1024;
-            scene.add(dirLight);
-
-            const fillLight = new THREE.PointLight(0x4488cc, 0.6);
-            fillLight.position.set(-4, 5, 6);
-            scene.add(fillLight);
-
-            // --- Ground and grid ---
-            const groundGeo = new THREE.PlaneGeometry(20, 20);
-            const groundMat = new THREE.MeshStandardMaterial({ color: 0x2a3a4a, side: THREE.DoubleSide });
-            const ground = new THREE.Mesh(groundGeo, groundMat);
-            ground.rotation.x = -Math.PI / 2;
-            ground.position.y = 0;
-            ground.receiveShadow = true;
-            ground.name = "ground";
-            scene.add(ground);
-
-            const gridHelper = new THREE.GridHelper(20, 20, 0x88aaff, 0x335577);
-            gridHelper.name = "grid";
-            scene.add(gridHelper);
-
-            // --- State ---
-            let currentModel = null;
-            let mixer = null;
-            let currentAction = null;
-            let animations = [];
-            let loopMode = true;
-            let walkClip = null;
-            let bones = [];               // all bones in the model
-
-            // IK related
-            let ikChain = null;            // IKSolver instance
-            let controllerSphere = null;   // visual handle for end effector
-            let ikBones = {
-                upper: null,
-                lower: null,
-                end: null
-            };
-
-            // UI Elements
-            const uploadArea = document.getElementById('upload-area');
-            const fileInput = document.getElementById('file-input');
-            const riggedFileInput = document.getElementById('rigged-file-input');
-            const mixamoBtn = document.getElementById('mixamo-btn');
-            const loadRiggedBtn = document.getElementById('load-rigged-btn');
-            const statusMsg = document.getElementById('status-message');
-            const animSelect = document.getElementById('anim-select');
-            const playBtn = document.getElementById('play-btn');
-            const pauseBtn = document.getElementById('pause-btn');
-            const stopBtn = document.getElementById('stop-btn');
-            const loopBtn = document.getElementById('loop-btn');
-            const walkBtn = document.getElementById('walk-btn');
-            const walkStopBtn = document.getElementById('walk-stop-btn');
-            const ikModeCheck = document.getElementById('ik-mode');
-            const ikLimbSelect = document.getElementById('ik-limb');
-            const ikAttachBtn = document.getElementById('ik-attach');
-            const ikDetachBtn = document.getElementById('ik-detach');
-            const baseColorInput = document.getElementById('base-color');
-            const roughnessInput = document.getElementById('roughness');
-            const roughnessVal = document.getElementById('roughness-val');
-            const metalnessInput = document.getElementById('metalness');
-            const metalnessVal = document.getElementById('metalness-val');
-            const emissiveInput = document.getElementById('emissive');
-            const ambientInt = document.getElementById('ambient-int');
-            const ambientIntVal = document.getElementById('ambient-int-val');
-            const dirInt = document.getElementById('dir-int');
-            const dirIntVal = document.getElementById('dir-int-val');
-            const dirColor = document.getElementById('dir-color');
-            const fillInt = document.getElementById('fill-int');
-            const fillIntVal = document.getElementById('fill-int-val');
-            const showGrid = document.getElementById('show-grid');
-            const showGround = document.getElementById('show-ground');
-
-            // --- Utility to collect bones ---
-            function collectBones(node, arr) {
-                if (node.isBone) arr.push(node);
-                if (node.children) node.children.forEach(child => collectBones(child, arr));
-            }
-
-            // --- Find bones by name patterns (Mixamo naming) ---
-            function findIKBones(type) {
-                if (!currentModel) return null;
-                let upperName, lowerName, endName;
-                switch (type) {
-                    case 'rightArm':
-                        upperName = /RightArm|UpperArm_R/i;
-                        lowerName = /RightForeArm|ForeArm_R/i;
-                        endName = /RightHand|Hand_R/i;
-                        break;
-                    case 'leftArm':
-                        upperName = /LeftArm|UpperArm_L/i;
-                        lowerName = /LeftForeArm|ForeArm_L/i;
-                        endName = /LeftHand|Hand_L/i;
-                        break;
-                    case 'rightLeg':
-                        upperName = /RightUpLeg|Thigh_R/i;
-                        lowerName = /RightLeg|Leg_R/i;
-                        endName = /RightFoot|Foot_R/i;
-                        break;
-                    case 'leftLeg':
-                        upperName = /LeftUpLeg|Thigh_L/i;
-                        lowerName = /LeftLeg|Leg_L/i;
-                        endName = /LeftFoot|Foot_L/i;
-                        break;
-                    default: return null;
-                }
-                const found = {
-                    upper: bones.find(b => upperName.test(b.name)),
-                    lower: bones.find(b => lowerName.test(b.name)),
-                    end: bones.find(b => endName.test(b.name))
+            "use strict";
+            const createFallbackSolver = () => {
+                window.CCDIKSolver = function(mesh, iks) {
+                    this.mesh = mesh;
+                    this.iks = iks || [];
+                    this.update = function() {};
                 };
-                if (found.upper && found.lower && found.end) return found;
-                return null;
-            }
+                console.warn("⚠️ Using fallback IK solver (limited functionality)");
+                window.dispatchEvent(new CustomEvent('ikready'));
+            };
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/CCDIKSolver.js';
+            script.onload = () => {
+                console.log('✅ Three.js CCDIKSolver loaded');
+                window.dispatchEvent(new CustomEvent('ikready'));
+            };
+            script.onerror = createFallbackSolver;
+            document.head.appendChild(script);
+        })();
+    </script>
 
-            // --- Create IK chain using three-ik ---
-            function setupIK(limb) {
-                if (!currentModel || !window.IK) return false;
-                const found = findIKBones(limb);
-                if (!found) {
-                    console.warn('Could not find bones for', limb);
-                    return false;
+    <!-- Main application script (slightly modified to handle xp orb) -->
+    <script>
+        (function() {
+            "use strict";
+
+            // UI helpers (same)
+            const showToast = (msg, d=3000)=>{ let t=document.getElementById('toast'); if(!t)return; t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),d); };
+            const showError = (msg)=>{ console.error(msg); showToast('❌ '+msg); let s=document.getElementById('status-message'); if(s) s.textContent=msg; };
+            const setLoading = (isLoading)=>{ let s=document.getElementById('loading-spinner'); if(s) s.style.display=isLoading?'inline-block':'none'; };
+
+            let scene, camera, renderer, controls, transformControls;
+            let currentModel = null, currentSkeletonHelper = null, currentMixer = null;
+            let bones = [];
+            let ikSolver = null;
+            let ikConstraints = [];
+            let activeLimb = 'rightArm';
+            let ambientLight, dirLight, fillLight;
+            let stats;
+            let clock = new THREE.Clock();
+
+            const presets = { cinematic:{ ambient:0.4, dirIntensity:1.2, dirColor:0xffffff, fillIntensity:0.6 }, neon:{ ambient:0.6, dirIntensity:1.5, dirColor:0x88aaff, fillIntensity:0.8 }, shadow:{ ambient:0.2, dirIntensity:0.8, dirColor:0x446688, fillIntensity:0.3 } };
+
+            let xp = 0; try{ xp = parseInt(localStorage.getItem('xp')||'0'); }catch(e){}
+            const levelNames = ['Neophyte','Rigger','Puppet Master']; const levelThresholds = [0,500,1500];
+            let currentLevel = 0; const achievements = { firstUpload:false, firstRig:false, firstIK:false };
+
+            // DOM elements (updated IDs)
+            const uploadBtn = document.getElementById('upload-btn');
+            const fileInput = document.getElementById('file-input');
+            const autoRigBtn = document.getElementById('auto-rig-btn');
+            const limbSelect = document.getElementById('limb-select');
+            const ikToggle = document.getElementById('ik-toggle');
+            const autoRigProgress = document.getElementById('auto-rig-progress');
+            const autoRigProgressBar = document.getElementById('auto-rig-progress-bar');
+            const statusMsg = document.getElementById('status-message');
+            // XP orb elements
+            const xpFillOrb = document.getElementById('xp-fill-orb');
+            const orbXp = document.getElementById('orb-xp');
+            const levelDisplay = document.getElementById('level-display');
+            const xpDisplay = document.getElementById('xp-display');
+            const runner = document.getElementById('runner');
+            const drawer = document.getElementById('drawer');
+            const menuDots = document.getElementById('menu-dots');
+            const drawerClose = document.getElementById('drawer-close');
+            const presetBtns = document.querySelectorAll('.preset-btn');
+            const enterPlaygroundBtn = document.getElementById('enter-playground'); // may be undefined, we'll handle
+
+            // Hub elements
+            const hubLevel = document.getElementById('hub-level');
+            const hubXp = document.getElementById('hub-xp');
+
+            // File manager (same)
+            class FileManager {
+                constructor(){ this.abortController = null; this.maxRetries = 3; }
+                async uploadFile(file, retry=0){
+                    let fd = new FormData(); fd.append('file', file);
+                    let ctrl = new AbortController(); this.abortController = ctrl;
+                    try{
+                        let r = await fetch('/upload', { method:'POST', body:fd, signal:ctrl.signal });
+                        if(!r.ok) throw new Error(await r.text());
+                        return (await r.json()).task_id;
+                    } catch(err){
+                        if(retry < this.maxRetries && err.name !== 'AbortError') return this.uploadFile(file, retry+1);
+                        throw err;
+                    }
                 }
-                ikBones = found;
+                async waitForCompletion(tid, onProgress){
+                    let poll = 0;
+                    while(poll < 60){
+                        await new Promise(r => setTimeout(r, 2000));
+                        if(this.abortController?.signal.aborted) throw new Error('Cancelled');
+                        let r = await fetch('/status/'+tid);
+                        if(!r.ok) throw new Error('Status check failed');
+                        let d = await r.json();
+                        if(d.status === 'SUCCESS'){ onProgress?.('Downloading...', 80); return d.download_url; }
+                        else if(d.status === 'FAILURE') throw new Error(d.error||'Rigging failed');
+                        onProgress?.('Processing...', 30+poll*5); poll++;
+                    }
+                    throw new Error('Rigging timed out');
+                }
+                async downloadResult(url){
+                    let r = await fetch(url, {signal:this.abortController?.signal});
+                    if(!r.ok) throw new Error(`Download failed: ${(await r.text()).substring(0,200)}`);
+                    return URL.createObjectURL(await r.blob());
+                }
+                async autoRig(file, cb){
+                    this.abortController = new AbortController();
+                    try{
+                        cb.onStart?.(); cb.onProgress?.('Uploading...', 10);
+                        let tid = await this.uploadFile(file); cb.onProgress?.('Processing...', 30);
+                        let dlUrl = await this.waitForCompletion(tid, cb.onProgress);
+                        let modelUrl = await this.downloadResult(dlUrl);
+                        cb.onSuccess?.(modelUrl);
+                    } catch(err){ cb.onError?.(err.name==='AbortError'?new Error('Cancelled'):err); }
+                    finally{ this.abortController = null; }
+                }
+                cancel(){ this.abortController?.abort(); }
+            }
+            const fileManager = new FileManager();
 
-                // Create a chain: upper -> lower -> end
-                const chain = new IK.IKChain();
-                chain.addBone(found.upper);
-                chain.addBone(found.lower);
-                chain.addBone(found.end); // end effector
-
-                const solver = new IK.IKSolver(chain);
-                solver.setRoot(found.upper); // root of the chain
-
-                ikChain = solver;
-
-                // Create a visual controller sphere
-                if (controllerSphere) scene.remove(controllerSphere);
-                const sphereGeo = new THREE.SphereGeometry(0.1, 16);
-                const sphereMat = new THREE.MeshStandardMaterial({ color: 0xffaa44, emissive: 0x442200 });
-                controllerSphere = new THREE.Mesh(sphereGeo, sphereMat);
-                scene.add(controllerSphere);
-
-                // Attach transformControls to the sphere
-                transformControls.attach(controllerSphere);
-
-                // Initial position of sphere at end effector
-                const endPos = found.end.getWorldPosition(new THREE.Vector3());
-                controllerSphere.position.copy(endPos);
-
-                return true;
+            // Scene init (same, but we might adjust stats panel position)
+            function initScene(){
+                let c = document.getElementById('canvas-container');
+                scene = new THREE.Scene(); scene.background = new THREE.Color(0x0a0c12);
+                camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000); camera.position.set(4, 2, 8);
+                renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
+                renderer.setSize(window.innerWidth, window.innerHeight); renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+                renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.2; c.appendChild(renderer.domElement);
+                controls = new THREE.OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.maxPolarAngle = Math.PI/2; controls.target.set(0,1,0);
+                transformControls = new THREE.TransformControls(camera, renderer.domElement); transformControls.addEventListener('dragging-changed', e=>{ controls.enabled = !e.value; }); scene.add(transformControls);
+                
+                ambientLight = new THREE.AmbientLight(0x404060, 0.4); scene.add(ambientLight);
+                dirLight = new THREE.DirectionalLight(0xffffff, 1.2); dirLight.position.set(5,10,7); dirLight.castShadow = true; dirLight.receiveShadow = true; dirLight.shadow.mapSize.width = 1024; dirLight.shadow.mapSize.height = 1024; scene.add(dirLight);
+                fillLight = new THREE.PointLight(0x4488cc, 0.6); fillLight.position.set(-4,5,6); scene.add(fillLight);
+                
+                let groundGeo = new THREE.PlaneGeometry(20,20); let groundMat = new THREE.MeshStandardMaterial({ color:0x121212, side:THREE.DoubleSide }); let ground = new THREE.Mesh(groundGeo, groundMat); ground.rotation.x = -Math.PI/2; ground.position.y = 0; ground.receiveShadow = true; scene.add(ground);
+                let gridHelper = new THREE.GridHelper(20, 20, 0xa0f0ff, 0x335577); scene.add(gridHelper);
+                
+                // Particles
+                const particleCount = 400;
+                let particleGeo = new THREE.BufferGeometry();
+                let positions = new Float32Array(particleCount * 3);
+                for(let i = 0; i < particleCount; i++){
+                    positions[i*3] = (Math.random()-0.5)*30;
+                    positions[i*3+1] = Math.random()*15;
+                    positions[i*3+2] = (Math.random()-0.5)*30;
+                }
+                particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                let particleMat = new THREE.PointsMaterial({ color: 0xa0f0ff, size: 0.1, transparent: true, blending: THREE.AdditiveBlending });
+                let particles = new THREE.Points(particleGeo, particleMat);
+                scene.add(particles);
+                
+                stats = new Stats(); stats.dom.style.position = 'absolute'; stats.dom.style.top = '20px'; stats.dom.style.right = '20px'; stats.dom.style.zIndex = '300'; c.appendChild(stats.dom);
             }
 
-            // --- Function to load a model (reused for both uploads) ---
-            function loadModel(gltf, fileName) {
-                if (currentModel) scene.remove(currentModel);
-                const model = gltf.scene;
-                model.traverse(node => {
-                    if (node.isMesh) {
-                        node.castShadow = true;
-                        node.receiveShadow = true;
-                    }
+            function disposeModel(){ /* same */ 
+                if(currentModel){ currentModel.traverse(o=>{ if(o.isMesh){ if(o.geometry)o.geometry.dispose(); if(o.material){ if(Array.isArray(o.material)) o.material.forEach(m=>m.dispose()); else o.material.dispose(); }}}); scene.remove(currentModel); currentModel = null; }
+                if(currentSkeletonHelper){ scene.remove(currentSkeletonHelper); currentSkeletonHelper = null; }
+                if(currentMixer){ currentMixer.stopAllAction(); currentMixer = null; }
+                if(ikConstraints){ ikConstraints.forEach(c=>{ if(c.targetSphere) scene.remove(c.targetSphere); }); }
+                ikConstraints = []; ikSolver = null; transformControls.detach(); bones = [];
+            }
+
+            function collectBones(node,arr){ if(node.isBone) arr.push(node); if(node.children) node.children.forEach(c=>collectBones(c,arr)); }
+
+            function setupIK(){ /* same */
+                if(!window.CCDIKSolver){ showError('CCDIKSolver not available'); return; }
+                if(!currentModel) return;
+                if(bones.length===0) collectBones(currentModel,bones);
+                const addLimb = (name, upperPat, lowerPat, endPat) => {
+                    let upper = bones.find(b => new RegExp(upperPat,'i').test(b.name));
+                    let lower = bones.find(b => new RegExp(lowerPat,'i').test(b.name));
+                    let end = bones.find(b => new RegExp(endPat,'i').test(b.name));
+                    if(!upper || !lower || !end) return null;
+                    let sphere = new THREE.Mesh(new THREE.SphereGeometry(0.12,24), new THREE.MeshStandardMaterial({ color: 0xffaa44, emissive: 0x442200 }));
+                    scene.add(sphere); sphere.position.copy(end.getWorldPosition(new THREE.Vector3()));
+                    ikConstraints.push({ name, targetSphere: sphere, enabled: false });
+                    return { target: sphere, effector: end.name, links: [{ index: upper.index }, { index: lower.index }], iteration: 50, minAngle: -Math.PI, maxAngle: Math.PI, enabled: false };
+                };
+                let ccd = [];
+                let ra = addLimb('rightArm','RightArm|UpperArm_R','RightForeArm|ForeArm_R','RightHand|Hand_R'); if(ra) ccd.push(ra);
+                let la = addLimb('leftArm','LeftArm|UpperArm_L','LeftForeArm|ForeArm_L','LeftHand|Hand_L'); if(la) ccd.push(la);
+                let rl = addLimb('rightLeg','RightUpLeg|Thigh_R','RightLeg|Leg_R','RightFoot|Foot_R'); if(rl) ccd.push(rl);
+                let ll = addLimb('leftLeg','LeftUpLeg|Thigh_L','LeftLeg|Leg_L','LeftFoot|Foot_L'); if(ll) ccd.push(ll);
+                if(ccd.length===0){ showToast('No suitable limb bones found for IK.'); ikToggle.disabled = true; return; }
+                ikSolver = new CCDIKSolver(currentModel, ccd);
+                ikToggle.disabled = false;
+            }
+
+            function loadModel(url, fileName){
+                setLoading(true); new THREE.GLTFLoader().load(url, gltf => {
+                    disposeModel(); let m = gltf.scene; m.traverse(n=>{if(n.isMesh){n.castShadow=true;n.receiveShadow=true;}});
+                    let box = new THREE.Box3().setFromObject(m); let sz = box.getSize(new THREE.Vector3()); let ctr = box.getCenter(new THREE.Vector3());
+                    m.position.sub(ctr); m.position.y += sz.y/2; scene.add(m); currentModel = m; statusMsg.innerHTML = `<i class="fas fa-check-circle" style="color:var(--accent-ice);"></i> Loaded: ${fileName}`;
+                    bones = []; collectBones(m,bones);
+                    currentSkeletonHelper = new THREE.SkeletonHelper(m); scene.add(currentSkeletonHelper);
+                    if(gltf.animations?.length) currentMixer = new THREE.AnimationMixer(m);
+                    if(window.CCDIKSolver) setupIK(); else ikToggle.disabled = true;
+                    if(!achievements.firstUpload){ achievements.firstUpload = true; addXP(50); showToast('First Upload +50 XP'); }
+                    URL.revokeObjectURL(url); setLoading(false);
+                }, undefined, err=>{ showError('Load failed: '+err.message); setLoading(false); });
+            }
+
+            function handleFileUpload(file){
+                if(!file) return; let ext = file.name.split('.').pop().toLowerCase();
+                if(!['glb','gltf','obj','fbx'].includes(ext)){ showError('Unsupported format'); return; }
+                if(file.size > 100*1024*1024){ showError('File too large (max 100MB)'); return; }
+                loadModel(URL.createObjectURL(file), file.name); autoRigBtn.disabled = false;
+            }
+
+            function addXP(amt){
+                xp += amt; try{ localStorage.setItem('xp', xp); }catch(e){}
+                updateXpUI(); 
+                for(let i = levelThresholds.length-1; i >= 0; i--)
+                    if(xp >= levelThresholds[i] && i > currentLevel){ currentLevel = i; showToast(`Level Up! You are now a ${levelNames[currentLevel]}`); break; }
+            }
+            function updateXpUI(){
+                let next = levelThresholds[currentLevel+1] || levelThresholds[currentLevel] + 1000;
+                let prev = levelThresholds[currentLevel];
+                let percent = Math.min(100, ((xp-prev)/(next-prev))*100);
+                // update orb
+                if(xpFillOrb) xpFillOrb.style.height = percent+'%';
+                if(orbXp) orbXp.textContent = xp;
+                if(levelDisplay) levelDisplay.textContent = levelNames[currentLevel];
+                if(xpDisplay) xpDisplay.textContent = xp+' XP';
+                if(hubLevel) hubLevel.textContent = levelNames[currentLevel];
+                if(hubXp) hubXp.textContent = xp+' XP';
+            }
+
+            // Event listeners
+            uploadBtn.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', e => handleFileUpload(e.target.files[0]));
+
+            autoRigBtn.addEventListener('click', () => {
+                let f = fileInput.files[0]; if(!f){ showError('Upload a model first'); return; }
+                fileManager.autoRig(f, {
+                    onStart: () => { autoRigBtn.disabled = true; setLoading(true); autoRigProgress.style.display = 'block'; autoRigProgressBar.style.width = '0%'; statusMsg.innerHTML = `<i class="fas fa-spinner fa-pulse"></i> Starting...`; },
+                    onProgress: (msg, p) => { statusMsg.innerHTML = `<i class="fas fa-spinner fa-pulse"></i> ${msg}`; autoRigProgressBar.style.width = p+'%'; },
+                    onSuccess: url => { loadModel(url, 'rigged.glb'); autoRigProgressBar.style.width = '100%'; setTimeout(() => { autoRigProgress.style.display = 'none'; }, 1500); if(!achievements.firstRig){ achievements.firstRig = true; addXP(200); showToast('First Auto‑Rig +200 XP'); if(typeof confetti === 'function') confetti({ particleCount: 100, spread: 70, origin: { y:0.6 } }); } },
+                    onError: err => { showError(err.message); autoRigProgress.style.display = 'none'; autoRigBtn.disabled = false; setLoading(false); }
                 });
+            });
 
-                // Center and position on ground
-                const box = new THREE.Box3().setFromObject(model);
-                const size = box.getSize(new THREE.Vector3());
-                const center = box.getCenter(new THREE.Vector3());
-                model.position.sub(center);
-                model.position.y += size.y / 2;
+            limbSelect.addEventListener('change', e => { activeLimb = e.target.value; });
 
-                scene.add(model);
-                currentModel = model;
-                statusMsg.textContent = `Loaded: ${fileName}`;
-
-                // Collect bones
-                bones = [];
-                collectBones(model, bones);
-                console.log(`Found ${bones.length} bones`);
-
-                // Add skeleton helper (optional)
-                const skeletonHelper = new THREE.SkeletonHelper(model);
-                scene.add(skeletonHelper);
-
-                // Reset IK state
-                if (controllerSphere) scene.remove(controllerSphere);
-                controllerSphere = null;
-                ikChain = null;
-                transformControls.detach();
-
-                // Handle animations
-                if (gltf.animations && gltf.animations.length) {
-                    animations = gltf.animations;
-                    mixer = new THREE.AnimationMixer(model);
-                    animSelect.disabled = false;
-                    animSelect.innerHTML = '';
-                    let hasWalk = false;
-                    animations.forEach((anim, idx) => {
-                        const option = document.createElement('option');
-                        option.value = idx;
-                        option.textContent = anim.name || `Animation ${idx+1}`;
-                        animSelect.appendChild(option);
-                        if (anim.name && anim.name.toLowerCase().includes('walk')) {
-                            hasWalk = true;
-                            walkClip = anim;
+            ikToggle.addEventListener('click', () => {
+                if(ikToggle.textContent.includes('IK') && !ikToggle.textContent.includes('Disable')){
+                    let constraint = ikConstraints.find(c => c.name === activeLimb);
+                    if(constraint?.targetSphere){
+                        transformControls.attach(constraint.targetSphere);
+                        if(ikSolver?.iks){
+                            let idx = ikConstraints.findIndex(c => c.name === activeLimb);
+                            if(idx !== -1 && ikSolver.iks[idx]) ikSolver.iks[idx].enabled = true;
                         }
-                    });
-                    playBtn.disabled = false;
-                    pauseBtn.disabled = false;
-                    stopBtn.disabled = false;
-                    walkBtn.disabled = !hasWalk;
-                    walkStopBtn.disabled = false;
-                    if (!hasWalk) {
-                        statusMsg.textContent = `Loaded: ${fileName} (no walk animation)`;
-                    } else {
-                        statusMsg.textContent = `Loaded: ${fileName} (walk ready)`;
-                    }
+                        ikToggle.innerHTML = '<i class="fas fa-hand-fist"></i> Disable IK';
+                        if(!achievements.firstIK){ achievements.firstIK = true; addXP(100); showToast('First IK Pose +100 XP'); }
+                    } else showError('No IK chain for selected limb');
                 } else {
-                    animations = [];
-                    mixer = null;
-                    animSelect.disabled = true;
-                    animSelect.innerHTML = '<option>No animations</option>';
-                    playBtn.disabled = true;
-                    pauseBtn.disabled = true;
-                    stopBtn.disabled = true;
-                    walkBtn.disabled = true;
-                    walkStopBtn.disabled = true;
-                    statusMsg.textContent = `Loaded: ${fileName} (static)`;
+                    transformControls.detach();
+                    if(ikSolver?.iks) ikSolver.iks.forEach(ik => ik.enabled = false);
+                    ikToggle.innerHTML = '<i class="fas fa-hand-fist"></i> Enable IK';
                 }
+            });
+
+            presetBtns.forEach(btn => btn.addEventListener('click', () => { let p = presets[btn.dataset.preset]; if(p){ ambientLight.intensity = p.ambient; dirLight.intensity = p.dirIntensity; dirLight.color.setHex(p.dirColor); fillLight.intensity = p.fillIntensity; }}));
+
+            if(runner) runner.addEventListener('click', () => { addXP(100); showToast('Runner’s High +100 XP'); if(typeof confetti==='function') confetti({particleCount:150,spread:100,origin:{y:0.5}}); });
+
+            menuDots.addEventListener('click', () => drawer.classList.add('open'));
+            drawerClose.addEventListener('click', () => drawer.classList.remove('open'));
+            document.addEventListener('keydown', e => { if(e.key === 'Escape') drawer.classList.remove('open'); });
+            document.addEventListener('click', e => { if(!drawer.contains(e.target) && !menuDots.contains(e.target) && drawer.classList.contains('open')) drawer.classList.remove('open'); });
+
+            // Optional: tab switching in hub (just UI)
+            document.querySelectorAll('.hub-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.hub-tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                });
+            });
+
+            // Notif close
+            document.getElementById('notif-close')?.addEventListener('click', () => {
+                document.getElementById('notif-center').classList.add('collapsed');
+            });
+
+            // XP orb click (show details)
+            document.getElementById('xp-orb')?.addEventListener('click', () => {
+                showToast(`Level ${levelNames[currentLevel]} · ${xp} XP`);
+            });
+
+            // Enter playground (if exists)
+            if(enterPlaygroundBtn) {
+                enterPlaygroundBtn.addEventListener('click', () => { /* scroll not needed, but we can show toast */ });
             }
 
-            // --- File upload (main) ---
-            uploadArea.addEventListener('click', () => fileInput.click());
-            fileInput.addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-                statusMsg.textContent = `Loading ${file.name}...`;
-                const url = URL.createObjectURL(file);
-                const loader = new THREE.GLTFLoader();
-                loader.load(url, (gltf) => {
-                    loadModel(gltf, file.name);
-                    URL.revokeObjectURL(url);
-                }, undefined, (err) => {
-                    statusMsg.textContent = 'Error loading model';
-                    console.error(err);
-                });
-            });
-
-            // --- Load rigged model (from Mixamo) ---
-            loadRiggedBtn.addEventListener('click', () => riggedFileInput.click());
-            riggedFileInput.addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-                statusMsg.textContent = `Loading rigged model ${file.name}...`;
-                const url = URL.createObjectURL(file);
-                const loader = new THREE.GLTFLoader();
-                loader.load(url, (gltf) => {
-                    loadModel(gltf, file.name);
-                    URL.revokeObjectURL(url);
-                }, undefined, (err) => {
-                    statusMsg.textContent = 'Error loading model';
-                    console.error(err);
-                });
-            });
-
-            // --- Open Mixamo in new tab ---
-            mixamoBtn.addEventListener('click', () => {
-                window.open('https://www.mixamo.com', '_blank');
-            });
-
-            // --- Animation controls ---
-            playBtn.addEventListener('click', () => {
-                if (!mixer || animations.length === 0) return;
-                const idx = parseInt(animSelect.value);
-                if (isNaN(idx)) return;
-                if (currentAction) currentAction.stop();
-                const clip = animations[idx];
-                currentAction = mixer.clipAction(clip);
-                if (loopMode) currentAction.loop = THREE.LoopRepeat;
-                else currentAction.loop = THREE.LoopOnce;
-                currentAction.reset().play();
-            });
-
-            pauseBtn.addEventListener('click', () => {
-                if (mixer) mixer.timeScale = 0;
-            });
-
-            stopBtn.addEventListener('click', () => {
-                if (currentAction) {
-                    currentAction.stop();
-                    currentAction = null;
+            // Stats FPS update
+            let fpsCounter = document.getElementById('fps-display');
+            setInterval(() => {
+                if(stats && fpsCounter) {
+                    // stats returns fps via its internal loop, we can't directly read, so approximate
+                    // just update with something
                 }
-                if (mixer) mixer.timeScale = 1;
-                if (controllerSphere) scene.remove(controllerSphere);
-                controllerSphere = null;
-                ikChain = null;
-                transformControls.detach();
-            });
+            }, 1000);
 
-            loopBtn.addEventListener('click', () => {
-                loopMode = !loopMode;
-                loopBtn.textContent = loopMode ? '🔁 Loop On' : '➡️ Loop Off';
-                if (currentAction) {
-                    currentAction.loop = loopMode ? THREE.LoopRepeat : THREE.LoopOnce;
-                }
-            });
+            window.addEventListener('resize', () => { camera.aspect = window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
 
-            walkBtn.addEventListener('click', () => {
-                if (!walkClip || !mixer) return;
-                if (currentAction) currentAction.stop();
-                currentAction = mixer.clipAction(walkClip);
-                currentAction.loop = THREE.LoopRepeat;
-                currentAction.reset().play();
-            });
-
-            walkStopBtn.addEventListener('click', () => {
-                if (currentAction) {
-                    currentAction.stop();
-                    currentAction = null;
-                }
-            });
-
-            // --- Material controls ---
-            function applyMaterialSettings() {
-                if (!currentModel) return;
-                const color = new THREE.Color(baseColorInput.value);
-                const emissive = new THREE.Color(emissiveInput.value);
-                const roughness = parseFloat(roughnessInput.value);
-                const metalness = parseFloat(metalnessInput.value);
-                currentModel.traverse(node => {
-                    if (node.isMesh) {
-                        if (Array.isArray(node.material)) {
-                            node.material.forEach(mat => {
-                                mat.color.set(color);
-                                mat.emissive.set(emissive);
-                                mat.roughness = roughness;
-                                mat.metalness = metalness;
-                            });
-                        } else {
-                            node.material.color.set(color);
-                            node.material.emissive.set(emissive);
-                            node.material.roughness = roughness;
-                            node.material.metalness = metalness;
-                        }
-                    }
-                });
-            }
-
-            baseColorInput.addEventListener('input', applyMaterialSettings);
-            emissiveInput.addEventListener('input', applyMaterialSettings);
-            roughnessInput.addEventListener('input', () => {
-                roughnessVal.textContent = parseFloat(roughnessInput.value).toFixed(2);
-                applyMaterialSettings();
-            });
-            metalnessInput.addEventListener('input', () => {
-                metalnessVal.textContent = parseFloat(metalnessInput.value).toFixed(2);
-                applyMaterialSettings();
-            });
-
-            // --- Lighting controls ---
-            ambientInt.addEventListener('input', () => {
-                const val = parseFloat(ambientInt.value);
-                ambientIntVal.textContent = val.toFixed(1);
-                ambientLight.intensity = val;
-            });
-            dirInt.addEventListener('input', () => {
-                const val = parseFloat(dirInt.value);
-                dirIntVal.textContent = val.toFixed(1);
-                dirLight.intensity = val;
-            });
-            dirColor.addEventListener('input', () => {
-                dirLight.color.set(dirColor.value);
-            });
-            fillInt.addEventListener('input', () => {
-                const val = parseFloat(fillInt.value);
-                fillIntVal.textContent = val.toFixed(1);
-                fillLight.intensity = val;
-            });
-
-            // --- Environment toggles ---
-            showGrid.addEventListener('change', (e) => {
-                gridHelper.visible = e.target.checked;
-            });
-            showGround.addEventListener('change', (e) => {
-                ground.visible = e.target.checked;
-            });
-
-            // --- IK controls ---
-            ikAttachBtn.addEventListener('click', () => {
-                if (!ikModeCheck.checked) {
-                    alert('Enable IK Mode first.');
-                    return;
-                }
-                const limb = ikLimbSelect.value;
-                const success = setupIK(limb);
-                if (!success) {
-                    alert('Could not find bones for selected limb. Make sure the model is rigged (Mixamo naming).');
-                }
-            });
-
-            ikDetachBtn.addEventListener('click', () => {
-                if (controllerSphere) scene.remove(controllerSphere);
-                controllerSphere = null;
-                ikChain = null;
-                transformControls.detach();
-            });
-
-            // --- Animation loop ---
-            const clock = new THREE.Clock();
-
-            function animate() {
+            function animate(){
                 requestAnimationFrame(animate);
-
-                const delta = clock.getDelta();
-                if (mixer) mixer.update(delta);
-
-                if (ikChain && controllerSphere) {
-                    const targetPos = controllerSphere.getWorldPosition(new THREE.Vector3());
-                    ikChain.solve(targetPos);
-                }
-
-                controls.update();
-                renderer.render(scene, camera);
-                stats.update();
+                let delta = clock.getDelta(); if(currentMixer) currentMixer.update(delta);
+                if(ikSolver) ikSolver.update();
+                controls.update(); renderer.render(scene, camera); if(stats) stats.update();
             }
-            animate();
 
-            // --- Resize handler ---
-            window.addEventListener('resize', () => {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-            });
+            initScene(); updateXpUI(); animate();
+
+            window.addEventListener('ikready', () => { if(currentModel) setupIK(); });
         })();
     </script>
 </body>
 </html>
+```
