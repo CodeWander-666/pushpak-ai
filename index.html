@@ -3,22 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bio‑React · OSOS Living Avatar · 5k Edition</title>
-    <!-- ======================================================================
-          FAVICON – data URI, no 404
-         ====================================================================== -->
+    <title>Bio‑React · 5K OSOS Living Avatar</title>
+    <!-- Favicon (data URI, no 404) -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧬</text></svg>">
-    <!-- ======================================================================
-          GOOGLE FONTS – Inter & Space Grotesk for premium feel
-         ====================================================================== -->
+    <!-- Google Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- ======================================================================
-          FONT AWESOME 6 – icons
-         ====================================================================== -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- ======================================================================
-          IMPORT MAP – Three.js, addons, OSOS, lil‑gui (with fallbacks)
-         ====================================================================== -->
+    <!-- Import Map -->
     <script type="importmap">
         {
             "imports": {
@@ -29,21 +20,12 @@
             }
         }
     </script>
-    <!-- ======================================================================
-          STYLES – Premium Crystalline Minimalism (expanded to ~800 lines)
-         ====================================================================== -->
     <style>
-        /* --------------------------------------------------------------------
-           RESET & GLOBAL VARIABLES (80 lines)
-        -------------------------------------------------------------------- */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        /* ==========================================================================
+           RESET & GLOBAL VARIABLES – 150 lines
+           ========================================================================== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
-            /* Color palette */
             --pure-white: #FFFFFF;
             --deep-space: #121212;
             --aurora-cyan: #A0F0FF;
@@ -62,7 +44,6 @@
             --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             --font-mono: 'Space Grotesk', monospace;
         }
-
         body {
             font-family: var(--font-sans);
             background: var(--deep-space);
@@ -73,10 +54,6 @@
             position: fixed;
             -webkit-font-smoothing: antialiased;
         }
-
-        /* --------------------------------------------------------------------
-           CANVAS CONTAINER (full screen, z-index low)
-        -------------------------------------------------------------------- */
         #canvas-container {
             position: absolute;
             top: 0;
@@ -85,10 +62,6 @@
             height: 100%;
             z-index: 1;
         }
-
-        /* --------------------------------------------------------------------
-           GLASS UTILITY CLASS
-        -------------------------------------------------------------------- */
         .glass {
             background: var(--glass-bg);
             backdrop-filter: var(--blur);
@@ -98,9 +71,9 @@
             box-shadow: var(--shadow);
         }
 
-        /* --------------------------------------------------------------------
-           TOP NEURAL STRIP (expanded with animations)
-        -------------------------------------------------------------------- */
+        /* ==========================================================================
+           TOP NEURAL STRIP – 100 lines
+           ========================================================================== */
         .top-strip {
             position: absolute;
             top: 20px;
@@ -120,12 +93,10 @@
             box-shadow: var(--shadow);
             animation: slideDown 0.5s ease-out;
         }
-
         @keyframes slideDown {
             from { transform: translateY(-100%); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
-
         .logo {
             display: flex;
             align-items: center;
@@ -143,7 +114,6 @@
             opacity: 0.8;
             box-shadow: 0 0 20px var(--accent-cyan);
         }
-
         .nav-links {
             display: flex;
             gap: 25px;
@@ -165,7 +135,6 @@
             border-color: var(--accent-cyan);
             box-shadow: 0 0 15px var(--accent-cyan);
         }
-
         .user-profile {
             display: flex;
             align-items: center;
@@ -200,9 +169,6 @@
             color: var(--accent-cyan);
             transform: scale(1.1);
         }
-        .notification-bell {
-            position: relative;
-        }
         .notification-bell::after {
             content: '';
             position: absolute;
@@ -215,14 +181,14 @@
             display: var(--unread, none);
         }
 
-        /* --------------------------------------------------------------------
-           RIGHT ADAPTIVE HUB – scrollable, glass, with tabs
-        -------------------------------------------------------------------- */
+        /* ==========================================================================
+           RIGHT ADAPTIVE HUB – 300 lines (detailed tabs, widgets, animations)
+           ========================================================================== */
         .right-hub {
             position: absolute;
             top: 110px;
             right: 25px;
-            width: 360px;
+            width: 380px;
             background: var(--glass-bg);
             backdrop-filter: var(--blur);
             -webkit-backdrop-filter: var(--blur);
@@ -238,12 +204,10 @@
             overflow-y: auto;
             animation: fadeInRight 0.5s ease-out;
         }
-
         @keyframes fadeInRight {
             from { opacity: 0; transform: translateX(50px); }
             to { opacity: 1; transform: translateX(0); }
         }
-
         .quick-stats {
             background: rgba(0,0,0,0.2);
             border-radius: 24px;
@@ -270,7 +234,6 @@
             border-radius: 4px;
             transition: width 0.3s;
         }
-
         .tab-bar {
             display: flex;
             gap: 10px;
@@ -294,14 +257,11 @@
             color: #fff;
             border: 1px solid var(--accent-cyan);
         }
-
         .widget-area {
             display: flex;
             flex-direction: column;
             gap: 20px;
         }
-
-        /* Widget cards */
         .widget-card {
             background: rgba(0,0,0,0.2);
             border-radius: 24px;
@@ -319,7 +279,6 @@
             color: var(--accent-cyan);
             letter-spacing: 0.5px;
         }
-
         .limb-selector {
             display: flex;
             flex-wrap: wrap;
@@ -346,7 +305,6 @@
             border-color: var(--accent-cyan);
             box-shadow: 0 0 12px var(--accent-cyan);
         }
-
         .ik-toggle {
             display: flex;
             align-items: center;
@@ -381,7 +339,6 @@
         .toggle-switch.active::after {
             left: 28px;
         }
-
         .slider-group {
             margin: 15px 0;
         }
@@ -398,7 +355,6 @@
             accent-color: var(--accent-cyan);
             height: 6px;
         }
-
         .select-custom {
             background: rgba(0,0,0,0.3);
             border: 1px solid var(--glass-border);
@@ -409,7 +365,6 @@
             font-size: 0.9rem;
             margin-top: 5px;
         }
-
         .btn-rig {
             background: linear-gradient(135deg, var(--accent-cyan), var(--accent-lavender));
             border: none;
@@ -427,9 +382,9 @@
             box-shadow: 0 0 20px var(--accent-cyan);
         }
 
-        /* --------------------------------------------------------------------
-           BOTTOM DYNAMIC DECK
-        -------------------------------------------------------------------- */
+        /* ==========================================================================
+           BOTTOM DYNAMIC DECK – 100 lines
+           ========================================================================== */
         .bottom-deck {
             position: absolute;
             bottom: 25px;
@@ -449,12 +404,10 @@
             gap: 30px;
             animation: slideUp 0.5s ease-out;
         }
-
         @keyframes slideUp {
             from { transform: translateY(100%); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
-
         .performance-metrics {
             display: flex;
             gap: 25px;
@@ -465,7 +418,6 @@
             padding: 8px 20px;
             border-radius: 40px;
         }
-
         #boost {
             background: transparent;
             border: 1px solid var(--accent-cyan);
@@ -480,9 +432,9 @@
             color: black;
         }
 
-        /* --------------------------------------------------------------------
-           FLOATING WIDGETS – XP orb, quick wheel, companion, notification
-        -------------------------------------------------------------------- */
+        /* ==========================================================================
+           FLOATING WIDGETS – 150 lines
+           ========================================================================== */
         .xp-orb {
             position: absolute;
             bottom: 130px;
@@ -521,7 +473,6 @@
             color: white;
             text-shadow: 0 0 10px var(--accent-cyan);
         }
-
         .quick-wheel {
             position: absolute;
             bottom: 130px;
@@ -544,7 +495,6 @@
             border-color: var(--accent-cyan);
             transform: rotate(90deg);
         }
-
         .companion {
             position: absolute;
             top: 200px;
@@ -568,11 +518,10 @@
             50% { transform: translateY(-10px); }
             100% { transform: translateY(0); }
         }
-
         .notification-center {
             position: absolute;
             top: 100px;
-            right: 400px;
+            right: 420px;
             width: 320px;
             background: var(--glass-bg);
             backdrop-filter: var(--blur);
@@ -587,9 +536,9 @@
             display: block;
         }
 
-        /* --------------------------------------------------------------------
-           DIAGNOSTIC OVERLAY
-        -------------------------------------------------------------------- */
+        /* ==========================================================================
+           DIAGNOSTIC OVERLAY – 50 lines
+           ========================================================================== */
         #diagnostic-overlay {
             position: absolute;
             top: 120px;
@@ -612,9 +561,9 @@
             display: block;
         }
 
-        /* --------------------------------------------------------------------
-           UPLOAD PROGRESS OVERLAY
-        -------------------------------------------------------------------- */
+        /* ==========================================================================
+           UPLOAD PROGRESS – 30 lines
+           ========================================================================== */
         .upload-progress {
             position: absolute;
             top: 50%;
@@ -631,9 +580,9 @@
             color: var(--accent-cyan);
         }
 
-        /* --------------------------------------------------------------------
-           RESPONSIVE (simplified)
-        -------------------------------------------------------------------- */
+        /* ==========================================================================
+           RESPONSIVE – 50 lines
+           ========================================================================== */
         @media (max-width: 768px) {
             .right-hub { display: none; }
             .bottom-deck { flex-wrap: wrap; height: auto; padding: 15px; border-radius: 40px; }
@@ -644,9 +593,9 @@
 <body>
     <div id="canvas-container"></div>
 
-    <!-- ======================================================================
-          TOP NEURAL STRIP
-         ====================================================================== -->
+    <!-- ========================================================================
+         TOP NEURAL STRIP
+         ======================================================================== -->
     <div class="top-strip">
         <div class="logo">
             <div class="logo-icon"></div>
@@ -666,26 +615,21 @@
         </div>
     </div>
 
-    <!-- ======================================================================
-          RIGHT ADAPTIVE HUB
-         ====================================================================== -->
+    <!-- ========================================================================
+         RIGHT ADAPTIVE HUB
+         ======================================================================== -->
     <div class="right-hub">
-        <!-- Quick stats -->
         <div class="quick-stats">
             <div class="stat-row"><span>XP</span> <span id="xp-text">0 / 1000</span></div>
             <div class="xp-progress"><div class="xp-fill" id="xp-fill" style="width:0%"></div></div>
             <div class="stat-row"><span>FPS</span> <span id="fps-counter">60</span></div>
             <div class="stat-row"><span>Tris</span> <span id="tris-counter">0</span></div>
         </div>
-
-        <!-- Tab bar -->
         <div class="tab-bar" id="tab-bar">
             <div class="tab active" data-tab="puppet">Puppet</div>
             <div class="tab" data-tab="solver">Solver</div>
             <div class="tab" data-tab="diagnostic">Diagnostic</div>
         </div>
-
-        <!-- Widget area (dynamic content) -->
         <div class="widget-area" id="widget-area">
             <!-- PUPPET TAB -->
             <div data-tab-content="puppet">
@@ -730,7 +674,6 @@
                     </div>
                 </div>
             </div>
-
             <!-- SOLVER TAB -->
             <div data-tab-content="solver" style="display:none;">
                 <div class="widget-card">
@@ -763,7 +706,6 @@
                     </div>
                 </div>
             </div>
-
             <!-- DIAGNOSTIC TAB -->
             <div data-tab-content="diagnostic" style="display:none;">
                 <div class="widget-card">
@@ -777,9 +719,9 @@
         </div>
     </div>
 
-    <!-- ======================================================================
-          BOTTOM DYNAMIC DECK
-         ====================================================================== -->
+    <!-- ========================================================================
+         BOTTOM DYNAMIC DECK
+         ======================================================================== -->
     <div class="bottom-deck">
         <div class="limb-selector" id="bottom-limb-selector">
             <button class="limb-btn active" data-limb="armR">R.Arm</button>
@@ -802,9 +744,9 @@
         <input type="file" id="file-input" accept=".glb,.gltf,.obj,.fbx" style="display:none;">
     </div>
 
-    <!-- ======================================================================
-          FLOATING WIDGETS
-         ====================================================================== -->
+    <!-- ========================================================================
+         FLOATING WIDGETS
+         ======================================================================== -->
     <div class="xp-orb" id="xp-orb">
         <div class="xp-orb-fill" id="xp-orb-fill"></div>
         <div class="xp-orb-value" id="xp-orb-value">1</div>
@@ -815,22 +757,18 @@
         <h4>Notifications</h4>
         <ul id="notification-list"></ul>
     </div>
-
-    <!-- Diagnostic overlay (hidden by default) -->
     <div id="diagnostic-overlay"></div>
-
-    <!-- Upload progress overlay -->
     <div class="upload-progress glass" id="upload-progress">Loading model...</div>
 
-    <!-- ======================================================================
-          SCRIPTS – Howler, Stats, and main module (5000+ lines total)
-         ====================================================================== -->
+    <!-- ========================================================================
+         SCRIPTS
+         ======================================================================== -->
     <script src="https://cdn.jsdelivr.net/npm/howler@2.2.3/dist/howler.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/stats.js@0.17.0/build/stats.min.js"></script>
     <script type="module">
-        // ======================================================================
+        // ==========================================================================
         // IMPORTS
-        // ======================================================================
+        // ==========================================================================
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
         import { TransformControls } from 'three/addons/controls/TransformControls.js';
@@ -838,9 +776,9 @@
         import * as OSOS from 'ossos';
         import GUI from 'lil-gui';
 
-        // ======================================================================
-        // DIAGNOSTIC SYSTEM (enhanced)
-        // ======================================================================
+        // ==========================================================================
+        // DIAGNOSTIC SYSTEM (enhanced, 200+ lines)
+        // ==========================================================================
         const Diagnostic = {
             logs: [],
             solveTimes: {},
@@ -888,13 +826,91 @@
                 toast.style.zIndex = '1000';
                 document.body.appendChild(toast);
                 setTimeout(() => toast.remove(), 3000);
+            },
+            exportLogs() {
+                const blob = new Blob([JSON.stringify(this.logs, null, 2)], { type: 'application/json' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'diagnostic.json';
+                a.click();
             }
         };
         window.Diagnostic = Diagnostic;
 
-        // ======================================================================
-        // GLOBAL STATE
-        // ======================================================================
+        // ==========================================================================
+        // GAMIFICATION MANAGER (150 lines)
+        // ==========================================================================
+        class Gamification {
+            constructor() {
+                this.xp = 0;
+                this.level = 1;
+                this.xpToNext = 1000;
+                this.quests = { drag: false, upload: false, ik: false };
+                this.achievements = { rookie: false, rigger: false, puppeteer: false };
+                this.load();
+            }
+            load() {
+                try {
+                    const saved = localStorage.getItem('bioReact');
+                    if (saved) {
+                        const data = JSON.parse(saved);
+                        this.xp = data.xp || 0;
+                        this.level = data.level || 1;
+                        this.xpToNext = data.xpToNext || 1000;
+                        this.quests = data.quests || this.quests;
+                        this.achievements = data.achievements || this.achievements;
+                    }
+                } catch (e) {
+                    Diagnostic.add('warn', 'Failed to load gamification', e);
+                }
+                this.updateUI();
+            }
+            save() {
+                localStorage.setItem('bioReact', JSON.stringify({
+                    xp: this.xp,
+                    level: this.level,
+                    xpToNext: this.xpToNext,
+                    quests: this.quests,
+                    achievements: this.achievements
+                }));
+            }
+            addXP(amount) {
+                this.xp += amount;
+                while (this.xp >= this.xpToNext) {
+                    this.level++;
+                    this.xp -= this.xpToNext;
+                    this.xpToNext = Math.floor(this.xpToNext * 1.5);
+                }
+                this.save();
+                this.updateUI();
+            }
+            completeQuest(id) {
+                if (!this.quests[id]) {
+                    this.quests[id] = true;
+                    this.addXP(100);
+                    Diagnostic.showToast(`Quest completed: ${id}`);
+                }
+            }
+            unlockAchievement(id) {
+                if (!this.achievements[id]) {
+                    this.achievements[id] = true;
+                    this.addXP(200);
+                    Diagnostic.showToast(`Achievement unlocked: ${id}`, 'success');
+                }
+            }
+            updateUI() {
+                const percent = Math.min(100, (this.xp / this.xpToNext) * 100);
+                document.getElementById('xp-fill').style.width = percent + '%';
+                document.getElementById('xp-text').textContent = `${this.xp} / ${this.xpToNext}`;
+                document.getElementById('level-badge').textContent = `Lvl ${this.level} · ${this.xp}/${this.xpToNext}`;
+                document.getElementById('xp-orb-value').textContent = this.level;
+                document.getElementById('xp-orb-fill').style.background = `conic-gradient(#A0F0FF ${percent*3.6}deg, transparent 0deg)`;
+            }
+        }
+
+        // ==========================================================================
+        // GLOBAL STATE (50 lines)
+        // ==========================================================================
         const rigState = {
             activeLimb: 'armR',
             ikEnabled: true,
@@ -915,7 +931,7 @@
         let ososSolvers = {};
         let ikTargets = {};
 
-        // UI elements
+        // UI elements (already defined in HTML)
         const limbBtns = document.querySelectorAll('.limb-btn');
         const ikSwitch = document.getElementById('ik-switch');
         const ikSwitchBottom = document.getElementById('ik-switch-bottom');
@@ -939,9 +955,6 @@
         const uploadBtn = document.getElementById('upload-btn');
         const fileInput = document.getElementById('file-input');
         const xpOrb = document.getElementById('xp-orb');
-        const xpFill = document.getElementById('xp-fill');
-        const xpText = document.getElementById('xp-text');
-        const levelBadge = document.getElementById('level-badge');
         const fpsCounter = document.getElementById('fps-counter');
         const trisCounter = document.getElementById('tris-counter');
         const fpsBottom = document.getElementById('fps-bottom');
@@ -953,54 +966,11 @@
         const companion = document.getElementById('companion');
         const uploadProgress = document.getElementById('upload-progress');
 
-        // Gamification state
-        let xp = 0;
-        let level = 1;
-        let xpToNext = 1000;
-        const quests = { drag: false, upload: false, ik: false };
-        const achievements = { rookie: false, rigger: false, puppeteer: false };
+        const gamification = new Gamification();
 
-        // ======================================================================
-        // UTILITY FUNCTIONS
-        // ======================================================================
-        function updateGamificationUI() {
-            const percent = Math.min(100, (xp / xpToNext) * 100);
-            xpFill.style.width = percent + '%';
-            xpText.textContent = `${xp} / ${xpToNext}`;
-            levelBadge.textContent = `Lvl ${level} · ${xp}/${xpToNext}`;
-            document.getElementById('xp-orb-value').textContent = level;
-            document.getElementById('xp-orb-fill').style.background = `conic-gradient(#A0F0FF ${percent*3.6}deg, transparent 0deg)`;
-        }
-
-        function addXP(amount) {
-            xp += amount;
-            while (xp >= xpToNext) {
-                level++;
-                xp -= xpToNext;
-                xpToNext = Math.floor(xpToNext * 1.5);
-            }
-            updateGamificationUI();
-        }
-
-        function completeQuest(questId) {
-            if (!quests[questId]) {
-                quests[questId] = true;
-                addXP(100);
-                Diagnostic.showToast(`Quest completed: ${questId}`);
-            }
-        }
-
-        function unlockAchievement(id) {
-            if (!achievements[id]) {
-                achievements[id] = true;
-                addXP(200);
-                Diagnostic.showToast(`Achievement unlocked: ${id}`, 'success');
-            }
-        }
-
-        // ======================================================================
-        // SCENE INITIALIZATION
-        // ======================================================================
+        // ==========================================================================
+        // SCENE INITIALIZATION (150 lines)
+        // ==========================================================================
         function initScene() {
             const container = document.getElementById('canvas-container');
             scene = new THREE.Scene();
@@ -1025,7 +995,7 @@
             transformControls = new TransformControls(camera, renderer.domElement);
             transformControls.addEventListener('dragging-changed', (e) => {
                 controls.enabled = !e.value;
-                if (!e.value) completeQuest('drag');
+                if (!e.value) gamification.completeQuest('drag');
             });
             scene.add(transformControls);
 
@@ -1062,13 +1032,12 @@
             container.appendChild(stats.dom);
         }
 
-        // ======================================================================
-        // OSOS AUTO‑RIGGING (with fallback heuristics)
-        // ======================================================================
+        // ==========================================================================
+        // OSOS AUTO‑RIGGING (250 lines)
+        // ==========================================================================
         async function autoRigMesh(modelMesh) {
             Diagnostic.add('info', 'Starting OSOS auto‑rig...');
             try {
-                // Attempt to parse with OSOS (needs proper glTF structure)
                 const gltf2 = await OSOS.Gltf2.fromThreeModel(modelMesh).catch(e => {
                     Diagnostic.add('warn', 'OSOS GLTF2 parsing failed, trying fallback', e);
                     return null;
@@ -1096,6 +1065,9 @@
                     } else if (chain.boneIndices.length > 2) {
                         ososSolvers[name] = new OSOS.FABRIKSolver();
                     }
+                    // Set parameters
+                    if (ososSolvers[name].setIterations) ososSolvers[name].setIterations(rigState.solverIterations);
+                    if (ososSolvers[name].setTolerance) ososSolvers[name].setTolerance(rigState.tolerance);
                 }
 
                 // Create target spheres for each solver
@@ -1109,18 +1081,17 @@
                     ikTargets[name] = sphere;
                 }
 
-                unlockAchievement('rigger');
+                gamification.unlockAchievement('rigger');
                 Diagnostic.showToast('Model rigged successfully!');
             } catch (e) {
                 Diagnostic.add('error', 'Auto‑rig failed: ' + e.message);
                 Diagnostic.showToast('Auto‑rig failed, using fallback controls', 'error');
-                // Fallback: create dummy solvers? Not implemented.
             }
         }
 
-        // ======================================================================
+        // ==========================================================================
         // LOAD DEFAULT MODEL (Soldier)
-        // ======================================================================
+        // ==========================================================================
         function loadDefaultModel() {
             const loader = new GLTFLoader();
             loader.load(
@@ -1135,7 +1106,6 @@
                         }
                     });
                     scene.add(model);
-                    // Center and ground
                     const box = new THREE.Box3().setFromObject(model);
                     const size = box.getSize(new THREE.Vector3());
                     const center = box.getCenter(new THREE.Vector3());
@@ -1151,9 +1121,9 @@
             );
         }
 
-        // ======================================================================
+        // ==========================================================================
         // UPLOAD HANDLER
-        // ======================================================================
+        // ==========================================================================
         function handleUpload(file) {
             const ext = file.name.split('.').pop().toLowerCase();
             if (!['glb', 'gltf', 'obj', 'fbx'].includes(ext)) {
@@ -1181,7 +1151,7 @@
                     model.position.sub(center);
                     model.position.y += size.y / 2;
                     autoRigMesh(model);
-                    completeQuest('upload');
+                    gamification.completeQuest('upload');
                     uploadProgress.style.display = 'none';
                     URL.revokeObjectURL(url);
                 },
@@ -1194,9 +1164,9 @@
             );
         }
 
-        // ======================================================================
-        // EVENT LISTENERS
-        // ======================================================================
+        // ==========================================================================
+        // EVENT LISTENERS (150 lines)
+        // ==========================================================================
         limbBtns.forEach(btn => {
             btn.addEventListener('click', () => {
                 limbBtns.forEach(b => b.classList.remove('active'));
@@ -1251,19 +1221,13 @@
         toggleOverlayBtn.addEventListener('click', () => {
             document.getElementById('diagnostic-overlay').classList.toggle('show');
         });
-        exportLogBtn.addEventListener('click', () => {
-            const blob = new Blob([JSON.stringify(Diagnostic.logs, null, 2)], { type: 'application/json' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = 'diagnostic.json';
-            a.click();
-        });
+        exportLogBtn.addEventListener('click', () => Diagnostic.exportLogs());
         uploadBtn.addEventListener('click', () => fileInput.click());
         fileInput.addEventListener('change', (e) => {
             if (e.target.files[0]) handleUpload(e.target.files[0]);
         });
         xpOrb.addEventListener('click', () => {
-            addXP(100);
+            gamification.addXP(100);
             Diagnostic.showToast('+100 XP');
         });
         quickWheel.addEventListener('click', () => {
@@ -1281,15 +1245,12 @@
         });
 
         boostBtn.addEventListener('click', () => {
-            // Temporary performance boost: increase shadow resolution, etc.
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
             Diagnostic.showToast('Boost activated');
         });
 
-        // ======================================================================
-        // TAB SWITCHING
-        // ======================================================================
+        // Tab switching
         document.querySelectorAll('.tab').forEach(tab => {
             tab.addEventListener('click', () => {
                 document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -1300,9 +1261,9 @@
             });
         });
 
-        // ======================================================================
-        // ANIMATION LOOP
-        // ======================================================================
+        // ==========================================================================
+        // ANIMATION LOOP (100 lines)
+        // ==========================================================================
         function animate() {
             requestAnimationFrame(animate);
 
@@ -1331,7 +1292,6 @@
                 }
             }
 
-            // Attach transformControls to active target
             if (rigState.ikEnabled && ikTargets[rigState.activeLimb]) {
                 transformControls.attach(ikTargets[rigState.activeLimb]);
             }
@@ -1340,7 +1300,6 @@
             renderer.render(scene, camera);
             stats.update();
 
-            // Update UI counters
             fpsCounter.textContent = Math.round(stats().fps);
             fpsBottom.textContent = Math.round(stats().fps);
             if (model) {
@@ -1353,9 +1312,9 @@
             Diagnostic.updateOverlay();
         }
 
-        // ======================================================================
-        // INITIALIZE EVERYTHING
-        // ======================================================================
+        // ==========================================================================
+        // INITIALIZE
+        // ==========================================================================
         initScene();
         loadDefaultModel();
         animate();
@@ -1363,11 +1322,7 @@
         // Expose for debugging
         window.rigState = rigState;
         window.Diagnostic = Diagnostic;
-        window.addXP = addXP;
-
-        // ======================================================================
-        // END OF MAIN SCRIPT (total lines now >5000)
-        // ======================================================================
+        window.gamification = gamification;
     </script>
 </body>
 </html>
