@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OSOS RIGIFIER · BONE‑MAPPED ANIMATIONS</title>
+    <title>OSOS RIGIFIER · HIGH‑FIDELITY MOTION</title>
     <!-- Import Map (CORS‑safe, verified URLs) -->
     <script type="importmap">
         {
@@ -235,6 +235,14 @@
             background: #ff88ff;
             color:#000;
         }
+        .camera-lock {
+            background: rgba(0,200,255,0.2);
+            border-color: #00ffff;
+        }
+        .camera-lock.active {
+            background: #00ffff;
+            color:#000;
+        }
     </style>
 </head>
 <body>
@@ -254,7 +262,7 @@
         <div class="logo"><i class="fas fa-dna"></i> OSOS·RIGIFIER</div>
         <div class="status">
             <span><i class="fas fa-circle" id="status-led"></i> <span id="status-text">ONLINE</span></span>
-            <span><i class="fas fa-bolt"></i> AUTO‑RIG READY</span>
+            <span><i class="fas fa-bolt"></i> PROCEDURAL RIG</span>
         </div>
         <div class="profile">
             <span id="xp-display">0 XP</span>
@@ -288,7 +296,7 @@
     <div class="overlay bottom-panel">
         <button id="upload-btn"><i class="fas fa-upload"></i> UPLOAD MESH</button>
         <input type="file" id="file-input" accept=".glb,.gltf" style="display:none;">
-        <button id="auto-rig-btn" disabled><i class="fas fa-bolt"></i> AUTO‑RIG (OSOS)</button>
+        <button id="auto-rig-btn" disabled style="display:none;"><i class="fas fa-bolt"></i> AUTO‑RIG (OSOS)</button>
         <button id="force-rig-btn" disabled><i class="fas fa-exclamation-triangle"></i> FORCE RIG</button>
         <button id="tpose-to-idle"><i class="fas fa-child"></i> T‑POSE → IDLE</button>
         <select id="animation-select" disabled>
@@ -309,6 +317,7 @@
         </div>
         <button id="physics-toggle" class="active"><i class="fas fa-heartbeat"></i> PHYSICS ON</button>
         <button id="manual-toggle" class="toggle-manual" title="Toggle manual rig controls"><i class="fas fa-cog"></i> MANUAL RIG</button>
+        <button id="camera-lock" class="camera-lock" title="Lock/Unlock camera"><i class="fas fa-lock"></i> CAMERA</button>
         <span id="status-msg"><i class="fas fa-circle" style="color:#44ff44;"></i> READY</span>
     </div>
 
@@ -332,19 +341,6 @@
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
         import { TransformControls } from 'three/addons/controls/TransformControls.js';
-        import * as CANNON from 'cannon-es';
-
-        // ========== OSOS LOAD FROM JSDELIVR (MORE RELIABLE) ==========
-        let OSOS = null;
-        let ososAvailable = false;
-        try {
-            const module = await import('https://cdn.jsdelivr.net/npm/ossos@0.0.10/index.js');
-            OSOS = module;
-            ososAvailable = true;
-            console.log('OSOS loaded successfully');
-        } catch (e) {
-            console.warn('OSOS failed to load – auto‑rig disabled', e);
-        }
 
         // ========== SETUP ==========
         let scene, camera, renderer, controls, transformControls;
@@ -361,6 +357,8 @@
 
         // Manual rig mode toggle
         let manualMode = false;
+        // Camera lock toggle
+        let cameraLocked = false;
 
         // Procedural animation state
         let procAnim = 'idle';
@@ -371,12 +369,13 @@
         // UI elements
         const fileInput = document.getElementById('file-input');
         const uploadBtn = document.getElementById('upload-btn');
-        const autoRigBtn = document.getElementById('auto-rig-btn');
+        const autoRigBtn = document.getElementById('auto-rig-btn'); // hidden
         const forceRigBtn = document.getElementById('force-rig-btn');
         const tposeToIdleBtn = document.getElementById('tpose-to-idle');
         const animSelect = document.getElementById('animation-select');
         const physicsToggle = document.getElementById('physics-toggle');
         const manualToggle = document.getElementById('manual-toggle');
+        const cameraLockBtn = document.getElementById('camera-lock');
         const statusMsg = document.getElementById('status-msg');
         const boneSelect = document.getElementById('bone-select');
         const rotX = document.getElementById('rot-x');
@@ -429,8 +428,8 @@
             controls.target.set(0,1,0);
 
             transformControls = new TransformControls(camera, renderer.domElement);
-            transformControls.addEventListener('dragging-changed', (e) => { controls.enabled = !e.value; });
-            scene.add(transformControls); // Add to scene so it can be attached
+            transformControls.addEventListener('dragging-changed', (e) => { controls.enabled = !e.value && !cameraLocked; });
+            scene.add(transformControls); // Must be in scene before attaching
 
             // Lights
             scene.add(new THREE.AmbientLight(0x404060, 0.6));
@@ -483,11 +482,10 @@
             boneSelect.disabled = false;
             selectedBone = cube;
             // Ensure cube is in scene before attaching
-            transformControls.attach(cube);
+            if (manualMode) transformControls.attach(cube);
 
             tposeToIdleBtn.disabled = false;
             physicsToggle.disabled = false;
-            autoRigBtn.disabled = !ososAvailable;
             forceRigBtn.disabled = true;
             animSelect.disabled = true;
 
@@ -499,23 +497,23 @@
             setStatus('Default jelly cube active. Upload a model to rig.', 'info');
         }
 
-        // Comprehensive bone mapping (synonyms for each joint)
+        // Comprehensive bone mapping with synonyms
         const boneMappings = {
-            spine: /spine|chest|torso|upperbody|back/i,
-            head: /head|neck|skull/i,
-            leftArm: /leftarm|upperarm_l|arm_l|l_arm|leftshoulder|shoulder_l/i,
-            rightArm: /rightarm|upperarm_r|arm_r|r_arm|rightshoulder|shoulder_r/i,
-            leftForeArm: /leftforearm|forearm_l|lowerarm_l|elbow_l/i,
-            rightForeArm: /rightforearm|forearm_r|lowerarm_r|elbow_r/i,
-            leftHand: /lefthand|hand_l|palm_l/i,
-            rightHand: /righthand|hand_r|palm_r/i,
-            leftLeg: /leftupleg|thigh_l|upleg_l|leftthigh/i,
-            rightLeg: /rightupleg|thigh_r|upleg_r|rightthigh/i,
-            leftCalf: /leftleg|calf_l|shin_l|lowerleg_l/i,
-            rightCalf: /rightleg|calf_r|shin_r|lowerleg_r/i,
-            leftFoot: /leftfoot|foot_l|ankle_l/i,
-            rightFoot: /rightfoot|foot_r|ankle_r/i,
-            hips: /hips|pelvis|root|lowerback|waist/i
+            spine: /spine|chest|torso|upperbody|back|thorax|ribs/i,
+            head: /head|neck|skull|face|chin/i,
+            leftArm: /leftarm|upperarm_l|arm_l|l_arm|leftshoulder|shoulder_l|clavicle_l/i,
+            rightArm: /rightarm|upperarm_r|arm_r|r_arm|rightshoulder|shoulder_r|clavicle_r/i,
+            leftForeArm: /leftforearm|forearm_l|lowerarm_l|elbow_l|radius_l/i,
+            rightForeArm: /rightforearm|forearm_r|lowerarm_r|elbow_r|radius_r/i,
+            leftHand: /lefthand|hand_l|palm_l|wrist_l/i,
+            rightHand: /righthand|hand_r|palm_r|wrist_r/i,
+            leftLeg: /leftupleg|thigh_l|upleg_l|leftthigh|femur_l/i,
+            rightLeg: /rightupleg|thigh_r|upleg_r|rightthigh|femur_r/i,
+            leftCalf: /leftleg|calf_l|shin_l|lowerleg_l|tibia_l|fibula_l/i,
+            rightCalf: /rightleg|calf_r|shin_r|lowerleg_r|tibia_r|fibula_r/i,
+            leftFoot: /leftfoot|foot_l|ankle_l|heel_l|ball_l/i,
+            rightFoot: /rightfoot|foot_r|ankle_r|heel_r|ball_r/i,
+            hips: /hips|pelvis|root|lowerback|waist|baseroot|master|pelvis_root/i
         };
 
         function findBone(type) {
@@ -554,7 +552,6 @@
 
         async function loadModel(url, name) {
             setStatus('LOADING MODEL...', 'info');
-            autoRigBtn.disabled = true;
             forceRigBtn.disabled = true;
             tposeToIdleBtn.disabled = true;
             animSelect.disabled = true;
@@ -602,7 +599,6 @@
                 });
                 boneSelect.disabled = false;
 
-                autoRigBtn.disabled = !ososAvailable;
                 forceRigBtn.disabled = true;
                 tposeToIdleBtn.disabled = false;
                 physicsToggle.disabled = false;
@@ -630,30 +626,6 @@
                 createJellyCube();
             }
         }
-
-        // ========== AUTO‑RIG (OSOS) ==========
-        autoRigBtn.addEventListener('click', async () => {
-            if (!currentModel || bones.length === 0 || isFallback || !ososAvailable) return;
-            setStatus('AUTO‑RIGGING...', 'info');
-            try {
-                const armature = new OSOS.Armature();
-                const boneIndices = new Map();
-                bones.forEach((b, i) => boneIndices.set(b, i));
-                bones.forEach((bone, idx) => {
-                    const parentIdx = bone.parent && boneIndices.has(bone.parent) ? boneIndices.get(bone.parent) : -1;
-                    armature.addBone(bone.name, parentIdx, bone.quaternion, bone.position, bone.scale);
-                });
-
-                const rig = new OSOS.BipedRig();
-                const success = rig.autoRig(armature);
-                if (!success) throw new Error('Auto‑rig failed (not biped?)');
-
-                setStatus('AUTO‑RIG COMPLETE', 'success');
-                addXP(200);
-            } catch (e) {
-                setStatus('AUTO‑RIG ERROR: ' + e.message, 'error');
-            }
-        });
 
         // ========== FORCE RIG ==========
         forceRigBtn.addEventListener('click', () => {
@@ -708,11 +680,22 @@
             manualToggle.classList.toggle('active', manualMode);
             if (manualMode) {
                 rightPanel.classList.remove('hidden');
-                if (selectedBone) transformControls.attach(selectedBone);
+                if (selectedBone) {
+                    // Ensure selectedBone is still in scene (might have been removed)
+                    if (selectedBone.parent) transformControls.attach(selectedBone);
+                }
             } else {
                 rightPanel.classList.add('hidden');
                 transformControls.detach();
             }
+        });
+
+        // ========== CAMERA LOCK TOGGLE ==========
+        cameraLockBtn.addEventListener('click', () => {
+            cameraLocked = !cameraLocked;
+            cameraLockBtn.classList.toggle('active', cameraLocked);
+            controls.enabled = !cameraLocked;
+            cameraLockBtn.innerHTML = cameraLocked ? '<i class="fas fa-lock"></i> CAMERA' : '<i class="fas fa-unlock-alt"></i> CAMERA';
         });
 
         // ========== PROCEDURAL ANIMATION BUTTONS ==========
@@ -729,7 +712,7 @@
             const boneName = e.target.value;
             if (isFallback && boneName === 'cube') {
                 selectedBone = fallbackCube;
-                if (manualMode) transformControls.attach(fallbackCube);
+                if (manualMode && selectedBone.parent) transformControls.attach(fallbackCube);
                 const rot = fallbackCube.rotation;
                 rotX.value = rot.x;
                 rotY.value = rot.y;
@@ -739,7 +722,7 @@
                 rotZval.textContent = rot.z.toFixed(2);
             } else {
                 selectedBone = bones.find(b => b.name === boneName);
-                if (selectedBone && manualMode) transformControls.attach(selectedBone);
+                if (selectedBone && manualMode && selectedBone.parent) transformControls.attach(selectedBone);
                 if (selectedBone) {
                     const rot = selectedBone.rotation;
                     rotX.value = rot.x;
@@ -780,8 +763,8 @@
             try {
                 if (mixer) mixer.update(delta);
 
-                // Physics (breathing)
-                if (physicsEnabled) {
+                // Physics (breathing) – only when physics enabled and not in manual mode
+                if (physicsEnabled && !manualMode) {
                     if (isFallback && fallbackCube) {
                         const scaleX = 1 + Math.sin(time * 5) * 0.1;
                         const scaleY = 1 + Math.sin(time * 5 + 2) * 0.1;
@@ -795,8 +778,8 @@
                     }
                 }
 
-                // Procedural animations (only on mesh with bones)
-                if (!isFallback && currentModel && bones.length > 0 && procAnim !== 'idle') {
+                // Procedural animations (only on mesh with bones and not manual mode)
+                if (!isFallback && currentModel && bones.length > 0 && !manualMode) {
                     procAnimTime += delta;
                     const spine = findBone('spine');
                     const head = findBone('head');
@@ -805,7 +788,10 @@
                     const rLeg = findBone('rightLeg');
                     const lLeg = findBone('leftLeg');
                     const hips = findBone('hips');
+                    const rFoot = findBone('rightFoot');
+                    const lFoot = findBone('leftFoot');
 
+                    // High‑fidelity human motions
                     switch (procAnim) {
                         case 'wave':
                             if (rArm) {
@@ -821,25 +807,35 @@
                             if (rArm) rArm.rotation.z = Math.sin(procAnimTime * 6) * 0.5;
                             if (lArm) lArm.rotation.z = Math.sin(procAnimTime * 6 + 2) * 0.5;
                             if (head) head.rotation.z = Math.sin(procAnimTime * 4) * 0.1;
+                            if (hips) hips.position.y = 1 + Math.sin(procAnimTime * 8) * 0.05;
                             break;
                         case 'walk':
-                            if (rLeg) rLeg.rotation.x = Math.sin(procAnimTime * 5) * 0.4;
-                            if (lLeg) lLeg.rotation.x = Math.sin(procAnimTime * 5 + Math.PI) * 0.4;
-                            if (rArm) rArm.rotation.x = Math.sin(procAnimTime * 5 + Math.PI) * 0.3;
-                            if (lArm) lArm.rotation.x = Math.sin(procAnimTime * 5) * 0.3;
+                            if (rLeg) rLeg.rotation.x = Math.sin(procAnimTime * 5) * 0.5;
+                            if (lLeg) lLeg.rotation.x = Math.sin(procAnimTime * 5 + Math.PI) * 0.5;
+                            if (rArm) rArm.rotation.x = Math.sin(procAnimTime * 5 + Math.PI) * 0.4;
+                            if (lArm) lArm.rotation.x = Math.sin(procAnimTime * 5) * 0.4;
+                            if (hips) hips.position.y = 1 + Math.abs(Math.sin(procAnimTime * 5)) * 0.03;
                             break;
                         case 'run':
-                            if (rLeg) rLeg.rotation.x = Math.sin(procAnimTime * 10) * 0.8;
-                            if (lLeg) lLeg.rotation.x = Math.sin(procAnimTime * 10 + Math.PI) * 0.8;
-                            if (rArm) rArm.rotation.x = Math.sin(procAnimTime * 10 + Math.PI) * 0.6;
-                            if (lArm) lArm.rotation.x = Math.sin(procAnimTime * 10) * 0.6;
+                            if (rLeg) rLeg.rotation.x = Math.sin(procAnimTime * 10) * 0.9;
+                            if (lLeg) lLeg.rotation.x = Math.sin(procAnimTime * 10 + Math.PI) * 0.9;
+                            if (rArm) rArm.rotation.x = Math.sin(procAnimTime * 10 + Math.PI) * 0.7;
+                            if (lArm) lArm.rotation.x = Math.sin(procAnimTime * 10) * 0.7;
+                            if (hips) hips.position.y = 1 + Math.abs(Math.sin(procAnimTime * 10)) * 0.05;
                             break;
                         case 'jump':
-                            // Simple jump: squat then extend
                             const jumpPhase = Math.sin(procAnimTime * 6);
-                            if (lLeg) lLeg.rotation.x = Math.max(0, jumpPhase) * 0.5;
-                            if (rLeg) rLeg.rotation.x = Math.max(0, jumpPhase) * 0.5;
-                            if (hips) hips.position.y = 1 + Math.abs(jumpPhase) * 0.3;
+                            const jumpHeight = Math.max(0, jumpPhase) * 0.4;
+                            if (lLeg) lLeg.rotation.x = jumpHeight * 1.5;
+                            if (rLeg) rLeg.rotation.x = jumpHeight * 1.5;
+                            if (hips) hips.position.y = 1 + jumpHeight;
+                            if (rArm) rArm.rotation.x = -jumpHeight * 1.5;
+                            if (lArm) lArm.rotation.x = -jumpHeight * 1.5;
+                            break;
+                        case 'idle':
+                            // Subtle sway
+                            if (spine) spine.rotation.z = Math.sin(procAnimTime * 2) * 0.02;
+                            if (head) head.rotation.z = Math.sin(procAnimTime * 2) * 0.01;
                             break;
                     }
                 }
