@@ -1,13 +1,12 @@
-import { defineConfig } from 'vite';
-import wasm from 'vite-plugin-wasm';
-import topLevelAwait from 'vite-plugin-top-level-await';
+import { defineConfig } from 'vite'
 
 export default defineConfig({
-  plugins: [
-    wasm(),
-    topLevelAwait(),
-  ],
-  optimizeDeps: {
-    exclude: ['@dimforge/rapier3d-compat']
-  },
-});
+  server: {
+    port: 3000,
+    proxy: {
+      '/upload': 'http://localhost:5000',
+      '/status': 'http://localhost:5000',
+      '/download': 'http://localhost:5000'
+    }
+  }
+})

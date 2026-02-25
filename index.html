@@ -2,142 +2,787 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bio‑React – Ultimate Game</title>
-
-    <!-- Preconnect to CDNs (optional, Vite uses local deps) -->
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
-    <link rel="preconnect" href="https://unpkg.com">
-
-    <!-- Loading screen styles (glassmorphic, blueprint style) -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bio‑React · Auto‑Rig + IK Puppet</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: #0a0a1a; overflow: hidden; }
-        #loading-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, #0a0a1a, #1a1a2a);
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            z-index: 10000; transition: opacity 0.5s;
-            backdrop-filter: blur(10px);
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0a1a;
+            color: #fff;
+            overflow: hidden;
         }
-        #loading-screen.hidden { opacity: 0; pointer-events: none; }
-        .loading-logo {
-            width: 200px; height: 200px;
-            background: url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Ccircle cx=\'50\' cy=\'50\' r=\'40\' fill=\'%2388ccff\' opacity=\'0.9\'/%3E%3Ctext x=\'50\' y=\'68\' font-size=\'24\' text-anchor=\'middle\' fill=\'white\' font-family=\'Inter\'%3EBR%3C/text%3E%3C/svg%3E') no-repeat center/contain;
-            filter: drop-shadow(0 0 20px rgba(100,200,255,0.5));
-            animation: pulse 2s infinite;
+        #info {
+            position: absolute; top: 20px; left: 20px;
+            background: rgba(10,15,25,0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(100,180,255,0.3);
+            border-radius: 60px;
+            padding: 12px 28px;
+            font-weight: 500;
+            font-size: 15px;
+            color: #aaddff;
+            z-index: 100;
+            pointer-events: none;
         }
-        @keyframes pulse { 0% { opacity:0.8; transform:scale(1); } 50% { opacity:1; transform:scale(1.05); } 100% { opacity:0.8; transform:scale(1); } }
-        .loading-text {
-            color: #88ccff; font-size: 1.8rem; margin: 20px 0 10px;
-            text-shadow: 0 0 10px rgba(136,204,255,0.5);
+        #stats-container {
+            position: absolute; top: 20px; right: 20px;
+            z-index: 100;
+        }
+        #main-panel {
+            position: absolute; top: 20px; right: 20px;
+            width: 480px;
+            background: rgba(12,18,28,0.9);
+            backdrop-filter: blur(20px);
+            border: 1px solid #446688;
+            border-radius: 30px;
+            padding: 25px;
+            color: white;
+            z-index: 200;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+            pointer-events: auto;
+        }
+        .section-title {
+            font-size: 18px;
             font-weight: 600;
+            margin-bottom: 15px;
+            color: #88ccff;
+            border-bottom: 1px solid #335577;
+            padding-bottom: 8px;
         }
-        .progress-bar-container {
-            width: 300px; height: 8px; background: #1a1e2a; border-radius: 10px;
-            overflow: hidden; margin: 10px 0;
-            border: 1px solid #335577;
+        .control-group {
+            margin-bottom: 20px;
         }
-        .progress-bar-fill {
-            height: 100%; width: 0%; background: linear-gradient(90deg, #44aaff, #88ddff);
-            transition: width 0.3s;
+        .control-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 8px 0;
         }
-        .status-message {
-            color: #aaddff; font-size: 1rem; margin-top: 15px;
-            font-family: 'Inter', monospace;
+        .control-label {
+            font-size: 14px;
+            color: #bbddff;
         }
-        .error-message {
-            color: #ff6666; background: rgba(255,0,0,0.2); padding: 20px; border-radius: 10px;
-            max-width: 500px; text-align: center; display: none;
-            border: 1px solid #ff6666;
-            backdrop-filter: blur(5px);
+        input[type="range"] {
+            width: 180px;
+            background: #1a1e2a;
+            border: 1px solid #446688;
+            border-radius: 10px;
+            height: 6px;
+            accent-color: #88ccff;
         }
-        .error-message button {
-            background: #1e3a5a; border: 1px solid #88ccff; color: white;
-            padding: 10px 20px; border-radius: 40px; margin-top: 15px; cursor: pointer;
-            font-size: 1rem;
+        input[type="color"] {
+            width: 60px;
+            height: 30px;
+            border: 1px solid #446688;
+            border-radius: 6px;
+            background: transparent;
+            cursor: pointer;
+        }
+        select, .ik-select {
+            background: #1a1e2a;
+            border: 1px solid #446688;
+            border-radius: 20px;
+            padding: 8px 12px;
+            color: white;
+            font-size: 14px;
+            width: 100%;
+            margin: 5px 0;
+        }
+        button {
+            background: linear-gradient(145deg, #1e3a5a, #122a40);
+            border: none;
+            border-radius: 40px;
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            color: white;
+            cursor: pointer;
+            border: 1px solid #2a6a9a;
+            transition: 0.2s;
+            margin: 4px 2px;
+        }
+        button:hover {
+            background: linear-gradient(145deg, #2a4a7a, #1a3a60);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,80,160,0.6);
+        }
+        button.primary {
+            background: linear-gradient(145deg, #3a6a9a, #2a4a7a);
+            border-color: #88ccff;
+        }
+        .file-area {
+            background: #1a1e2a;
+            border: 2px dashed #446688;
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            margin: 10px 0;
+            cursor: pointer;
             transition: 0.2s;
         }
-        .error-message button:hover { background: #2a4a7a; }
-        @media (max-width: 600px) {
-            .loading-logo { width: 150px; height: 150px; }
-            .loading-text { font-size: 1.5rem; }
-            .progress-bar-container { width: 250px; }
+        .file-area:hover {
+            border-color: #88aaff;
+            background: #1a2a3a;
+        }
+        #file-input, #rigged-file-input {
+            display: none;
+        }
+        #status-message {
+            font-size: 14px;
+            color: #aaddff;
+            margin-top: 8px;
+        }
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .value-display {
+            font-family: monospace;
+            color: #88ccff;
+            font-size: 14px;
+        }
+        .note {
+            font-size: 12px;
+            color: #88aadd;
+            margin-top: 8px;
+            padding: 8px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 20px;
+            border-left: 3px solid #88ccff;
+        }
+        footer {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #6688aa;
+            text-align: center;
         }
     </style>
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- Loading screen overlay -->
-    <div id="loading-screen">
-        <div class="loading-logo"></div>
-        <div class="loading-text">Bio‑React</div>
-        <div class="progress-bar-container">
-            <div id="progress-bar" class="progress-bar-fill"></div>
+    <div id="info">🧬 Bio‑React · Auto‑Rig + IK Puppet</div>
+    <div id="stats-container"></div>
+
+    <div id="main-panel">
+        <div class="section-title">📁 Model</div>
+        <div class="file-area" id="upload-area">
+            <span style="font-size:24px;">📤</span>
+            <div>Upload GLB/GLTF (static or rigged)</div>
+            <input type="file" id="file-input" accept=".glb,.gltf" />
+            <div id="status-message">No model loaded</div>
         </div>
-        <div id="status-message" class="status-message">Initializing...</div>
-        <div id="error-message" class="error-message"></div>
+
+        <div class="section-title">🔄 Auto‑Rig</div>
+        <div class="control-group">
+            <p style="font-size:13px; color:#bbddff;">Use Mixamo to rig your static mesh:</p>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <button id="mixamo-btn" class="primary" style="flex:1;">🚀 Open Mixamo</button>
+                <button id="load-rigged-btn" style="flex:1;">📥 Load Rigged Model</button>
+            </div>
+            <input type="file" id="rigged-file-input" accept=".glb,.gltf" style="display:none;">
+            <div class="note">
+                <strong>How to use:</strong><br>
+                1. Upload your static T‑pose to Mixamo (free account).<br>
+                2. Download the rigged GLB (with "With Skin" and "Format: GLB").<br>
+                3. Click "Load Rigged Model" and select the downloaded file.
+            </div>
+        </div>
+
+        <div class="section-title">🎬 Animation</div>
+        <div class="control-group">
+            <select id="anim-select" disabled>
+                <option>No animations</option>
+            </select>
+            <div class="grid-container" style="margin-top:10px;">
+                <button id="play-btn" disabled>▶ Play</button>
+                <button id="pause-btn" disabled>⏸️ Pause</button>
+                <button id="stop-btn" disabled>⏹️ Stop</button>
+                <button id="loop-btn" style="grid-column: span 2;">🔁 Toggle Loop</button>
+            </div>
+            <div style="margin-top:15px; display: flex; gap: 8px;">
+                <button id="walk-btn" class="primary" disabled>🚶 Walk</button>
+                <button id="walk-stop-btn" disabled>⏹️ Stop Walking</button>
+            </div>
+        </div>
+
+        <div class="section-title">🎨 Material</div>
+        <div class="control-group">
+            <div class="control-row">
+                <span class="control-label">Base Color</span>
+                <input type="color" id="base-color" value="#88aaff">
+            </div>
+            <div class="control-row">
+                <span class="control-label">Roughness</span>
+                <input type="range" id="roughness" min="0" max="1" step="0.01" value="0.4">
+                <span id="roughness-val" class="value-display">0.40</span>
+            </div>
+            <div class="control-row">
+                <span class="control-label">Metalness</span>
+                <input type="range" id="metalness" min="0" max="1" step="0.01" value="0.1">
+                <span id="metalness-val" class="value-display">0.10</span>
+            </div>
+            <div class="control-row">
+                <span class="control-label">Emissive</span>
+                <input type="color" id="emissive" value="#000000">
+            </div>
+        </div>
+
+        <div class="section-title">💡 Lighting</div>
+        <div class="control-group">
+            <div class="control-row">
+                <span class="control-label">Ambient Intensity</span>
+                <input type="range" id="ambient-int" min="0" max="2" step="0.1" value="0.4">
+                <span id="ambient-int-val" class="value-display">0.4</span>
+            </div>
+            <div class="control-row">
+                <span class="control-label">Dir Light Intensity</span>
+                <input type="range" id="dir-int" min="0" max="3" step="0.1" value="1.2">
+                <span id="dir-int-val" class="value-display">1.2</span>
+            </div>
+            <div class="control-row">
+                <span class="control-label">Dir Light Color</span>
+                <input type="color" id="dir-color" value="#ffffff">
+            </div>
+            <div class="control-row">
+                <span class="control-label">Fill Light Intensity</span>
+                <input type="range" id="fill-int" min="0" max="2" step="0.1" value="0.6">
+                <span id="fill-int-val" class="value-display">0.6</span>
+            </div>
+        </div>
+
+        <div class="section-title">🌍 Environment</div>
+        <div class="control-group">
+            <div class="control-row">
+                <span class="control-label">Show Grid</span>
+                <input type="checkbox" id="show-grid" checked>
+            </div>
+            <div class="control-row">
+                <span class="control-label">Show Ground</span>
+                <input type="checkbox" id="show-ground" checked>
+            </div>
+        </div>
+
+        <div class="section-title">🦾 IK PUPPET</div>
+        <div class="control-group">
+            <div class="control-row">
+                <span class="control-label">Enable IK Mode</span>
+                <input type="checkbox" id="ik-mode">
+            </div>
+            <div class="control-row">
+                <span class="control-label">Limb</span>
+                <select id="ik-limb" class="ik-select">
+                    <option value="rightArm">Right Arm</option>
+                    <option value="leftArm">Left Arm</option>
+                    <option value="rightLeg">Right Leg</option>
+                    <option value="leftLeg">Left Leg</option>
+                </select>
+            </div>
+            <div style="margin-top:10px;">
+                <button id="ik-attach">🎮 Attach Controller</button>
+                <button id="ik-detach" style="margin-left:5px;">🔓 Detach</button>
+            </div>
+            <p style="font-size:12px; color:#88aadd; margin-top:8px;">
+                Drag the controller sphere to pose the limb naturally. IK solves joint angles automatically.
+            </p>
+        </div>
+
+        <footer>⚡ High‑End 3D Studio · Real‑time PBR</footer>
     </div>
 
+    <!-- Three.js and addons -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stats.js@0.17.0/build/stats.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/TransformControls.js"></script>
+    <!-- three-ik library for inverse kinematics -->
+    <script src="https://cdn.jsdelivr.net/npm/three-ik@0.5.0/build/three-ik.min.js"></script>
+
     <script>
-        // ---------- Global Loading Screen API ----------
-        window.loadingScreen = {
-            updateProgress: function(percent, message) {
-                const bar = document.getElementById('progress-bar');
-                const status = document.getElementById('status-message');
-                if (bar) bar.style.width = percent + '%';
-                if (status && message) status.textContent = message;
-            },
-            hide: function() {
-                const screen = document.getElementById('loading-screen');
-                if (screen) screen.classList.add('hidden');
-            },
-            showError: function(message, fatal = true) {
-                const errorDiv = document.getElementById('error-message');
-                const screen = document.getElementById('loading-screen');
-                if (errorDiv) {
-                    errorDiv.innerHTML = `<p>${message}</p><button onclick="location.reload()">Reload</button>`;
-                    errorDiv.style.display = 'block';
-                }
-                if (screen) screen.classList.remove('hidden');
-                console.error('FATAL:', message);
-            }
-        };
-
-        // WebGL check
         (function() {
-            try {
-                const canvas = document.createElement('canvas');
-                const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
-                if (!gl) throw new Error('WebGL not supported');
-            } catch (e) {
-                window.loadingScreen.showError('Your browser does not support WebGL.');
+            // --- Stats ---
+            const stats = new Stats();
+            stats.dom.style.position = 'absolute';
+            stats.dom.style.top = '20px';
+            stats.dom.style.right = '20px';
+            stats.dom.style.zIndex = '300';
+            document.getElementById('stats-container').appendChild(stats.dom);
+
+            // --- Scene setup ---
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x111122);
+
+            const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(4, 2, 8);
+
+            const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.2;
+            document.body.appendChild(renderer.domElement);
+
+            const controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.maxPolarAngle = Math.PI / 2;
+            controls.target.set(0, 1, 0);
+
+            // --- TransformControls (for IK controller) ---
+            const transformControls = new THREE.TransformControls(camera, renderer.domElement);
+            transformControls.addEventListener('dragging-changed', (event) => {
+                controls.enabled = !event.value;
+            });
+            scene.add(transformControls); // adds the gizmo
+
+            // --- Lighting ---
+            const ambientLight = new THREE.AmbientLight(0x404060, 0.4);
+            scene.add(ambientLight);
+
+            const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+            dirLight.position.set(5, 10, 7);
+            dirLight.castShadow = true;
+            dirLight.receiveShadow = true;
+            dirLight.shadow.mapSize.width = 1024;
+            dirLight.shadow.mapSize.height = 1024;
+            scene.add(dirLight);
+
+            const fillLight = new THREE.PointLight(0x4488cc, 0.6);
+            fillLight.position.set(-4, 5, 6);
+            scene.add(fillLight);
+
+            // --- Ground and grid ---
+            const groundGeo = new THREE.PlaneGeometry(20, 20);
+            const groundMat = new THREE.MeshStandardMaterial({ color: 0x2a3a4a, side: THREE.DoubleSide });
+            const ground = new THREE.Mesh(groundGeo, groundMat);
+            ground.rotation.x = -Math.PI / 2;
+            ground.position.y = 0;
+            ground.receiveShadow = true;
+            ground.name = "ground";
+            scene.add(ground);
+
+            const gridHelper = new THREE.GridHelper(20, 20, 0x88aaff, 0x335577);
+            gridHelper.name = "grid";
+            scene.add(gridHelper);
+
+            // --- State ---
+            let currentModel = null;
+            let mixer = null;
+            let currentAction = null;
+            let animations = [];
+            let loopMode = true;
+            let walkClip = null;
+            let bones = [];               // all bones in the model
+
+            // IK related
+            let ikChain = null;            // IKSolver instance
+            let controllerSphere = null;   // visual handle for end effector
+            let ikBones = {
+                upper: null,
+                lower: null,
+                end: null
+            };
+
+            // UI Elements
+            const uploadArea = document.getElementById('upload-area');
+            const fileInput = document.getElementById('file-input');
+            const riggedFileInput = document.getElementById('rigged-file-input');
+            const mixamoBtn = document.getElementById('mixamo-btn');
+            const loadRiggedBtn = document.getElementById('load-rigged-btn');
+            const statusMsg = document.getElementById('status-message');
+            const animSelect = document.getElementById('anim-select');
+            const playBtn = document.getElementById('play-btn');
+            const pauseBtn = document.getElementById('pause-btn');
+            const stopBtn = document.getElementById('stop-btn');
+            const loopBtn = document.getElementById('loop-btn');
+            const walkBtn = document.getElementById('walk-btn');
+            const walkStopBtn = document.getElementById('walk-stop-btn');
+            const ikModeCheck = document.getElementById('ik-mode');
+            const ikLimbSelect = document.getElementById('ik-limb');
+            const ikAttachBtn = document.getElementById('ik-attach');
+            const ikDetachBtn = document.getElementById('ik-detach');
+            const baseColorInput = document.getElementById('base-color');
+            const roughnessInput = document.getElementById('roughness');
+            const roughnessVal = document.getElementById('roughness-val');
+            const metalnessInput = document.getElementById('metalness');
+            const metalnessVal = document.getElementById('metalness-val');
+            const emissiveInput = document.getElementById('emissive');
+            const ambientInt = document.getElementById('ambient-int');
+            const ambientIntVal = document.getElementById('ambient-int-val');
+            const dirInt = document.getElementById('dir-int');
+            const dirIntVal = document.getElementById('dir-int-val');
+            const dirColor = document.getElementById('dir-color');
+            const fillInt = document.getElementById('fill-int');
+            const fillIntVal = document.getElementById('fill-int-val');
+            const showGrid = document.getElementById('show-grid');
+            const showGround = document.getElementById('show-ground');
+
+            // --- Utility to collect bones ---
+            function collectBones(node, arr) {
+                if (node.isBone) arr.push(node);
+                if (node.children) node.children.forEach(child => collectBones(child, arr));
             }
+
+            // --- Find bones by name patterns (Mixamo naming) ---
+            function findIKBones(type) {
+                if (!currentModel) return null;
+                let upperName, lowerName, endName;
+                switch (type) {
+                    case 'rightArm':
+                        upperName = /RightArm|UpperArm_R/i;
+                        lowerName = /RightForeArm|ForeArm_R/i;
+                        endName = /RightHand|Hand_R/i;
+                        break;
+                    case 'leftArm':
+                        upperName = /LeftArm|UpperArm_L/i;
+                        lowerName = /LeftForeArm|ForeArm_L/i;
+                        endName = /LeftHand|Hand_L/i;
+                        break;
+                    case 'rightLeg':
+                        upperName = /RightUpLeg|Thigh_R/i;
+                        lowerName = /RightLeg|Leg_R/i;
+                        endName = /RightFoot|Foot_R/i;
+                        break;
+                    case 'leftLeg':
+                        upperName = /LeftUpLeg|Thigh_L/i;
+                        lowerName = /LeftLeg|Leg_L/i;
+                        endName = /LeftFoot|Foot_L/i;
+                        break;
+                    default: return null;
+                }
+                const found = {
+                    upper: bones.find(b => upperName.test(b.name)),
+                    lower: bones.find(b => lowerName.test(b.name)),
+                    end: bones.find(b => endName.test(b.name))
+                };
+                if (found.upper && found.lower && found.end) return found;
+                return null;
+            }
+
+            // --- Create IK chain using three-ik ---
+            function setupIK(limb) {
+                if (!currentModel || !window.IK) return false;
+                const found = findIKBones(limb);
+                if (!found) {
+                    console.warn('Could not find bones for', limb);
+                    return false;
+                }
+                ikBones = found;
+
+                // Create a chain: upper -> lower -> end
+                const chain = new IK.IKChain();
+                chain.addBone(found.upper);
+                chain.addBone(found.lower);
+                chain.addBone(found.end); // end effector
+
+                const solver = new IK.IKSolver(chain);
+                solver.setRoot(found.upper); // root of the chain
+
+                ikChain = solver;
+
+                // Create a visual controller sphere
+                if (controllerSphere) scene.remove(controllerSphere);
+                const sphereGeo = new THREE.SphereGeometry(0.1, 16);
+                const sphereMat = new THREE.MeshStandardMaterial({ color: 0xffaa44, emissive: 0x442200 });
+                controllerSphere = new THREE.Mesh(sphereGeo, sphereMat);
+                scene.add(controllerSphere);
+
+                // Attach transformControls to the sphere
+                transformControls.attach(controllerSphere);
+
+                // Initial position of sphere at end effector
+                const endPos = found.end.getWorldPosition(new THREE.Vector3());
+                controllerSphere.position.copy(endPos);
+
+                return true;
+            }
+
+            // --- Function to load a model (reused for both uploads) ---
+            function loadModel(gltf, fileName) {
+                if (currentModel) scene.remove(currentModel);
+                const model = gltf.scene;
+                model.traverse(node => {
+                    if (node.isMesh) {
+                        node.castShadow = true;
+                        node.receiveShadow = true;
+                    }
+                });
+
+                // Center and position on ground
+                const box = new THREE.Box3().setFromObject(model);
+                const size = box.getSize(new THREE.Vector3());
+                const center = box.getCenter(new THREE.Vector3());
+                model.position.sub(center);
+                model.position.y += size.y / 2;
+
+                scene.add(model);
+                currentModel = model;
+                statusMsg.textContent = `Loaded: ${fileName}`;
+
+                // Collect bones
+                bones = [];
+                collectBones(model, bones);
+                console.log(`Found ${bones.length} bones`);
+
+                // Add skeleton helper (optional)
+                const skeletonHelper = new THREE.SkeletonHelper(model);
+                scene.add(skeletonHelper);
+
+                // Reset IK state
+                if (controllerSphere) scene.remove(controllerSphere);
+                controllerSphere = null;
+                ikChain = null;
+                transformControls.detach();
+
+                // Handle animations
+                if (gltf.animations && gltf.animations.length) {
+                    animations = gltf.animations;
+                    mixer = new THREE.AnimationMixer(model);
+                    animSelect.disabled = false;
+                    animSelect.innerHTML = '';
+                    let hasWalk = false;
+                    animations.forEach((anim, idx) => {
+                        const option = document.createElement('option');
+                        option.value = idx;
+                        option.textContent = anim.name || `Animation ${idx+1}`;
+                        animSelect.appendChild(option);
+                        if (anim.name && anim.name.toLowerCase().includes('walk')) {
+                            hasWalk = true;
+                            walkClip = anim;
+                        }
+                    });
+                    playBtn.disabled = false;
+                    pauseBtn.disabled = false;
+                    stopBtn.disabled = false;
+                    walkBtn.disabled = !hasWalk;
+                    walkStopBtn.disabled = false;
+                    if (!hasWalk) {
+                        statusMsg.textContent = `Loaded: ${fileName} (no walk animation)`;
+                    } else {
+                        statusMsg.textContent = `Loaded: ${fileName} (walk ready)`;
+                    }
+                } else {
+                    animations = [];
+                    mixer = null;
+                    animSelect.disabled = true;
+                    animSelect.innerHTML = '<option>No animations</option>';
+                    playBtn.disabled = true;
+                    pauseBtn.disabled = true;
+                    stopBtn.disabled = true;
+                    walkBtn.disabled = true;
+                    walkStopBtn.disabled = true;
+                    statusMsg.textContent = `Loaded: ${fileName} (static)`;
+                }
+            }
+
+            // --- File upload (main) ---
+            uploadArea.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                statusMsg.textContent = `Loading ${file.name}...`;
+                const url = URL.createObjectURL(file);
+                const loader = new THREE.GLTFLoader();
+                loader.load(url, (gltf) => {
+                    loadModel(gltf, file.name);
+                    URL.revokeObjectURL(url);
+                }, undefined, (err) => {
+                    statusMsg.textContent = 'Error loading model';
+                    console.error(err);
+                });
+            });
+
+            // --- Load rigged model (from Mixamo) ---
+            loadRiggedBtn.addEventListener('click', () => riggedFileInput.click());
+            riggedFileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                statusMsg.textContent = `Loading rigged model ${file.name}...`;
+                const url = URL.createObjectURL(file);
+                const loader = new THREE.GLTFLoader();
+                loader.load(url, (gltf) => {
+                    loadModel(gltf, file.name);
+                    URL.revokeObjectURL(url);
+                }, undefined, (err) => {
+                    statusMsg.textContent = 'Error loading model';
+                    console.error(err);
+                });
+            });
+
+            // --- Open Mixamo in new tab ---
+            mixamoBtn.addEventListener('click', () => {
+                window.open('https://www.mixamo.com', '_blank');
+            });
+
+            // --- Animation controls ---
+            playBtn.addEventListener('click', () => {
+                if (!mixer || animations.length === 0) return;
+                const idx = parseInt(animSelect.value);
+                if (isNaN(idx)) return;
+                if (currentAction) currentAction.stop();
+                const clip = animations[idx];
+                currentAction = mixer.clipAction(clip);
+                if (loopMode) currentAction.loop = THREE.LoopRepeat;
+                else currentAction.loop = THREE.LoopOnce;
+                currentAction.reset().play();
+            });
+
+            pauseBtn.addEventListener('click', () => {
+                if (mixer) mixer.timeScale = 0;
+            });
+
+            stopBtn.addEventListener('click', () => {
+                if (currentAction) {
+                    currentAction.stop();
+                    currentAction = null;
+                }
+                if (mixer) mixer.timeScale = 1;
+                if (controllerSphere) scene.remove(controllerSphere);
+                controllerSphere = null;
+                ikChain = null;
+                transformControls.detach();
+            });
+
+            loopBtn.addEventListener('click', () => {
+                loopMode = !loopMode;
+                loopBtn.textContent = loopMode ? '🔁 Loop On' : '➡️ Loop Off';
+                if (currentAction) {
+                    currentAction.loop = loopMode ? THREE.LoopRepeat : THREE.LoopOnce;
+                }
+            });
+
+            walkBtn.addEventListener('click', () => {
+                if (!walkClip || !mixer) return;
+                if (currentAction) currentAction.stop();
+                currentAction = mixer.clipAction(walkClip);
+                currentAction.loop = THREE.LoopRepeat;
+                currentAction.reset().play();
+            });
+
+            walkStopBtn.addEventListener('click', () => {
+                if (currentAction) {
+                    currentAction.stop();
+                    currentAction = null;
+                }
+            });
+
+            // --- Material controls ---
+            function applyMaterialSettings() {
+                if (!currentModel) return;
+                const color = new THREE.Color(baseColorInput.value);
+                const emissive = new THREE.Color(emissiveInput.value);
+                const roughness = parseFloat(roughnessInput.value);
+                const metalness = parseFloat(metalnessInput.value);
+                currentModel.traverse(node => {
+                    if (node.isMesh) {
+                        if (Array.isArray(node.material)) {
+                            node.material.forEach(mat => {
+                                mat.color.set(color);
+                                mat.emissive.set(emissive);
+                                mat.roughness = roughness;
+                                mat.metalness = metalness;
+                            });
+                        } else {
+                            node.material.color.set(color);
+                            node.material.emissive.set(emissive);
+                            node.material.roughness = roughness;
+                            node.material.metalness = metalness;
+                        }
+                    }
+                });
+            }
+
+            baseColorInput.addEventListener('input', applyMaterialSettings);
+            emissiveInput.addEventListener('input', applyMaterialSettings);
+            roughnessInput.addEventListener('input', () => {
+                roughnessVal.textContent = parseFloat(roughnessInput.value).toFixed(2);
+                applyMaterialSettings();
+            });
+            metalnessInput.addEventListener('input', () => {
+                metalnessVal.textContent = parseFloat(metalnessInput.value).toFixed(2);
+                applyMaterialSettings();
+            });
+
+            // --- Lighting controls ---
+            ambientInt.addEventListener('input', () => {
+                const val = parseFloat(ambientInt.value);
+                ambientIntVal.textContent = val.toFixed(1);
+                ambientLight.intensity = val;
+            });
+            dirInt.addEventListener('input', () => {
+                const val = parseFloat(dirInt.value);
+                dirIntVal.textContent = val.toFixed(1);
+                dirLight.intensity = val;
+            });
+            dirColor.addEventListener('input', () => {
+                dirLight.color.set(dirColor.value);
+            });
+            fillInt.addEventListener('input', () => {
+                const val = parseFloat(fillInt.value);
+                fillIntVal.textContent = val.toFixed(1);
+                fillLight.intensity = val;
+            });
+
+            // --- Environment toggles ---
+            showGrid.addEventListener('change', (e) => {
+                gridHelper.visible = e.target.checked;
+            });
+            showGround.addEventListener('change', (e) => {
+                ground.visible = e.target.checked;
+            });
+
+            // --- IK controls ---
+            ikAttachBtn.addEventListener('click', () => {
+                if (!ikModeCheck.checked) {
+                    alert('Enable IK Mode first.');
+                    return;
+                }
+                const limb = ikLimbSelect.value;
+                const success = setupIK(limb);
+                if (!success) {
+                    alert('Could not find bones for selected limb. Make sure the model is rigged (Mixamo naming).');
+                }
+            });
+
+            ikDetachBtn.addEventListener('click', () => {
+                if (controllerSphere) scene.remove(controllerSphere);
+                controllerSphere = null;
+                ikChain = null;
+                transformControls.detach();
+            });
+
+            // --- Animation loop ---
+            const clock = new THREE.Clock();
+
+            function animate() {
+                requestAnimationFrame(animate);
+
+                const delta = clock.getDelta();
+                if (mixer) mixer.update(delta);
+
+                if (ikChain && controllerSphere) {
+                    const targetPos = controllerSphere.getWorldPosition(new THREE.Vector3());
+                    ikChain.solve(targetPos);
+                }
+
+                controls.update();
+                renderer.render(scene, camera);
+                stats.update();
+            }
+            animate();
+
+            // --- Resize handler ---
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
         })();
-
-        // Global error handlers
-        window.addEventListener('error', (e) => {
-            if (e.target && e.target.tagName === 'LINK' && e.target.rel === 'icon') return;
-            if (e.target && e.target.tagName === 'SCRIPT') {
-                window.loadingScreen.showError(`Failed to load script: ${e.target.src}`);
-            } else {
-                console.error('Uncaught error:', e.error || e.message);
-            }
-        }, true);
-
-        window.addEventListener('unhandledrejection', (event) => {
-            console.error('Unhandled rejection:', event.reason);
-            if (!window.gameStarted) {
-                window.loadingScreen.showError('A critical error occurred. Please reload.');
-            }
-        });
-
-        window.gameStarted = false;
-        console.log('Loading main module...');
     </script>
-
-    <!-- ---------- Main game module ---------- -->
-    <script type="module" src="./components/main.js"></script>
 </body>
 </html>
