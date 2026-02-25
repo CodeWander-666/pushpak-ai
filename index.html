@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OSOS RIGIFIER · ZERO 404 · ALWAYS VISIBLE</title>
+    <title>OSOS RIGIFIER · PRO ANIMATIONS</title>
     <!-- Import Map (CORS‑safe, verified URLs) -->
     <script type="importmap">
         {
@@ -97,7 +97,7 @@
             background: rgba(0,0,0,0.4);
             border:1px solid rgba(0,255,255,0.5);
             color:white;
-            padding:12px 28px;
+            padding:12px 24px;
             border-radius: 40px;
             font-weight:600;
             font-size:0.9rem;
@@ -204,6 +204,24 @@
             max-width:500px;
             text-align:center;
         }
+        /* Procedural animation buttons group */
+        .proc-anim-group {
+            display: flex;
+            gap:8px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .proc-anim-group button {
+            background: rgba(128,0,128,0.4);
+            border-color: #ff88ff;
+            padding:8px 16px;
+            font-size:0.8rem;
+        }
+        .proc-anim-group button.active {
+            background: #ff88ff;
+            color:#000;
+            border-color:#ff88ff;
+        }
     </style>
 </head>
 <body>
@@ -266,6 +284,13 @@
             <option value="run">RUN</option>
             <option value="jump">JUMP</option>
         </select>
+        <!-- New procedural animation buttons -->
+        <div class="proc-anim-group">
+            <button id="anim-wave" disabled title="Wave right arm">👋 WAVE</button>
+            <button id="anim-kick" disabled title="Kick right leg">🦵 KICK</button>
+            <button id="anim-dance" disabled title="Simple dance">💃 DANCE</button>
+            <button id="anim-none" class="active" title="Stop procedural animation">⏹️ NONE</button>
+        </div>
         <button id="physics-toggle" class="active"><i class="fas fa-heartbeat"></i> PHYSICS ON</button>
         <span id="status-msg"><i class="fas fa-circle" style="color:#44ff44;"></i> READY</span>
     </div>
@@ -319,6 +344,10 @@
         let isFallback = true;    // start with fallback
         let selectedBone;          // declare before any function uses it
 
+        // Procedural animation state
+        let procAnim = 'none'; // 'none', 'wave', 'kick', 'dance'
+        let procAnimTime = 0;
+
         const clock = new THREE.Clock();
 
         // UI elements
@@ -342,6 +371,12 @@
         const xpFill = document.getElementById('xp-fill');
         const xpCount = document.getElementById('xp-count');
         const xpDisplay = document.getElementById('xp-display');
+
+        // Procedural animation buttons
+        const animWave = document.getElementById('anim-wave');
+        const animKick = document.getElementById('anim-kick');
+        const animDance = document.getElementById('anim-dance');
+        const animNone = document.getElementById('anim-none');
 
         function setStatus(msg, type = 'info') {
             statusMsg.innerHTML = type === 'success' ? '<i class="fas fa-check-circle" style="color:#44ff44;"></i> ' + msg :
@@ -437,7 +472,26 @@
             forceRigBtn.disabled = true;
             animSelect.disabled = true;
 
+            // Disable procedural animation buttons (they need bones)
+            animWave.disabled = true;
+            animKick.disabled = true;
+            animDance.disabled = true;
+            animNone.disabled = false; // none always available
+            setProcAnim('none');
+
             setStatus('Default jelly cube active. Upload a model to rig.', 'info');
+        }
+
+        // Helper to set procedural animation and update UI
+        function setProcAnim(anim) {
+            procAnim = anim;
+            // Update active class on buttons
+            [animWave, animKick, animDance, animNone].forEach(btn => btn.classList.remove('active'));
+            if (anim === 'wave') animWave.classList.add('active');
+            else if (anim === 'kick') animKick.classList.add('active');
+            else if (anim === 'dance') animDance.classList.add('active');
+            else animNone.classList.add('active');
+            procAnimTime = 0; // reset time for smooth start
         }
 
         // ========== UPLOAD HANDLER ==========
@@ -461,6 +515,11 @@
             tposeToIdleBtn.disabled = true;
             animSelect.disabled = true;
             physicsToggle.disabled = true;
+            // Disable procedural anim buttons during load
+            animWave.disabled = true;
+            animKick.disabled = true;
+            animDance.disabled = true;
+            animNone.disabled = true;
 
             try {
                 // Remove fallback cube temporarily
@@ -508,6 +567,12 @@
                 forceRigBtn.disabled = true;
                 tposeToIdleBtn.disabled = false;
                 physicsToggle.disabled = false;
+                // Enable procedural animation buttons
+                animWave.disabled = false;
+                animKick.disabled = false;
+                animDance.disabled = false;
+                animNone.disabled = false;
+                setProcAnim('none'); // default to none
                 addXP(50);
 
                 // Load animations if any
@@ -592,6 +657,8 @@
         // ========== ANIMATION SELECT ==========
         animSelect.addEventListener('change', () => {
             if (!mixer || !animations[animSelect.value]) return;
+            // Stop any procedural animation when playing a clip
+            setProcAnim('none');
             if (currentAction) currentAction.stop();
             currentAction = mixer.clipAction(animations[animSelect.value]);
             currentAction.play();
@@ -604,6 +671,12 @@
             physicsToggle.classList.toggle('active', physicsEnabled);
             physicsToggle.innerHTML = physicsEnabled ? '<i class="fas fa-heartbeat"></i> PHYSICS ON' : '<i class="fas fa-heartbeat"></i> PHYSICS OFF';
         });
+
+        // ========== PROCEDURAL ANIMATION BUTTONS ==========
+        animWave.addEventListener('click', () => setProcAnim('wave'));
+        animKick.addEventListener('click', () => setProcAnim('kick'));
+        animDance.addEventListener('click', () => setProcAnim('dance'));
+        animNone.addEventListener('click', () => setProcAnim('none'));
 
         // ========== BONE SELECTION & MANUAL ROTATION ==========
         boneSelect.addEventListener('change', (e) => {
@@ -681,6 +754,41 @@
                         if (hips) {
                             hips.rotation.z = Math.sin(time * 0.8) * 0.02;
                         }
+                    }
+                }
+
+                // Procedural animations (only when not fallback)
+                if (!isFallback && currentModel && bones.length > 0 && procAnim !== 'none') {
+                    procAnimTime += delta;
+                    // Find key bones
+                    const spine = bones.find(b => /spine/i.test(b.name));
+                    const rArm = bones.find(b => /rightarm|upperarm_r/i.test(b.name));
+                    const lArm = bones.find(b => /leftarm|upperarm_l/i.test(b.name));
+                    const rLeg = bones.find(b => /rightupleg|thigh_r/i.test(b.name));
+                    const lLeg = bones.find(b => /leftupleg|thigh_l/i.test(b.name));
+                    const head = bones.find(b => /head/i.test(b.name));
+
+                    switch (procAnim) {
+                        case 'wave':
+                            if (rArm) {
+                                // Wave right arm: rotate in Z and X with sine
+                                rArm.rotation.z = Math.sin(procAnimTime * 8) * 0.5 + 0.2;
+                                rArm.rotation.x = Math.sin(procAnimTime * 8) * 0.3;
+                            }
+                            break;
+                        case 'kick':
+                            if (rLeg) {
+                                // Kick right leg: rotate forward and back
+                                rLeg.rotation.x = Math.sin(procAnimTime * 6) * 0.8;
+                            }
+                            break;
+                        case 'dance':
+                            // Simple dance: sway hips, move arms
+                            if (spine) spine.rotation.z = Math.sin(procAnimTime * 4) * 0.1;
+                            if (rArm) rArm.rotation.z = Math.sin(procAnimTime * 6) * 0.5;
+                            if (lArm) lArm.rotation.z = Math.sin(procAnimTime * 6 + 2) * 0.5;
+                            if (head) head.rotation.z = Math.sin(procAnimTime * 4) * 0.1;
+                            break;
                     }
                 }
 
