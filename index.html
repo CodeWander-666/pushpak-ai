@@ -2,46 +2,29 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PUSHPAK AI · VEDIC MOTION METAVERSE</title>
-    <!-- Import Map (CORS‑safe, verified URLs) -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>PUSHPAK AI · FUTURISTIC 3D MOTIONS</title>
+    <!-- Import Map (CORS‑safe) -->
     <script type="importmap">
         {
             "imports": {
                 "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
-                "cannon-es": "https://unpkg.com/cannon-es@0.20.0/dist/cannon-es.js"
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
             }
         }
     </script>
-    <!-- Fonts & Icons (Vedic touch) -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Noto+Sans+Devanagari:wght@400;700&family=Orbitron:wght@400;600;800&display=swap" rel="stylesheet">
+    <!-- Fonts & Icons (modern, premium) -->
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
         body {
-            font-family: 'Inter', 'Noto Sans Devanagari', sans-serif;
-            background: #0b0b12;
+            font-family: 'Space Grotesk', sans-serif;
+            background: #0a0a12;
             color: #fff;
             overflow: hidden;
             height: 100vh;
-            position: relative;
         }
-        /* Vedic mandala background */
-        body::before {
-            content: '';
-            position: fixed;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle at 30% 30%, rgba(255, 215, 0, 0.03) 0%, transparent 30%),
-                        radial-gradient(circle at 70% 70%, rgba(255, 140, 0, 0.03) 0%, transparent 30%),
-                        repeating-conic-gradient(from 0deg, rgba(255, 215, 0, 0.02) 0deg 30deg, transparent 30deg 60deg);
-            animation: rotate 120s linear infinite;
-            z-index: 0;
-        }
-        @keyframes rotate { to { transform: rotate(360deg); } }
         #canvas-container {
             position: absolute;
             top:0; left:0; width:100%; height:100%;
@@ -55,34 +38,33 @@
         .overlay * {
             pointer-events: auto;
         }
-        /* Top bar with Vedic symbols */
+        /* Premium glass header */
         .top-bar {
             top:20px; left:20px; right:20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: rgba(10,10,20,0.7);
+            background: rgba(10,10,20,0.6);
             backdrop-filter: blur(20px);
-            border:1px solid rgba(255,215,0,0.3);
+            border:1px solid rgba(255,215,0,0.2);
             border-radius: 60px;
             padding:12px 28px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.6);
         }
         .logo {
-            font-family: 'Orbitron', sans-serif;
-            font-weight:800;
+            font-weight:700;
             font-size:1.8rem;
             background: linear-gradient(135deg, #ffd700, #ff8c00);
             -webkit-background-clip:text;
             -webkit-text-fill-color:transparent;
-            letter-spacing:2px;
+            letter-spacing:1px;
         }
-        .logo i { margin-right: 10px; color: #ffd700; }
+        .logo i { margin-right: 8px; color: #ffd700; font-size:1.5rem; }
         .status {
             display: flex;
-            gap:15px;
+            gap:20px;
             font-size:0.9rem;
-            color:#ffd700;
+            color:#ccc;
         }
         .status i { color:#ffd700; margin-right:5px; }
         .profile {
@@ -99,12 +81,13 @@
             justify-content: center;
             font-weight: bold;
         }
+        /* Bottom control panel */
         .bottom-panel {
             bottom:30px; left:50%; transform:translateX(-50%);
             width:90%; max-width:1400px;
-            background: rgba(10,10,20,0.8);
+            background: rgba(10,10,20,0.7);
             backdrop-filter: blur(30px);
-            border:1px solid rgba(255,215,0,0.3);
+            border:1px solid rgba(255,215,0,0.2);
             border-radius: 80px;
             padding:20px 30px;
             display: flex;
@@ -114,7 +97,7 @@
             box-shadow: 0 20px 50px rgba(0,0,0,0.8);
         }
         .bottom-panel button, .bottom-panel select {
-            background: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.4);
             border:1px solid rgba(255,215,0,0.5);
             color:white;
             padding:12px 24px;
@@ -143,7 +126,7 @@
             width:320px;
             background: rgba(10,10,20,0.8);
             backdrop-filter: blur(30px);
-            border:1px solid rgba(255,215,0,0.3);
+            border:1px solid rgba(255,215,0,0.2);
             border-radius: 40px;
             padding:25px;
             transition: opacity 0.3s, transform 0.3s;
@@ -158,7 +141,6 @@
             font-size:1rem;
             margin-bottom:20px;
             letter-spacing:1px;
-            font-family: 'Noto Sans Devanagari', sans-serif;
         }
         .slider-group {
             margin-bottom:20px;
@@ -190,7 +172,7 @@
         #loading {
             position:fixed;
             top:0; left:0; width:100%; height:100%;
-            background:#0b0b12;
+            background:#0a0a12;
             display:flex;
             justify-content:center;
             align-items:center;
@@ -231,36 +213,36 @@
             max-width:500px;
             text-align:center;
         }
-        .proc-anim-group {
+        .anim-group {
             display: flex;
             gap:8px;
             flex-wrap: wrap;
             justify-content: center;
         }
-        .proc-anim-group button {
+        .anim-group button {
             background: rgba(128,0,128,0.4);
             border-color: #ffd700;
             padding:8px 16px;
             font-size:0.8rem;
         }
-        .proc-anim-group button.active {
+        .anim-group button.active {
             background: #ffd700;
             color:#000;
             border-color:#ffd700;
         }
-        .toggle-manual {
+        .toggle-btn {
             background: rgba(255,215,0,0.2);
             border-color: #ffd700;
         }
-        .toggle-manual.active {
+        .toggle-btn.active {
             background: #ffd700;
             color:#000;
         }
-        .camera-lock {
+        .camera-btn {
             background: rgba(0,200,255,0.2);
             border-color: #00ffff;
         }
-        .camera-lock.active {
+        .camera-btn.active {
             background: #00ffff;
             color:#000;
         }
@@ -271,35 +253,35 @@
     </style>
 </head>
 <body>
-    <div id="loading"><div class="spinner"></div><div style="margin-top:20px; font-family:'Orbitron';">PUSHPAK AI · AWAKENING</div></div>
+    <div id="loading"><div class="spinner"></div><div style="margin-top:20px;">PUSHPAK AI · LOADING</div></div>
     <div id="error-boundary">
         <div class="error-card">
             <i class="fas fa-exclamation-triangle" style="font-size:4rem; color:#ff5555;"></i>
-            <h2 style="margin:20px 0;">क्रिटिकल एरर</h2>
+            <h2 style="margin:20px 0;">CRITICAL ERROR</h2>
             <p id="error-message">Something went wrong. Reload the page.</p>
-            <button onclick="location.reload()" style="margin-top:30px; padding:15px 40px; background:#ff5555; border:none; color:white; border-radius:40px; font-weight:bold; cursor:pointer;">पुनः प्रारंभ</button>
+            <button onclick="location.reload()" style="margin-top:30px; padding:15px 40px; background:#ff5555; border:none; color:white; border-radius:40px; font-weight:bold; cursor:pointer;">RELOAD</button>
         </div>
     </div>
     <div id="canvas-container"></div>
 
     <!-- Top bar -->
     <div class="overlay top-bar">
-        <div class="logo"><i class="fas fa-om"></i> PUSHPAK AI</div>
+        <div class="logo"><i class="fas fa-cube"></i> PUSHPAK AI</div>
         <div class="status">
-            <span><i class="fas fa-circle" id="status-led"></i> <span id="status-text">चैतन्य</span></span>
-            <span><i class="fas fa-bolt"></i> प्राण शक्ति</span>
+            <span><i class="fas fa-circle" id="status-led"></i> <span id="status-text">ONLINE</span></span>
+            <span><i class="fas fa-bolt"></i> MOTION ENGINE</span>
         </div>
         <div class="profile">
-            <span id="xp-display">0 कर्म</span>
+            <span id="xp-display">0 XP</span>
             <div class="avatar"><i class="fas fa-user-astronaut"></i></div>
         </div>
     </div>
 
     <!-- Right panel (manual controls) -->
     <div class="overlay right-panel" id="right-panel">
-        <h3><i class="fas fa-hand"></i> संयम नियंत्रण</h3>
+        <h3><i class="fas fa-hand"></i> MANUAL JOINT CONTROL</h3>
         <select id="bone-select" style="width:100%; padding:10px; background:#1a1a2a; border:1px solid #ffd700; color:white; border-radius:40px; margin-bottom:20px;">
-            <option value="cube">जेली घन (default)</option>
+            <option value="cube">JELLY CUBE (default)</option>
         </select>
         <div class="slider-group">
             <label>X <span id="rot-x-val">0.0</span></label>
@@ -314,36 +296,36 @@
             <input type="range" id="rot-z" min="-3.14" max="3.14" step="0.01" value="0">
         </div>
         <div class="xp-bar"><div class="xp-fill" id="xp-fill" style="width:0%"></div></div>
-        <div style="color:#ccc; font-size:0.8rem; text-align:center;">कर्म: <span id="xp-count">0</span></div>
+        <div style="color:#ccc; font-size:0.8rem; text-align:center;">XP: <span id="xp-count">0</span></div>
     </div>
 
     <!-- Bottom panel (workflow) -->
     <div class="overlay bottom-panel">
-        <button id="upload-btn"><i class="fas fa-upload"></i> आकृति अपलोड</button>
+        <button id="upload-btn"><i class="fas fa-upload"></i> UPLOAD MESH</button>
         <input type="file" id="file-input" accept=".glb,.gltf" style="display:none;">
-        <button id="force-rig-btn" disabled><i class="fas fa-exclamation-triangle"></i> बलात् संयम</button>
-        <button id="tpose-to-idle"><i class="fas fa-child"></i> ताड़ासन → विश्राम</button>
+        <button id="force-rig-btn" disabled><i class="fas fa-exclamation-triangle"></i> FORCE RIG</button>
+        <button id="tpose-to-idle"><i class="fas fa-child"></i> T‑POSE → IDLE</button>
         <select id="animation-select" disabled>
-            <option value="idle">निश्चल (श्वास)</option>
-            <option value="walk">गमन</option>
-            <option value="run">धावन</option>
-            <option value="jump">उल्लंघन</option>
+            <option value="idle">IDLE (BREATHING)</option>
+            <option value="walk">WALK</option>
+            <option value="run">RUN</option>
+            <option value="jump">JUMP</option>
         </select>
         <!-- Procedural animation buttons -->
-        <div class="proc-anim-group">
-            <button id="anim-wave" disabled title="हस्त संकेत">👋 हस्त</button>
-            <button id="anim-kick" disabled title="पाद प्रहार">🦵 पाद</button>
-            <button id="anim-dance" disabled title="नृत्य">💃 नृत्य</button>
-            <button id="anim-walk" disabled title="गमन">🚶 गमन</button>
-            <button id="anim-run" disabled title="धावन">🏃 धावन</button>
-            <button id="anim-jump" disabled title="उल्लंघन">🦘 उल्लंघन</button>
-            <button id="anim-idle" class="active" title="निश्चल">😴 निश्चल</button>
+        <div class="anim-group">
+            <button id="anim-wave" disabled title="Wave right arm">WAVE</button>
+            <button id="anim-kick" disabled title="Kick right leg">KICK</button>
+            <button id="anim-dance" disabled title="Simple dance">DANCE</button>
+            <button id="anim-walk" disabled title="Walk in place">WALK</button>
+            <button id="anim-run" disabled title="Run in place">RUN</button>
+            <button id="anim-jump" disabled title="Jump">JUMP</button>
+            <button id="anim-idle" class="active" title="Idle pose">IDLE</button>
         </div>
-        <button id="physics-toggle" class="active"><i class="fas fa-heartbeat"></i> प्राण ऊर्जा</button>
-        <button id="manual-toggle" class="toggle-manual" title="मैनुअल संयम टॉगल"><i class="fas fa-cog"></i> संयम</button>
-        <button id="camera-lock" class="camera-lock" title="दृश्य बंध / मुक्त"><i class="fas fa-lock"></i> दृश्य</button>
-        <button id="reset-btn" class="reset-btn" title="पुनःसेट"><i class="fas fa-undo"></i> पुनःसेट</button>
-        <span id="status-msg"><i class="fas fa-circle" style="color:#44ff44;"></i> तत्पर</span>
+        <button id="physics-toggle" class="active toggle-btn"><i class="fas fa-heartbeat"></i> PHYSICS</button>
+        <button id="manual-toggle" class="toggle-btn" title="Toggle manual rig controls"><i class="fas fa-cog"></i> MANUAL</button>
+        <button id="camera-lock" class="camera-btn" title="Lock/Unlock camera"><i class="fas fa-lock"></i> CAMERA</button>
+        <button id="reset-btn" class="reset-btn" title="Reset pose"><i class="fas fa-undo"></i> RESET</button>
+        <span id="status-msg"><i class="fas fa-circle" style="color:#44ff44;"></i> READY</span>
     </div>
 
     <script type="module">
@@ -366,10 +348,9 @@
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
         import { TransformControls } from 'three/addons/controls/TransformControls.js';
-        import * as CANNON from 'cannon-es';
 
         // ========== SETUP ==========
-        let scene, camera, renderer, controls, transformControls, physicsWorld;
+        let scene, camera, renderer, controls, transformControls;
         let currentModel = null;
         let bones = [];
         let mixer = null;
@@ -380,7 +361,6 @@
         let fallbackCube = null;
         let isFallback = true;
         let selectedBone;
-        let ragdollBodies = []; // for future ragdoll
 
         // Manual rig mode toggle
         let manualMode = false;
@@ -435,60 +415,90 @@
             xp += amount;
             xpFill.style.width = Math.min(100, xp) + '%';
             xpCount.textContent = xp;
-            xpDisplay.textContent = xp + ' कर्म';
+            xpDisplay.textContent = xp + ' XP';
         }
 
         // ========== SCENE INIT ==========
         try {
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x0b0b12);
+            scene.background = new THREE.Color(0x0a0a12);
             camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 1000);
-            camera.position.set(2, 2, 5);
+            camera.position.set(3, 2, 5);
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.2;
             document.getElementById('canvas-container').appendChild(renderer.domElement);
 
             controls = new OrbitControls(camera, renderer.domElement);
             controls.enableDamping = true;
-            controls.target.set(0,1,0);
+            controls.dampingFactor = 0.05;
+            controls.screenSpacePanning = true;
+            controls.maxPolarAngle = Math.PI / 2;
+            controls.minDistance = 2;
+            controls.maxDistance = 15;
+            controls.target.set(0, 1.2, 0);
 
             transformControls = new TransformControls(camera, renderer.domElement);
             transformControls.addEventListener('dragging-changed', (e) => { controls.enabled = !e.value && !cameraLocked; });
             scene.add(transformControls);
 
-            // Physics world (Cannon-es) – simple for now
-            physicsWorld = new CANNON.World();
-            physicsWorld.gravity.set(0, -9.81, 0);
-            physicsWorld.broadphase = new CANNON.SAPBroadphase(physicsWorld);
-            physicsWorld.defaultContactMaterial.restitution = 0.3;
-
-            // Ground body
-            const groundBody = new CANNON.Body({ mass: 0, shape: new CANNON.Plane() });
-            groundBody.quaternion.setFromEuler(-Math.PI/2, 0, 0);
-            physicsWorld.addBody(groundBody);
-
-            // Lights
-            scene.add(new THREE.AmbientLight(0x404060, 0.6));
-            const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
-            dirLight.position.set(5,10,7);
+            // Lights (cinematic)
+            const ambient = new THREE.AmbientLight(0x404060, 0.6);
+            scene.add(ambient);
+            const dirLight = new THREE.DirectionalLight(0xffeedd, 1.5);
+            dirLight.position.set(5, 10, 7);
             dirLight.castShadow = true;
             dirLight.shadow.mapSize.width = 2048;
             dirLight.shadow.mapSize.height = 2048;
+            dirLight.shadow.camera.near = 2;
+            dirLight.shadow.camera.far = 20;
+            dirLight.shadow.camera.left = -5;
+            dirLight.shadow.camera.right = 5;
+            dirLight.shadow.camera.top = 5;
+            dirLight.shadow.camera.bottom = -5;
             scene.add(dirLight);
-            const fillLight = new THREE.PointLight(0x88aaff, 0.5);
-            fillLight.position.set(-4,5,6);
+
+            const fillLight = new THREE.PointLight(0x88aaff, 0.8);
+            fillLight.position.set(-4, 3, 5);
             scene.add(fillLight);
 
-            // Ground visual
-            const ground = new THREE.Mesh(new THREE.PlaneGeometry(20,20), new THREE.MeshStandardMaterial({color:0x1a1a2a, side:THREE.DoubleSide}));
-            ground.rotation.x = -Math.PI/2;
+            const rimLight = new THREE.PointLight(0xffaa55, 0.6);
+            rimLight.position.set(-2, 2, -5);
+            scene.add(rimLight);
+
+            // Ground with subtle reflection
+            const ground = new THREE.Mesh(
+                new THREE.CircleGeometry(12, 32),
+                new THREE.MeshStandardMaterial({ color: 0x1a1a2a, roughness: 0.3, metalness: 0.1, emissive: 0x050510 })
+            );
+            ground.rotation.x = -Math.PI / 2;
             ground.position.y = 0;
             ground.receiveShadow = true;
             scene.add(ground);
-            scene.add(new THREE.GridHelper(20,20,0xffd700,0x553300));
+
+            const grid = new THREE.GridHelper(20, 20, 0xffd700, 0x553300);
+            grid.position.y = 0.01;
+            scene.add(grid);
+
+            // Floating particles (atmosphere)
+            const particleCount = 300;
+            const particleGeo = new THREE.BufferGeometry();
+            const particlePositions = new Float32Array(particleCount * 3);
+            for (let i = 0; i < particleCount; i++) {
+                const r = 3 + Math.random() * 5;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.random() * Math.PI - Math.PI/2;
+                particlePositions[i*3] = Math.cos(theta) * Math.cos(phi) * r;
+                particlePositions[i*3+1] = Math.sin(phi) * r + 1.5;
+                particlePositions[i*3+2] = Math.sin(theta) * Math.cos(phi) * r;
+            }
+            particleGeo.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+            const particleMat = new THREE.PointsMaterial({ color: 0xffd700, size: 0.05, transparent: true, opacity: 0.3, blending: THREE.AdditiveBlending });
+            const particles = new THREE.Points(particleGeo, particleMat);
+            scene.add(particles);
 
             // Create default jelly cube
             createJellyCube();
@@ -502,10 +512,11 @@
             if (fallbackCube) scene.remove(fallbackCube);
 
             const geometry = new THREE.BoxGeometry(1, 1, 1);
-            const material = new THREE.MeshPhongMaterial({
+            const material = new THREE.MeshStandardMaterial({
                 color: 0xffaa44,
                 emissive: 0x331100,
-                shininess: 30,
+                roughness: 0.3,
+                metalness: 0.1,
                 transparent: true,
                 opacity: 0.9
             });
@@ -517,7 +528,7 @@
             fallbackCube = cube;
             isFallback = true;
 
-            boneSelect.innerHTML = '<option value="cube">जेली घन (default)</option>';
+            boneSelect.innerHTML = '<option value="cube">JELLY CUBE (default)</option>';
             boneSelect.disabled = false;
             selectedBone = cube;
             if (manualMode && cube.parent) transformControls.attach(cube);
@@ -531,30 +542,26 @@
             animIdle.disabled = false;
             setProcAnim('idle');
 
-            setStatus('जेली घन सक्रिय। मॉडल अपलोड करें।', 'info');
+            setStatus('Jelly cube active. Upload a model to rig.', 'info');
         }
 
-        // ========== MASSIVE BONE MAPPING (VEDIC ACCURACY) ==========
+        // ========== MASSIVE BONE MAPPING ==========
         const boneMappings = {
-            spine: /spine|chest|torso|upperbody|back|thorax|ribs|vertebra|कशेरुका/i,
-            head: /head|neck|skull|face|chin|मस्तक|ग्रीवा/i,
-            leftArm: /leftarm|upperarm_l|arm_l|l_arm|leftshoulder|shoulder_l|clavicle_l|बायाँ_भुजा/i,
-            rightArm: /rightarm|upperarm_r|arm_r|r_arm|rightshoulder|shoulder_r|clavicle_r|दायाँ_भुजा/i,
-            leftForeArm: /leftforearm|forearm_l|lowerarm_l|elbow_l|radius_l|बायाँ_प्रकोष्ठ/i,
-            rightForeArm: /rightforearm|forearm_r|lowerarm_r|elbow_r|radius_r|दायाँ_प्रकोष्ठ/i,
-            leftHand: /lefthand|hand_l|palm_l|wrist_l|बायाँ_हस्त/i,
-            rightHand: /righthand|hand_r|palm_r|wrist_r|दायाँ_हस्त/i,
-            leftLeg: /leftupleg|thigh_l|upleg_l|leftthigh|femur_l|बायाँ_जंघा/i,
-            rightLeg: /rightupleg|thigh_r|upleg_r|rightthigh|femur_r|दायाँ_जंघा/i,
-            leftCalf: /leftleg|calf_l|shin_l|lowerleg_l|tibia_l|fibula_l|बायाँ_पिंडली/i,
-            rightCalf: /rightleg|calf_r|shin_r|lowerleg_r|tibia_r|fibula_r|दायाँ_पिंडली/i,
-            leftFoot: /leftfoot|foot_l|ankle_l|heel_l|ball_l|बायाँ_पाद/i,
-            rightFoot: /rightfoot|foot_r|ankle_r|heel_r|ball_r|दायाँ_पाद/i,
-            hips: /hips|pelvis|root|lowerback|waist|baseroot|master|pelvis_root|श्रोणि/i,
-            leftFingers: /finger_l|thumb_l|index_l|middle_l|ring_l|pinky_l/i,
-            rightFingers: /finger_r|thumb_r|index_r|middle_r|ring_r|pinky_r/i,
-            leftToes: /toe_l|foottoe_l/i,
-            rightToes: /toe_r|foottoe_r/i
+            spine: /spine|chest|torso|upperbody|back|thorax|ribs|vertebra/i,
+            head: /head|neck|skull|face|chin/i,
+            leftArm: /leftarm|upperarm_l|arm_l|l_arm|leftshoulder|shoulder_l|clavicle_l/i,
+            rightArm: /rightarm|upperarm_r|arm_r|r_arm|rightshoulder|shoulder_r|clavicle_r/i,
+            leftForeArm: /leftforearm|forearm_l|lowerarm_l|elbow_l|radius_l/i,
+            rightForeArm: /rightforearm|forearm_r|lowerarm_r|elbow_r|radius_r/i,
+            leftHand: /lefthand|hand_l|palm_l|wrist_l/i,
+            rightHand: /righthand|hand_r|palm_r|wrist_r/i,
+            leftLeg: /leftupleg|thigh_l|upleg_l|leftthigh|femur_l/i,
+            rightLeg: /rightupleg|thigh_r|upleg_r|rightthigh|femur_r/i,
+            leftCalf: /leftleg|calf_l|shin_l|lowerleg_l|tibia_l|fibula_l/i,
+            rightCalf: /rightleg|calf_r|shin_r|lowerleg_r|tibia_r|fibula_r/i,
+            leftFoot: /leftfoot|foot_l|ankle_l|heel_l|ball_l/i,
+            rightFoot: /rightfoot|foot_r|ankle_r|heel_r|ball_r/i,
+            hips: /hips|pelvis|root|lowerback|waist|baseroot|master|pelvis_root/i
         };
 
         function findBone(type) {
@@ -584,7 +591,7 @@
             if (!file) return;
             const ext = file.name.split('.').pop().toLowerCase();
             if (!['glb','gltf'].includes(ext)) {
-                setStatus('असमर्थित प्रारूप', 'error');
+                setStatus('Unsupported format', 'error');
                 return;
             }
             const url = URL.createObjectURL(file);
@@ -592,7 +599,7 @@
         });
 
         async function loadModel(url, name) {
-            setStatus('मॉडल लोड हो रहा...', 'info');
+            setStatus('Loading model...', 'info');
             forceRigBtn.disabled = true;
             tposeToIdleBtn.disabled = true;
             animSelect.disabled = true;
@@ -622,16 +629,15 @@
                 currentModel.traverse(obj => { if (obj.isBone) bones.push(obj); });
 
                 if (bones.length === 0) {
-                    setStatus('अस्थि नहीं मिली – जेली घन पर लौटे', 'info');
+                    setStatus('No bones found – returning to jelly cube', 'info');
                     createJellyCube();
                     return;
                 }
 
                 isFallback = false;
-                setStatus(`${bones.length} अस्थियाँ मिलीं`, 'success');
+                setStatus(`${bones.length} bones found`, 'success');
 
-                // Populate bone select
-                boneSelect.innerHTML = '<option>अस्थि चुनें...</option>';
+                boneSelect.innerHTML = '<option>Select bone...</option>';
                 bones.forEach(b => {
                     const opt = document.createElement('option');
                     opt.value = b.name;
@@ -661,7 +667,7 @@
 
                 if (!manualMode) transformControls.detach();
             } catch (err) {
-                setStatus('लोड विफल: ' + err.message, 'error');
+                setStatus('Load failed: ' + err.message, 'error');
                 console.error(err);
                 createJellyCube();
             }
@@ -669,13 +675,13 @@
 
         // ========== FORCE RIG ==========
         forceRigBtn.addEventListener('click', () => {
-            alert('बलात् संयम अभी उपलब्ध नहीं। कृपया अस्थियुक्त मॉडल अपलोड करें।');
+            alert('Force rig not yet implemented. Please upload a model with bones.');
         });
 
         // ========== T‑POSE TO IDLE ==========
         tposeToIdleBtn.addEventListener('click', () => {
             if (isFallback && fallbackCube) {
-                setStatus('जेली घन निश्चल', 'success');
+                setStatus('Jelly cube idle', 'success');
                 addXP(30);
             } else if (currentModel && bones.length > 0) {
                 const spine = findBone('spine');
@@ -692,7 +698,7 @@
                 if (lLeg) lLeg.rotation.x = 0.1;
                 if (rLeg) rLeg.rotation.x = 0.1;
 
-                setStatus('ताड़ासन → निश्चल', 'success');
+                setStatus('T‑pose → idle applied', 'success');
                 addXP(50);
             }
         });
@@ -711,7 +717,7 @@
         physicsToggle.addEventListener('click', () => {
             physicsEnabled = !physicsEnabled;
             physicsToggle.classList.toggle('active', physicsEnabled);
-            physicsToggle.innerHTML = physicsEnabled ? '<i class="fas fa-heartbeat"></i> प्राण ऊर्जा' : '<i class="fas fa-heartbeat"></i> प्राण बंद';
+            physicsToggle.innerHTML = physicsEnabled ? '<i class="fas fa-heartbeat"></i> PHYSICS' : '<i class="fas fa-heartbeat"></i> PHYSICS OFF';
         });
 
         // ========== MANUAL RIG TOGGLE ==========
@@ -732,7 +738,7 @@
             cameraLocked = !cameraLocked;
             cameraLockBtn.classList.toggle('active', cameraLocked);
             controls.enabled = !cameraLocked;
-            cameraLockBtn.innerHTML = cameraLocked ? '<i class="fas fa-lock"></i> दृश्य' : '<i class="fas fa-unlock-alt"></i> दृश्य';
+            cameraLockBtn.innerHTML = cameraLocked ? '<i class="fas fa-lock"></i> CAMERA' : '<i class="fas fa-unlock-alt"></i> CAMERA';
         });
 
         // ========== RESET BUTTON ==========
@@ -745,8 +751,9 @@
                 fallbackCube.position.set(0, 1, 0);
                 fallbackCube.rotation.set(0, 0, 0);
             }
+            setProcAnim('idle');
             addXP(10);
-            setStatus('पुनःसेट किया गया', 'success');
+            setStatus('Reset', 'success');
         });
 
         // ========== PROCEDURAL ANIMATION BUTTONS ==========
@@ -797,18 +804,14 @@
             try {
                 if (mixer) mixer.update(delta);
 
-                // Physics (breathing + simple sway) – only when enabled and not in manual mode
+                // Physics (subtle breathing) – only when enabled and not in manual mode
                 if (physicsEnabled && !manualMode) {
                     if (isFallback && fallbackCube) {
-                        const scaleX = 1 + Math.sin(time * 5) * 0.1;
-                        const scaleY = 1 + Math.sin(time * 5 + 2) * 0.1;
-                        const scaleZ = 1 + Math.sin(time * 5 + 4) * 0.1;
-                        fallbackCube.scale.set(scaleX, scaleY, scaleZ);
+                        const scale = 1 + Math.sin(time * 5) * 0.05;
+                        fallbackCube.scale.set(scale, scale, scale);
                     } else if (currentModel && bones.length > 0) {
                         const chest = findBone('spine');
                         if (chest) chest.scale.y = 1 + Math.sin(time * 3) * 0.02;
-                        const hips = findBone('hips');
-                        if (hips) hips.rotation.z = Math.sin(time * 0.8) * 0.02;
                     }
                 }
 
@@ -822,49 +825,51 @@
                     const rLeg = findBone('rightLeg');
                     const lLeg = findBone('leftLeg');
                     const hips = findBone('hips');
-                    const rFoot = findBone('rightFoot');
-                    const lFoot = findBone('leftFoot');
 
-                    // High‑fidelity human motions with phase offsets
+                    // Realistic human motions – no floating, all joints coordinate
                     switch (procAnim) {
                         case 'wave':
                             if (rArm) {
-                                rArm.rotation.z = Math.sin(procAnimTime * 8) * 0.5 + 0.2;
-                                rArm.rotation.x = Math.sin(procAnimTime * 8) * 0.3;
+                                rArm.rotation.z = Math.sin(procAnimTime * 8) * 0.4 + 0.2;
+                                rArm.rotation.x = Math.sin(procAnimTime * 8) * 0.2;
                             }
+                            if (spine) spine.rotation.y = Math.sin(procAnimTime * 8) * 0.05; // slight torso twist
                             break;
                         case 'kick':
-                            if (rLeg) rLeg.rotation.x = Math.sin(procAnimTime * 6) * 0.8;
+                            if (rLeg) rLeg.rotation.x = Math.sin(procAnimTime * 6) * 0.6;
+                            if (spine) spine.rotation.x = Math.abs(Math.sin(procAnimTime * 6)) * 0.1; // lean back
                             break;
                         case 'dance':
                             if (spine) spine.rotation.z = Math.sin(procAnimTime * 4) * 0.1;
                             if (rArm) rArm.rotation.z = Math.sin(procAnimTime * 6) * 0.5;
                             if (lArm) lArm.rotation.z = Math.sin(procAnimTime * 6 + 2) * 0.5;
-                            if (head) head.rotation.z = Math.sin(procAnimTime * 4) * 0.1;
-                            if (hips) hips.position.y = 1 + Math.sin(procAnimTime * 8) * 0.05;
+                            if (head) head.rotation.z = Math.sin(procAnimTime * 4) * 0.05;
+                            if (hips) hips.rotation.x = Math.sin(procAnimTime * 4) * 0.05;
                             break;
                         case 'walk':
                             if (rLeg) rLeg.rotation.x = Math.sin(procAnimTime * 5) * 0.5;
                             if (lLeg) lLeg.rotation.x = Math.sin(procAnimTime * 5 + Math.PI) * 0.5;
                             if (rArm) rArm.rotation.x = Math.sin(procAnimTime * 5 + Math.PI) * 0.4;
                             if (lArm) lArm.rotation.x = Math.sin(procAnimTime * 5) * 0.4;
-                            if (hips) hips.position.y = 1 + Math.abs(Math.sin(procAnimTime * 5)) * 0.03;
+                            if (spine) spine.rotation.y = Math.sin(procAnimTime * 5) * 0.05;
+                            if (head) head.rotation.y = Math.sin(procAnimTime * 5) * 0.03;
                             break;
                         case 'run':
-                            if (rLeg) rLeg.rotation.x = Math.sin(procAnimTime * 10) * 0.9;
-                            if (lLeg) lLeg.rotation.x = Math.sin(procAnimTime * 10 + Math.PI) * 0.9;
-                            if (rArm) rArm.rotation.x = Math.sin(procAnimTime * 10 + Math.PI) * 0.7;
-                            if (lArm) lArm.rotation.x = Math.sin(procAnimTime * 10) * 0.7;
-                            if (hips) hips.position.y = 1 + Math.abs(Math.sin(procAnimTime * 10)) * 0.05;
+                            if (rLeg) rLeg.rotation.x = Math.sin(procAnimTime * 10) * 0.8;
+                            if (lLeg) lLeg.rotation.x = Math.sin(procAnimTime * 10 + Math.PI) * 0.8;
+                            if (rArm) rArm.rotation.x = Math.sin(procAnimTime * 10 + Math.PI) * 0.6;
+                            if (lArm) lArm.rotation.x = Math.sin(procAnimTime * 10) * 0.6;
+                            if (spine) spine.rotation.y = Math.sin(procAnimTime * 10) * 0.1;
+                            if (head) head.rotation.y = Math.sin(procAnimTime * 10) * 0.05;
                             break;
                         case 'jump':
                             const jumpPhase = Math.sin(procAnimTime * 6);
-                            const jumpHeight = Math.max(0, jumpPhase) * 0.4;
-                            if (lLeg) lLeg.rotation.x = jumpHeight * 1.5;
-                            if (rLeg) rLeg.rotation.x = jumpHeight * 1.5;
-                            if (hips) hips.position.y = 1 + jumpHeight;
-                            if (rArm) rArm.rotation.x = -jumpHeight * 1.5;
-                            if (lArm) lArm.rotation.x = -jumpHeight * 1.5;
+                            const squat = Math.max(0, -jumpPhase) * 0.3; // anticipation
+                            const lift = Math.max(0, jumpPhase) * 0.3;   // jump
+                            if (lLeg) lLeg.rotation.x = squat * 2;  // bend knees
+                            if (rLeg) rLeg.rotation.x = squat * 2;
+                            if (spine) spine.rotation.x = -squat * 0.5; // lean forward
+                            if (hips) hips.position.y = 1 + lift; // lift whole body (hips control)
                             break;
                         case 'idle':
                             // Subtle sway
