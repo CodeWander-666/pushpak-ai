@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OSOS RIGIFIER · HIGH‑FIDELITY MOTION</title>
+    <title>PUSHPAK AI · VEDIC MOTION METAVERSE</title>
     <!-- Import Map (CORS‑safe, verified URLs) -->
     <script type="importmap">
         {
@@ -14,18 +14,34 @@
             }
         }
     </script>
-    <!-- Fonts & Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <!-- Fonts & Icons (Vedic touch) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Noto+Sans+Devanagari:wght@400;700&family=Orbitron:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', 'Noto Sans Devanagari', sans-serif;
             background: #0b0b12;
             color: #fff;
             overflow: hidden;
             height: 100vh;
+            position: relative;
         }
+        /* Vedic mandala background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 215, 0, 0.03) 0%, transparent 30%),
+                        radial-gradient(circle at 70% 70%, rgba(255, 140, 0, 0.03) 0%, transparent 30%),
+                        repeating-conic-gradient(from 0deg, rgba(255, 215, 0, 0.02) 0deg 30deg, transparent 30deg 60deg);
+            animation: rotate 120s linear infinite;
+            z-index: 0;
+        }
+        @keyframes rotate { to { transform: rotate(360deg); } }
         #canvas-container {
             position: absolute;
             top:0; left:0; width:100%; height:100%;
@@ -39,32 +55,36 @@
         .overlay * {
             pointer-events: auto;
         }
+        /* Top bar with Vedic symbols */
         .top-bar {
             top:20px; left:20px; right:20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: rgba(10,10,20,0.6);
+            background: rgba(10,10,20,0.7);
             backdrop-filter: blur(20px);
-            border:1px solid rgba(0,255,255,0.2);
+            border:1px solid rgba(255,215,0,0.3);
             border-radius: 60px;
             padding:12px 28px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.6);
         }
         .logo {
+            font-family: 'Orbitron', sans-serif;
             font-weight:800;
-            font-size:1.6rem;
-            background: linear-gradient(135deg, #00ffff, #aa88ff);
+            font-size:1.8rem;
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
             -webkit-background-clip:text;
             -webkit-text-fill-color:transparent;
+            letter-spacing:2px;
         }
+        .logo i { margin-right: 10px; color: #ffd700; }
         .status {
             display: flex;
             gap:15px;
             font-size:0.9rem;
-            color:#aaccff;
+            color:#ffd700;
         }
-        .status i { color:#00ffcc; margin-right:5px; }
+        .status i { color:#ffd700; margin-right:5px; }
         .profile {
             display: flex;
             gap:15px;
@@ -72,7 +92,7 @@
         }
         .avatar {
             width:40px; height:40px;
-            background: linear-gradient(135deg, #00ffff, #aa88ff);
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
             border-radius:50%;
             display: flex;
             align-items: center;
@@ -82,9 +102,9 @@
         .bottom-panel {
             bottom:30px; left:50%; transform:translateX(-50%);
             width:90%; max-width:1400px;
-            background: rgba(10,10,20,0.7);
+            background: rgba(10,10,20,0.8);
             backdrop-filter: blur(30px);
-            border:1px solid rgba(0,255,255,0.3);
+            border:1px solid rgba(255,215,0,0.3);
             border-radius: 80px;
             padding:20px 30px;
             display: flex;
@@ -94,8 +114,8 @@
             box-shadow: 0 20px 50px rgba(0,0,0,0.8);
         }
         .bottom-panel button, .bottom-panel select {
-            background: rgba(0,0,0,0.4);
-            border:1px solid rgba(0,255,255,0.5);
+            background: rgba(0,0,0,0.5);
+            border:1px solid rgba(255,215,0,0.5);
             color:white;
             padding:12px 24px;
             border-radius: 40px;
@@ -109,10 +129,10 @@
             gap:8px;
         }
         .bottom-panel button:hover {
-            background: #00ffff;
+            background: #ffd700;
             color:#000;
-            border-color:#00ffff;
-            box-shadow:0 0 30px #00ffff;
+            border-color:#ffd700;
+            box-shadow:0 0 30px #ffd700;
         }
         .bottom-panel button:disabled {
             opacity:0.3;
@@ -121,9 +141,9 @@
         .right-panel {
             top:120px; right:20px;
             width:320px;
-            background: rgba(10,10,20,0.7);
+            background: rgba(10,10,20,0.8);
             backdrop-filter: blur(30px);
-            border:1px solid rgba(255,100,255,0.3);
+            border:1px solid rgba(255,215,0,0.3);
             border-radius: 40px;
             padding:25px;
             transition: opacity 0.3s, transform 0.3s;
@@ -134,10 +154,11 @@
             pointer-events: none;
         }
         .right-panel h3 {
-            color:#ff88ff;
+            color:#ffd700;
             font-size:1rem;
             margin-bottom:20px;
             letter-spacing:1px;
+            font-family: 'Noto Sans Devanagari', sans-serif;
         }
         .slider-group {
             margin-bottom:20px;
@@ -152,7 +173,7 @@
         input[type=range] {
             width:100%;
             background: transparent;
-            accent-color: #ff88ff;
+            accent-color: #ffd700;
         }
         .xp-bar {
             background: rgba(255,255,255,0.1);
@@ -164,7 +185,7 @@
         .xp-fill {
             height:100%;
             width:0%;
-            background: linear-gradient(90deg, #00ffff, #ff88ff);
+            background: linear-gradient(90deg, #ffd700, #ff8c00);
         }
         #loading {
             position:fixed;
@@ -179,8 +200,8 @@
         #loading.fadeout { opacity:0; pointer-events:none; }
         .spinner {
             width:60px; height:60px;
-            border:4px solid rgba(0,255,255,0.2);
-            border-top-color:#00ffff;
+            border:4px solid rgba(255,215,0,0.2);
+            border-top-color:#ffd700;
             border-radius:50%;
             animation:spin 1s infinite;
         }
@@ -218,21 +239,21 @@
         }
         .proc-anim-group button {
             background: rgba(128,0,128,0.4);
-            border-color: #ff88ff;
+            border-color: #ffd700;
             padding:8px 16px;
             font-size:0.8rem;
         }
         .proc-anim-group button.active {
-            background: #ff88ff;
+            background: #ffd700;
             color:#000;
-            border-color:#ff88ff;
+            border-color:#ffd700;
         }
         .toggle-manual {
-            background: rgba(255,100,255,0.2);
-            border-color: #ff88ff;
+            background: rgba(255,215,0,0.2);
+            border-color: #ffd700;
         }
         .toggle-manual.active {
-            background: #ff88ff;
+            background: #ffd700;
             color:#000;
         }
         .camera-lock {
@@ -243,38 +264,42 @@
             background: #00ffff;
             color:#000;
         }
+        .reset-btn {
+            background: rgba(255,100,100,0.2);
+            border-color: #ff5555;
+        }
     </style>
 </head>
 <body>
-    <div id="loading"><div class="spinner"></div></div>
+    <div id="loading"><div class="spinner"></div><div style="margin-top:20px; font-family:'Orbitron';">PUSHPAK AI · AWAKENING</div></div>
     <div id="error-boundary">
         <div class="error-card">
             <i class="fas fa-exclamation-triangle" style="font-size:4rem; color:#ff5555;"></i>
-            <h2 style="margin:20px 0;">CRITICAL ERROR</h2>
+            <h2 style="margin:20px 0;">क्रिटिकल एरर</h2>
             <p id="error-message">Something went wrong. Reload the page.</p>
-            <button onclick="location.reload()" style="margin-top:30px; padding:15px 40px; background:#ff5555; border:none; color:white; border-radius:40px; font-weight:bold; cursor:pointer;">RELOAD</button>
+            <button onclick="location.reload()" style="margin-top:30px; padding:15px 40px; background:#ff5555; border:none; color:white; border-radius:40px; font-weight:bold; cursor:pointer;">पुनः प्रारंभ</button>
         </div>
     </div>
     <div id="canvas-container"></div>
 
     <!-- Top bar -->
     <div class="overlay top-bar">
-        <div class="logo"><i class="fas fa-dna"></i> OSOS·RIGIFIER</div>
+        <div class="logo"><i class="fas fa-om"></i> PUSHPAK AI</div>
         <div class="status">
-            <span><i class="fas fa-circle" id="status-led"></i> <span id="status-text">ONLINE</span></span>
-            <span><i class="fas fa-bolt"></i> PROCEDURAL RIG</span>
+            <span><i class="fas fa-circle" id="status-led"></i> <span id="status-text">चैतन्य</span></span>
+            <span><i class="fas fa-bolt"></i> प्राण शक्ति</span>
         </div>
         <div class="profile">
-            <span id="xp-display">0 XP</span>
+            <span id="xp-display">0 कर्म</span>
             <div class="avatar"><i class="fas fa-user-astronaut"></i></div>
         </div>
     </div>
 
     <!-- Right panel (manual controls) -->
     <div class="overlay right-panel" id="right-panel">
-        <h3><i class="fas fa-hand"></i> JOINT CONTROL</h3>
-        <select id="bone-select" style="width:100%; padding:10px; background:#1a1a2a; border:1px solid #ff88ff; color:white; border-radius:40px; margin-bottom:20px;">
-            <option value="cube">JELLY CUBE (default)</option>
+        <h3><i class="fas fa-hand"></i> संयम नियंत्रण</h3>
+        <select id="bone-select" style="width:100%; padding:10px; background:#1a1a2a; border:1px solid #ffd700; color:white; border-radius:40px; margin-bottom:20px;">
+            <option value="cube">जेली घन (default)</option>
         </select>
         <div class="slider-group">
             <label>X <span id="rot-x-val">0.0</span></label>
@@ -289,36 +314,36 @@
             <input type="range" id="rot-z" min="-3.14" max="3.14" step="0.01" value="0">
         </div>
         <div class="xp-bar"><div class="xp-fill" id="xp-fill" style="width:0%"></div></div>
-        <div style="color:#ccc; font-size:0.8rem; text-align:center;">XP: <span id="xp-count">0</span></div>
+        <div style="color:#ccc; font-size:0.8rem; text-align:center;">कर्म: <span id="xp-count">0</span></div>
     </div>
 
     <!-- Bottom panel (workflow) -->
     <div class="overlay bottom-panel">
-        <button id="upload-btn"><i class="fas fa-upload"></i> UPLOAD MESH</button>
+        <button id="upload-btn"><i class="fas fa-upload"></i> आकृति अपलोड</button>
         <input type="file" id="file-input" accept=".glb,.gltf" style="display:none;">
-        <button id="auto-rig-btn" disabled style="display:none;"><i class="fas fa-bolt"></i> AUTO‑RIG (OSOS)</button>
-        <button id="force-rig-btn" disabled><i class="fas fa-exclamation-triangle"></i> FORCE RIG</button>
-        <button id="tpose-to-idle"><i class="fas fa-child"></i> T‑POSE → IDLE</button>
+        <button id="force-rig-btn" disabled><i class="fas fa-exclamation-triangle"></i> बलात् संयम</button>
+        <button id="tpose-to-idle"><i class="fas fa-child"></i> ताड़ासन → विश्राम</button>
         <select id="animation-select" disabled>
-            <option value="idle">IDLE (BREATHING)</option>
-            <option value="walk">WALK</option>
-            <option value="run">RUN</option>
-            <option value="jump">JUMP</option>
+            <option value="idle">निश्चल (श्वास)</option>
+            <option value="walk">गमन</option>
+            <option value="run">धावन</option>
+            <option value="jump">उल्लंघन</option>
         </select>
         <!-- Procedural animation buttons -->
         <div class="proc-anim-group">
-            <button id="anim-wave" disabled title="Wave right arm">👋 WAVE</button>
-            <button id="anim-kick" disabled title="Kick right leg">🦵 KICK</button>
-            <button id="anim-dance" disabled title="Simple dance">💃 DANCE</button>
-            <button id="anim-walk" disabled title="Walk in place">🚶 WALK</button>
-            <button id="anim-run" disabled title="Run in place">🏃 RUN</button>
-            <button id="anim-jump" disabled title="Jump">🦘 JUMP</button>
-            <button id="anim-idle" class="active" title="Idle pose">😴 IDLE</button>
+            <button id="anim-wave" disabled title="हस्त संकेत">👋 हस्त</button>
+            <button id="anim-kick" disabled title="पाद प्रहार">🦵 पाद</button>
+            <button id="anim-dance" disabled title="नृत्य">💃 नृत्य</button>
+            <button id="anim-walk" disabled title="गमन">🚶 गमन</button>
+            <button id="anim-run" disabled title="धावन">🏃 धावन</button>
+            <button id="anim-jump" disabled title="उल्लंघन">🦘 उल्लंघन</button>
+            <button id="anim-idle" class="active" title="निश्चल">😴 निश्चल</button>
         </div>
-        <button id="physics-toggle" class="active"><i class="fas fa-heartbeat"></i> PHYSICS ON</button>
-        <button id="manual-toggle" class="toggle-manual" title="Toggle manual rig controls"><i class="fas fa-cog"></i> MANUAL RIG</button>
-        <button id="camera-lock" class="camera-lock" title="Lock/Unlock camera"><i class="fas fa-lock"></i> CAMERA</button>
-        <span id="status-msg"><i class="fas fa-circle" style="color:#44ff44;"></i> READY</span>
+        <button id="physics-toggle" class="active"><i class="fas fa-heartbeat"></i> प्राण ऊर्जा</button>
+        <button id="manual-toggle" class="toggle-manual" title="मैनुअल संयम टॉगल"><i class="fas fa-cog"></i> संयम</button>
+        <button id="camera-lock" class="camera-lock" title="दृश्य बंध / मुक्त"><i class="fas fa-lock"></i> दृश्य</button>
+        <button id="reset-btn" class="reset-btn" title="पुनःसेट"><i class="fas fa-undo"></i> पुनःसेट</button>
+        <span id="status-msg"><i class="fas fa-circle" style="color:#44ff44;"></i> तत्पर</span>
     </div>
 
     <script type="module">
@@ -336,14 +361,15 @@
             document.getElementById('error-boundary').classList.add('show');
         }
 
-        // ========== IMPORTS (safe, verified) ==========
+        // ========== IMPORTS ==========
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
         import { TransformControls } from 'three/addons/controls/TransformControls.js';
+        import * as CANNON from 'cannon-es';
 
         // ========== SETUP ==========
-        let scene, camera, renderer, controls, transformControls;
+        let scene, camera, renderer, controls, transformControls, physicsWorld;
         let currentModel = null;
         let bones = [];
         let mixer = null;
@@ -354,6 +380,7 @@
         let fallbackCube = null;
         let isFallback = true;
         let selectedBone;
+        let ragdollBodies = []; // for future ragdoll
 
         // Manual rig mode toggle
         let manualMode = false;
@@ -369,13 +396,13 @@
         // UI elements
         const fileInput = document.getElementById('file-input');
         const uploadBtn = document.getElementById('upload-btn');
-        const autoRigBtn = document.getElementById('auto-rig-btn'); // hidden
         const forceRigBtn = document.getElementById('force-rig-btn');
         const tposeToIdleBtn = document.getElementById('tpose-to-idle');
         const animSelect = document.getElementById('animation-select');
         const physicsToggle = document.getElementById('physics-toggle');
         const manualToggle = document.getElementById('manual-toggle');
         const cameraLockBtn = document.getElementById('camera-lock');
+        const resetBtn = document.getElementById('reset-btn');
         const statusMsg = document.getElementById('status-msg');
         const boneSelect = document.getElementById('bone-select');
         const rotX = document.getElementById('rot-x');
@@ -408,7 +435,7 @@
             xp += amount;
             xpFill.style.width = Math.min(100, xp) + '%';
             xpCount.textContent = xp;
-            xpDisplay.textContent = xp + ' XP';
+            xpDisplay.textContent = xp + ' कर्म';
         }
 
         // ========== SCENE INIT ==========
@@ -417,9 +444,10 @@
             scene.background = new THREE.Color(0x0b0b12);
             camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 1000);
             camera.position.set(2, 2, 5);
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             renderer.toneMapping = THREE.ACESFilmicToneMapping;
             document.getElementById('canvas-container').appendChild(renderer.domElement);
 
@@ -429,7 +457,18 @@
 
             transformControls = new TransformControls(camera, renderer.domElement);
             transformControls.addEventListener('dragging-changed', (e) => { controls.enabled = !e.value && !cameraLocked; });
-            scene.add(transformControls); // Must be in scene before attaching
+            scene.add(transformControls);
+
+            // Physics world (Cannon-es) – simple for now
+            physicsWorld = new CANNON.World();
+            physicsWorld.gravity.set(0, -9.81, 0);
+            physicsWorld.broadphase = new CANNON.SAPBroadphase(physicsWorld);
+            physicsWorld.defaultContactMaterial.restitution = 0.3;
+
+            // Ground body
+            const groundBody = new CANNON.Body({ mass: 0, shape: new CANNON.Plane() });
+            groundBody.quaternion.setFromEuler(-Math.PI/2, 0, 0);
+            physicsWorld.addBody(groundBody);
 
             // Lights
             scene.add(new THREE.AmbientLight(0x404060, 0.6));
@@ -443,13 +482,13 @@
             fillLight.position.set(-4,5,6);
             scene.add(fillLight);
 
-            // Ground
+            // Ground visual
             const ground = new THREE.Mesh(new THREE.PlaneGeometry(20,20), new THREE.MeshStandardMaterial({color:0x1a1a2a, side:THREE.DoubleSide}));
             ground.rotation.x = -Math.PI/2;
             ground.position.y = 0;
             ground.receiveShadow = true;
             scene.add(ground);
-            scene.add(new THREE.GridHelper(20,20,0x00ffff,0x335577));
+            scene.add(new THREE.GridHelper(20,20,0xffd700,0x553300));
 
             // Create default jelly cube
             createJellyCube();
@@ -464,8 +503,8 @@
 
             const geometry = new THREE.BoxGeometry(1, 1, 1);
             const material = new THREE.MeshPhongMaterial({
-                color: 0xff88aa,
-                emissive: 0x331122,
+                color: 0xffaa44,
+                emissive: 0x331100,
                 shininess: 30,
                 transparent: true,
                 opacity: 0.9
@@ -478,42 +517,44 @@
             fallbackCube = cube;
             isFallback = true;
 
-            boneSelect.innerHTML = '<option value="cube">JELLY CUBE (default)</option>';
+            boneSelect.innerHTML = '<option value="cube">जेली घन (default)</option>';
             boneSelect.disabled = false;
             selectedBone = cube;
-            // Ensure cube is in scene before attaching
-            if (manualMode) transformControls.attach(cube);
+            if (manualMode && cube.parent) transformControls.attach(cube);
 
             tposeToIdleBtn.disabled = false;
             physicsToggle.disabled = false;
             forceRigBtn.disabled = true;
             animSelect.disabled = true;
 
-            // Enable only idle for cube
             [animWave, animKick, animDance, animWalk, animRun, animJump].forEach(btn => btn.disabled = true);
             animIdle.disabled = false;
             setProcAnim('idle');
 
-            setStatus('Default jelly cube active. Upload a model to rig.', 'info');
+            setStatus('जेली घन सक्रिय। मॉडल अपलोड करें।', 'info');
         }
 
-        // Comprehensive bone mapping with synonyms
+        // ========== MASSIVE BONE MAPPING (VEDIC ACCURACY) ==========
         const boneMappings = {
-            spine: /spine|chest|torso|upperbody|back|thorax|ribs/i,
-            head: /head|neck|skull|face|chin/i,
-            leftArm: /leftarm|upperarm_l|arm_l|l_arm|leftshoulder|shoulder_l|clavicle_l/i,
-            rightArm: /rightarm|upperarm_r|arm_r|r_arm|rightshoulder|shoulder_r|clavicle_r/i,
-            leftForeArm: /leftforearm|forearm_l|lowerarm_l|elbow_l|radius_l/i,
-            rightForeArm: /rightforearm|forearm_r|lowerarm_r|elbow_r|radius_r/i,
-            leftHand: /lefthand|hand_l|palm_l|wrist_l/i,
-            rightHand: /righthand|hand_r|palm_r|wrist_r/i,
-            leftLeg: /leftupleg|thigh_l|upleg_l|leftthigh|femur_l/i,
-            rightLeg: /rightupleg|thigh_r|upleg_r|rightthigh|femur_r/i,
-            leftCalf: /leftleg|calf_l|shin_l|lowerleg_l|tibia_l|fibula_l/i,
-            rightCalf: /rightleg|calf_r|shin_r|lowerleg_r|tibia_r|fibula_r/i,
-            leftFoot: /leftfoot|foot_l|ankle_l|heel_l|ball_l/i,
-            rightFoot: /rightfoot|foot_r|ankle_r|heel_r|ball_r/i,
-            hips: /hips|pelvis|root|lowerback|waist|baseroot|master|pelvis_root/i
+            spine: /spine|chest|torso|upperbody|back|thorax|ribs|vertebra|कशेरुका/i,
+            head: /head|neck|skull|face|chin|मस्तक|ग्रीवा/i,
+            leftArm: /leftarm|upperarm_l|arm_l|l_arm|leftshoulder|shoulder_l|clavicle_l|बायाँ_भुजा/i,
+            rightArm: /rightarm|upperarm_r|arm_r|r_arm|rightshoulder|shoulder_r|clavicle_r|दायाँ_भुजा/i,
+            leftForeArm: /leftforearm|forearm_l|lowerarm_l|elbow_l|radius_l|बायाँ_प्रकोष्ठ/i,
+            rightForeArm: /rightforearm|forearm_r|lowerarm_r|elbow_r|radius_r|दायाँ_प्रकोष्ठ/i,
+            leftHand: /lefthand|hand_l|palm_l|wrist_l|बायाँ_हस्त/i,
+            rightHand: /righthand|hand_r|palm_r|wrist_r|दायाँ_हस्त/i,
+            leftLeg: /leftupleg|thigh_l|upleg_l|leftthigh|femur_l|बायाँ_जंघा/i,
+            rightLeg: /rightupleg|thigh_r|upleg_r|rightthigh|femur_r|दायाँ_जंघा/i,
+            leftCalf: /leftleg|calf_l|shin_l|lowerleg_l|tibia_l|fibula_l|बायाँ_पिंडली/i,
+            rightCalf: /rightleg|calf_r|shin_r|lowerleg_r|tibia_r|fibula_r|दायाँ_पिंडली/i,
+            leftFoot: /leftfoot|foot_l|ankle_l|heel_l|ball_l|बायाँ_पाद/i,
+            rightFoot: /rightfoot|foot_r|ankle_r|heel_r|ball_r|दायाँ_पाद/i,
+            hips: /hips|pelvis|root|lowerback|waist|baseroot|master|pelvis_root|श्रोणि/i,
+            leftFingers: /finger_l|thumb_l|index_l|middle_l|ring_l|pinky_l/i,
+            rightFingers: /finger_r|thumb_r|index_r|middle_r|ring_r|pinky_r/i,
+            leftToes: /toe_l|foottoe_l/i,
+            rightToes: /toe_r|foottoe_r/i
         };
 
         function findBone(type) {
@@ -543,7 +584,7 @@
             if (!file) return;
             const ext = file.name.split('.').pop().toLowerCase();
             if (!['glb','gltf'].includes(ext)) {
-                setStatus('Unsupported file type', 'error');
+                setStatus('असमर्थित प्रारूप', 'error');
                 return;
             }
             const url = URL.createObjectURL(file);
@@ -551,7 +592,7 @@
         });
 
         async function loadModel(url, name) {
-            setStatus('LOADING MODEL...', 'info');
+            setStatus('मॉडल लोड हो रहा...', 'info');
             forceRigBtn.disabled = true;
             tposeToIdleBtn.disabled = true;
             animSelect.disabled = true;
@@ -581,16 +622,16 @@
                 currentModel.traverse(obj => { if (obj.isBone) bones.push(obj); });
 
                 if (bones.length === 0) {
-                    setStatus('NO BONES FOUND – returning to jelly cube', 'info');
+                    setStatus('अस्थि नहीं मिली – जेली घन पर लौटे', 'info');
                     createJellyCube();
                     return;
                 }
 
                 isFallback = false;
-                setStatus(`${bones.length} BONES FOUND`, 'success');
+                setStatus(`${bones.length} अस्थियाँ मिलीं`, 'success');
 
                 // Populate bone select
-                boneSelect.innerHTML = '<option>Select bone...</option>';
+                boneSelect.innerHTML = '<option>अस्थि चुनें...</option>';
                 bones.forEach(b => {
                     const opt = document.createElement('option');
                     opt.value = b.name;
@@ -618,10 +659,9 @@
                     if (Object.keys(animations).length > 0) animSelect.disabled = false;
                 }
 
-                // Detach transformControls if manual mode is off
                 if (!manualMode) transformControls.detach();
             } catch (err) {
-                setStatus('LOAD FAILED: ' + err.message, 'error');
+                setStatus('लोड विफल: ' + err.message, 'error');
                 console.error(err);
                 createJellyCube();
             }
@@ -629,13 +669,13 @@
 
         // ========== FORCE RIG ==========
         forceRigBtn.addEventListener('click', () => {
-            alert('Force rig would attempt procedural rigging. For now, please use a model with bones or enjoy the jelly cube.');
+            alert('बलात् संयम अभी उपलब्ध नहीं। कृपया अस्थियुक्त मॉडल अपलोड करें।');
         });
 
         // ========== T‑POSE TO IDLE ==========
         tposeToIdleBtn.addEventListener('click', () => {
             if (isFallback && fallbackCube) {
-                setStatus('JELLY CUBE IDLE ACTIVATED', 'success');
+                setStatus('जेली घन निश्चल', 'success');
                 addXP(30);
             } else if (currentModel && bones.length > 0) {
                 const spine = findBone('spine');
@@ -652,7 +692,7 @@
                 if (lLeg) lLeg.rotation.x = 0.1;
                 if (rLeg) rLeg.rotation.x = 0.1;
 
-                setStatus('IDLE POSE APPLIED', 'success');
+                setStatus('ताड़ासन → निश्चल', 'success');
                 addXP(50);
             }
         });
@@ -671,7 +711,7 @@
         physicsToggle.addEventListener('click', () => {
             physicsEnabled = !physicsEnabled;
             physicsToggle.classList.toggle('active', physicsEnabled);
-            physicsToggle.innerHTML = physicsEnabled ? '<i class="fas fa-heartbeat"></i> PHYSICS ON' : '<i class="fas fa-heartbeat"></i> PHYSICS OFF';
+            physicsToggle.innerHTML = physicsEnabled ? '<i class="fas fa-heartbeat"></i> प्राण ऊर्जा' : '<i class="fas fa-heartbeat"></i> प्राण बंद';
         });
 
         // ========== MANUAL RIG TOGGLE ==========
@@ -680,10 +720,7 @@
             manualToggle.classList.toggle('active', manualMode);
             if (manualMode) {
                 rightPanel.classList.remove('hidden');
-                if (selectedBone) {
-                    // Ensure selectedBone is still in scene (might have been removed)
-                    if (selectedBone.parent) transformControls.attach(selectedBone);
-                }
+                if (selectedBone && selectedBone.parent) transformControls.attach(selectedBone);
             } else {
                 rightPanel.classList.add('hidden');
                 transformControls.detach();
@@ -695,7 +732,21 @@
             cameraLocked = !cameraLocked;
             cameraLockBtn.classList.toggle('active', cameraLocked);
             controls.enabled = !cameraLocked;
-            cameraLockBtn.innerHTML = cameraLocked ? '<i class="fas fa-lock"></i> CAMERA' : '<i class="fas fa-unlock-alt"></i> CAMERA';
+            cameraLockBtn.innerHTML = cameraLocked ? '<i class="fas fa-lock"></i> दृश्य' : '<i class="fas fa-unlock-alt"></i> दृश्य';
+        });
+
+        // ========== RESET BUTTON ==========
+        resetBtn.addEventListener('click', () => {
+            if (currentModel && !isFallback) {
+                currentModel.position.set(0, 1, 0);
+                currentModel.rotation.set(0, 0, 0);
+                bones.forEach(b => { b.rotation.set(0, 0, 0); });
+            } else if (fallbackCube) {
+                fallbackCube.position.set(0, 1, 0);
+                fallbackCube.rotation.set(0, 0, 0);
+            }
+            addXP(10);
+            setStatus('पुनःसेट किया गया', 'success');
         });
 
         // ========== PROCEDURAL ANIMATION BUTTONS ==========
@@ -712,46 +763,29 @@
             const boneName = e.target.value;
             if (isFallback && boneName === 'cube') {
                 selectedBone = fallbackCube;
-                if (manualMode && selectedBone.parent) transformControls.attach(fallbackCube);
+                if (manualMode && selectedBone && selectedBone.parent) transformControls.attach(fallbackCube);
                 const rot = fallbackCube.rotation;
-                rotX.value = rot.x;
-                rotY.value = rot.y;
-                rotZ.value = rot.z;
-                rotXval.textContent = rot.x.toFixed(2);
-                rotYval.textContent = rot.y.toFixed(2);
-                rotZval.textContent = rot.z.toFixed(2);
+                rotX.value = rot.x; rotY.value = rot.y; rotZ.value = rot.z;
+                rotXval.textContent = rot.x.toFixed(2); rotYval.textContent = rot.y.toFixed(2); rotZval.textContent = rot.z.toFixed(2);
             } else {
                 selectedBone = bones.find(b => b.name === boneName);
                 if (selectedBone && manualMode && selectedBone.parent) transformControls.attach(selectedBone);
                 if (selectedBone) {
                     const rot = selectedBone.rotation;
-                    rotX.value = rot.x;
-                    rotY.value = rot.y;
-                    rotZ.value = rot.z;
-                    rotXval.textContent = rot.x.toFixed(2);
-                    rotYval.textContent = rot.y.toFixed(2);
-                    rotZval.textContent = rot.z.toFixed(2);
+                    rotX.value = rot.x; rotY.value = rot.y; rotZ.value = rot.z;
+                    rotXval.textContent = rot.x.toFixed(2); rotYval.textContent = rot.y.toFixed(2); rotZval.textContent = rot.z.toFixed(2);
                 }
             }
         });
 
         rotX.addEventListener('input', () => {
-            if (selectedBone) {
-                selectedBone.rotation.x = parseFloat(rotX.value);
-                rotXval.textContent = rotX.value;
-            }
+            if (selectedBone) { selectedBone.rotation.x = parseFloat(rotX.value); rotXval.textContent = rotX.value; }
         });
         rotY.addEventListener('input', () => {
-            if (selectedBone) {
-                selectedBone.rotation.y = parseFloat(rotY.value);
-                rotYval.textContent = rotY.value;
-            }
+            if (selectedBone) { selectedBone.rotation.y = parseFloat(rotY.value); rotYval.textContent = rotY.value; }
         });
         rotZ.addEventListener('input', () => {
-            if (selectedBone) {
-                selectedBone.rotation.z = parseFloat(rotZ.value);
-                rotZval.textContent = rotZ.value;
-            }
+            if (selectedBone) { selectedBone.rotation.z = parseFloat(rotZ.value); rotZval.textContent = rotZ.value; }
         });
 
         // ========== ANIMATION LOOP ==========
@@ -763,7 +797,7 @@
             try {
                 if (mixer) mixer.update(delta);
 
-                // Physics (breathing) – only when physics enabled and not in manual mode
+                // Physics (breathing + simple sway) – only when enabled and not in manual mode
                 if (physicsEnabled && !manualMode) {
                     if (isFallback && fallbackCube) {
                         const scaleX = 1 + Math.sin(time * 5) * 0.1;
@@ -791,7 +825,7 @@
                     const rFoot = findBone('rightFoot');
                     const lFoot = findBone('leftFoot');
 
-                    // High‑fidelity human motions
+                    // High‑fidelity human motions with phase offsets
                     switch (procAnim) {
                         case 'wave':
                             if (rArm) {
