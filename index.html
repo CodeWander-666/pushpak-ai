@@ -42,6 +42,9 @@
             --accent-violet-dark: #6B1FA3;
             --accent-pink: #FF44CC;
             --accent-pink-dark: #CC33AA;
+            --accent-green: #44FF44;
+            --accent-red: #FF4444;
+            --accent-yellow: #FFAA44;
             
             --glass-bg: rgba(10, 10, 15, 0.25);
             --glass-bg-hover: rgba(20, 20, 30, 0.35);
@@ -92,6 +95,7 @@
             --z-index-drawer: 200;
             --z-index-toast: 1000;
             --z-index-loading: 2000;
+            --z-index-diagnostic: 2500;
         }
 
         /* ==========================================================================
@@ -219,6 +223,214 @@
             -webkit-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
+        }
+
+        /* ==========================================================================
+           DIAGNOSTIC PANEL
+           ========================================================================== */
+        
+        #diagnostic-panel {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: var(--z-index-diagnostic);
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: var(--blur-lg);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--border-radius-lg);
+            padding: 15px;
+            max-width: 350px;
+            font-family: var(--font-family-mono);
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            display: none;
+            box-shadow: var(--shadow-xl);
+        }
+
+        #diagnostic-panel.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .diagnostic-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .diagnostic-title {
+            color: var(--accent-cyan);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .diagnostic-close {
+            cursor: pointer;
+            color: var(--text-dim);
+            transition: var(--transition-fast);
+        }
+
+        .diagnostic-close:hover {
+            color: var(--accent-red);
+        }
+
+        .diagnostic-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding: 5px;
+            border-radius: var(--border-radius-sm);
+            transition: var(--transition-fast);
+        }
+
+        .diagnostic-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .diagnostic-label {
+            color: var(--text-secondary);
+        }
+
+        .diagnostic-value {
+            font-weight: 600;
+        }
+
+        .diagnostic-value.success {
+            color: var(--accent-green);
+        }
+
+        .diagnostic-value.warning {
+            color: var(--accent-yellow);
+        }
+
+        .diagnostic-value.error {
+            color: var(--accent-red);
+        }
+
+        .diagnostic-info {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .diagnostic-log {
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            padding: 5px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: var(--border-radius-sm);
+        }
+
+        .diagnostic-log-entry {
+            padding: 2px 0;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+        }
+
+        .diagnostic-log-entry.error {
+            color: var(--accent-red);
+        }
+
+        .diagnostic-log-entry.warning {
+            color: var(--accent-yellow);
+        }
+
+        .diagnostic-log-entry.success {
+            color: var(--accent-green);
+        }
+
+        /* ==========================================================================
+           ERROR BOUNDARY
+           ========================================================================== */
+        
+        #error-boundary {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-dark);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s;
+        }
+
+        #error-boundary.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .error-content {
+            max-width: 600px;
+            background: var(--glass-bg);
+            backdrop-filter: var(--blur-lg);
+            border: 1px solid var(--accent-red);
+            border-radius: var(--border-radius-lg);
+            padding: 40px;
+            text-align: center;
+            box-shadow: var(--shadow-xl);
+        }
+
+        .error-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            color: var(--accent-red);
+        }
+
+        .error-title {
+            font-size: 2rem;
+            color: var(--accent-red);
+            margin-bottom: 15px;
+        }
+
+        .error-message {
+            color: var(--text-dim);
+            margin-bottom: 25px;
+            line-height: 1.8;
+        }
+
+        .error-details {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: var(--border-radius-md);
+            margin-bottom: 25px;
+            text-align: left;
+            font-family: var(--font-family-mono);
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            overflow-x: auto;
+        }
+
+        .error-button {
+            background: var(--accent-red);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: var(--border-radius-lg);
+            font-size: 1rem;
+            cursor: pointer;
+            transition: var(--transition-normal);
+            font-weight: 600;
+        }
+
+        .error-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px var(--accent-red);
         }
 
         /* ==========================================================================
@@ -607,6 +819,10 @@
             filter: grayscale(0.8);
         }
 
+        .achievement-item.unlocked {
+            border-color: var(--accent-green);
+        }
+
         .achievement-icon {
             font-size: 2.5rem;
             margin-bottom: 10px;
@@ -689,6 +905,48 @@
             color: var(--accent-pink);
             font-weight: 600;
             font-size: 0.85rem;
+        }
+
+        .diagnostic-tool {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 30px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .diagnostic-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: var(--border-radius-sm);
+        }
+
+        .diagnostic-row span:first-child {
+            color: var(--text-secondary);
+        }
+
+        .diagnostic-row span:last-child {
+            font-weight: 600;
+        }
+
+        .diagnostic-button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-violet));
+            border: none;
+            border-radius: var(--border-radius-lg);
+            color: var(--bg-dark);
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition-normal);
+        }
+
+        .diagnostic-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--glow-cyan);
         }
 
         /* ==========================================================================
@@ -1308,19 +1566,19 @@
         }
 
         .toast.error {
-            border-color: #ff4444;
+            border-color: var(--accent-red);
             color: #ff8888;
             box-shadow: 0 0 30px rgba(255,68,68,0.3);
         }
 
         .toast.success {
-            border-color: #44ff44;
+            border-color: var(--accent-green);
             color: #88ff88;
             box-shadow: 0 0 30px rgba(68,255,68,0.3);
         }
 
         .toast.warning {
-            border-color: #ffaa44;
+            border-color: var(--accent-yellow);
             color: #ffcc88;
         }
 
@@ -1572,31 +1830,12 @@
                 height: 350px;
             }
         }
-
-        /* ==========================================================================
-           PRINT STYLES
-           ========================================================================== */
-        
-        @media print {
-            #canvas-container,
-            #playground-panel,
-            .glass-header,
-            .drawer,
-            .runner,
-            #xp-container {
-                display: none;
-            }
-            body {
-                background: white;
-                color: black;
-            }
-        }
     </style>
     
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     
-    <!-- Font Awesome for icons (optional fallback) -->
+    <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
@@ -1606,6 +1845,59 @@
             <div class="loading-spinner-large"></div>
             <div class="loading-text">INITIALIZING BIO‑REACT...</div>
         </div>
+    </div>
+
+    <!-- Error Boundary -->
+    <div id="error-boundary">
+        <div class="error-content">
+            <div class="error-icon"><i class="fas fa-exclamation-triangle"></i></div>
+            <div class="error-title">CRITICAL ERROR</div>
+            <div class="error-message" id="error-message">An unexpected error has occurred.</div>
+            <div class="error-details" id="error-details"></div>
+            <button class="error-button" onclick="location.reload()"><i class="fas fa-sync-alt"></i> RELOAD PAGE</button>
+        </div>
+    </div>
+
+    <!-- Diagnostic Panel -->
+    <div id="diagnostic-panel">
+        <div class="diagnostic-header">
+            <span class="diagnostic-title"><i class="fas fa-stethoscope"></i> DIAGNOSTIC REPORT</span>
+            <span class="diagnostic-close" onclick="document.getElementById('diagnostic-panel').classList.remove('show')"><i class="fas fa-times"></i></span>
+        </div>
+        <div class="diagnostic-item">
+            <span class="diagnostic-label">System Status:</span>
+            <span class="diagnostic-value" id="diag-system">Checking...</span>
+        </div>
+        <div class="diagnostic-item">
+            <span class="diagnostic-label">Backend Connection:</span>
+            <span class="diagnostic-value" id="diag-backend">Checking...</span>
+        </div>
+        <div class="diagnostic-item">
+            <span class="diagnostic-label">Three.js:</span>
+            <span class="diagnostic-value" id="diag-three">Checking...</span>
+        </div>
+        <div class="diagnostic-item">
+            <span class="diagnostic-label">IK Solver:</span>
+            <span class="diagnostic-value" id="diag-ik">Checking...</span>
+        </div>
+        <div class="diagnostic-item">
+            <span class="diagnostic-label">WebGL:</span>
+            <span class="diagnostic-value" id="diag-webgl">Checking...</span>
+        </div>
+        <div class="diagnostic-item">
+            <span class="diagnostic-label">Browser:</span>
+            <span class="diagnostic-value" id="diag-browser">Checking...</span>
+        </div>
+        <div class="diagnostic-item">
+            <span class="diagnostic-label">Memory Usage:</span>
+            <span class="diagnostic-value" id="diag-memory">Checking...</span>
+        </div>
+        <div class="diagnostic-info">
+            <div class="diagnostic-log" id="diagnostic-log">
+                <div class="diagnostic-log-entry">[INFO] Diagnostic started...</div>
+            </div>
+        </div>
+        <button class="diagnostic-button" onclick="window.BioReact?.runDiagnostics()"><i class="fas fa-sync-alt"></i> RUN DIAGNOSTICS</button>
     </div>
 
     <!-- Canvas container -->
@@ -1738,11 +2030,24 @@
 
         <div class="drawer-section">
             <h3>ℹ️ SYSTEM INFO</h3>
-            <div style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 30px;">
-                <p style="margin-bottom: 10px;">Version: 2.0.0</p>
-                <p style="margin-bottom: 10px;">Backend: <span id="backend-status">Checking...</span></p>
-                <p style="margin-bottom: 10px;">IK Library: <span id="ik-status">Checking...</span></p>
-                <p>Three.js: r128</p>
+            <div class="diagnostic-tool">
+                <div class="diagnostic-row">
+                    <span>Version:</span>
+                    <span>2.0.0</span>
+                </div>
+                <div class="diagnostic-row">
+                    <span>Backend:</span>
+                    <span id="drawer-backend-status">Checking...</span>
+                </div>
+                <div class="diagnostic-row">
+                    <span>IK Library:</span>
+                    <span id="drawer-ik-status">Checking...</span>
+                </div>
+                <div class="diagnostic-row">
+                    <span>Three.js:</span>
+                    <span>r128</span>
+                </div>
+                <button class="diagnostic-button" onclick="window.BioReact?.showDiagnosticPanel()"><i class="fas fa-stethoscope"></i> FULL DIAGNOSTICS</button>
             </div>
         </div>
     </div>
@@ -1968,7 +2273,7 @@
             </div>
         </div>
         <div class="panel-group">
-            <span id="status-message"><i class="fas fa-circle" style="color: #44ff44; font-size: 0.6rem;"></i> READY</span>
+            <span id="status-message"><i class="fas fa-circle" style="color: var(--accent-green); font-size: 0.6rem;"></i> READY</span>
         </div>
         <div class="panel-group">
             <div id="loading-spinner" class="loading-spinner" style="display:none;"></div>
@@ -1996,11 +2301,149 @@
     <script src="https://cdn.jsdelivr.net/npm/stats.js@0.17.0/build/stats.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     
-    <!-- Main application script - 1000+ lines of functionality -->
+    <!-- Main application script - 5000+ lines of functionality -->
     <script>
         (function() {
             "use strict";
             
+            // ==========================================================================
+            // GLOBAL ERROR HANDLER
+            // ==========================================================================
+            
+            window.addEventListener('error', function(event) {
+                console.error('Global error caught:', event.error);
+                showCriticalError(event.error?.message || 'Unknown error', event.error?.stack);
+                return false;
+            });
+
+            window.addEventListener('unhandledrejection', function(event) {
+                console.error('Unhandled promise rejection:', event.reason);
+                showCriticalError(event.reason?.message || 'Unhandled promise rejection', event.reason?.stack);
+            });
+
+            function showCriticalError(message, stack) {
+                const errorBoundary = document.getElementById('error-boundary');
+                const errorMessage = document.getElementById('error-message');
+                const errorDetails = document.getElementById('error-details');
+                
+                if (errorBoundary && errorMessage && errorDetails) {
+                    errorMessage.textContent = message || 'An unexpected error occurred';
+                    errorDetails.textContent = stack || 'No stack trace available';
+                    errorBoundary.classList.add('show');
+                }
+            }
+
+            // ==========================================================================
+            // DIAGNOSTIC SYSTEM
+            // ==========================================================================
+            
+            const DiagnosticSystem = {
+                log: [],
+                
+                addLogEntry(message, type = 'info') {
+                    const entry = {
+                        timestamp: new Date().toISOString(),
+                        message: message,
+                        type: type
+                    };
+                    this.log.push(entry);
+                    this.updateLogDisplay();
+                    return entry;
+                },
+                
+                updateLogDisplay() {
+                    const logContainer = document.getElementById('diagnostic-log');
+                    if (!logContainer) return;
+                    
+                    logContainer.innerHTML = '';
+                    this.log.slice(-20).forEach(entry => {
+                        const div = document.createElement('div');
+                        div.className = `diagnostic-log-entry ${entry.type}`;
+                        div.textContent = `[${entry.type.toUpperCase()}] ${entry.message}`;
+                        logContainer.appendChild(div);
+                    });
+                },
+                
+                async runFullDiagnostic() {
+                    this.addLogEntry('Starting full diagnostic...', 'info');
+                    
+                    // Check backend
+                    try {
+                        this.addLogEntry('Checking backend connection...', 'info');
+                        const response = await fetch(`${BACKEND_URL}/health`, { 
+                            method: 'GET',
+                            timeout: 5000 
+                        });
+                        if (response.ok) {
+                            const data = await response.json();
+                            this.addLogEntry(`Backend connection successful: ${data.status}`, 'success');
+                            document.getElementById('diag-backend').innerHTML = '<span class="diagnostic-value success">Online</span>';
+                        } else {
+                            throw new Error(`HTTP ${response.status}`);
+                        }
+                    } catch (err) {
+                        this.addLogEntry(`Backend connection failed: ${err.message}`, 'error');
+                        document.getElementById('diag-backend').innerHTML = '<span class="diagnostic-value error">Offline</span>';
+                    }
+                    
+                    // Check Three.js
+                    if (typeof THREE !== 'undefined') {
+                        this.addLogEntry(`Three.js loaded: ${THREE.REVISION}`, 'success');
+                        document.getElementById('diag-three').innerHTML = '<span class="diagnostic-value success">Loaded</span>';
+                    } else {
+                        this.addLogEntry('Three.js not loaded', 'error');
+                        document.getElementById('diag-three').innerHTML = '<span class="diagnostic-value error">Missing</span>';
+                    }
+                    
+                    // Check IK Solver
+                    if (typeof CCDIKSolver !== 'undefined') {
+                        this.addLogEntry('CCDIKSolver loaded', 'success');
+                        document.getElementById('diag-ik').innerHTML = '<span class="diagnostic-value success">Loaded</span>';
+                    } else {
+                        this.addLogEntry('CCDIKSolver not loaded', 'warning');
+                        document.getElementById('diag-ik').innerHTML = '<span class="diagnostic-value warning">Missing</span>';
+                    }
+                    
+                    // Check WebGL
+                    const canvas = document.createElement('canvas');
+                    const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
+                    if (gl) {
+                        this.addLogEntry('WebGL supported', 'success');
+                        document.getElementById('diag-webgl').innerHTML = '<span class="diagnostic-value success">Supported</span>';
+                    } else {
+                        this.addLogEntry('WebGL not supported', 'error');
+                        document.getElementById('diag-webgl').innerHTML = '<span class="diagnostic-value error">Not Supported</span>';
+                    }
+                    
+                    // Browser info
+                    const browserInfo = `${navigator.userAgent.match(/(Chrome|Firefox|Safari)\/\S+/)?.[0] || 'Unknown'}`;
+                    document.getElementById('diag-browser').innerHTML = `<span class="diagnostic-value success">${browserInfo}</span>`;
+                    
+                    // Memory usage
+                    if (performance.memory) {
+                        const memoryMB = Math.round(performance.memory.usedJSHeapSize / (1024 * 1024));
+                        this.addLogEntry(`Memory usage: ${memoryMB} MB`, 'info');
+                        document.getElementById('diag-memory').innerHTML = `<span class="diagnostic-value">${memoryMB} MB</span>`;
+                    }
+                    
+                    this.addLogEntry('Diagnostic complete', 'success');
+                    
+                    // Update drawer statuses
+                    document.getElementById('drawer-backend-status').innerHTML = document.getElementById('diag-backend').innerHTML;
+                    document.getElementById('drawer-ik-status').innerHTML = document.getElementById('diag-ik').innerHTML;
+                    
+                    return this.log;
+                },
+                
+                showPanel() {
+                    const panel = document.getElementById('diagnostic-panel');
+                    if (panel) {
+                        panel.classList.add('show');
+                        this.runFullDiagnostic();
+                    }
+                }
+            };
+
             // ==========================================================================
             // APPLICATION CONSTANTS & CONFIGURATION
             // ==========================================================================
@@ -2013,6 +2456,9 @@
             const MAX_POLLS = 60; // 2 minutes
             const IK_ITERATIONS = 50;
             
+            DiagnosticSystem.addLogEntry(`Bio‑React v${APP_VERSION} initializing...`, 'info');
+            DiagnosticSystem.addLogEntry(`Backend URL: ${BACKEND_URL}`, 'info');
+
             // ==========================================================================
             // UTILITY FUNCTIONS
             // ==========================================================================
@@ -2025,7 +2471,10 @@
              */
             const showToast = (message, type = 'info', duration = 3000) => {
                 const toast = document.getElementById('toast');
-                if (!toast) return;
+                if (!toast) {
+                    DiagnosticSystem.addLogEntry(`Toast message suppressed (no element): ${message}`, 'warning');
+                    return;
+                }
                 
                 toast.textContent = message;
                 toast.className = 'toast';
@@ -2035,6 +2484,8 @@
                 setTimeout(() => {
                     toast.classList.remove('show');
                 }, duration);
+                
+                DiagnosticSystem.addLogEntry(`Toast: ${message}`, type);
             };
             
             /**
@@ -2045,7 +2496,8 @@
                 console.error(message);
                 showToast(`❌ ${message}`, 'error', 5000);
                 const statusMsg = document.getElementById('status-message');
-                if (statusMsg) statusMsg.innerHTML = `<i class="fas fa-exclamation-circle" style="color: #ff4444;"></i> ${message}`;
+                if (statusMsg) statusMsg.innerHTML = `<i class="fas fa-exclamation-circle" style="color: var(--accent-red);"></i> ${message}`;
+                DiagnosticSystem.addLogEntry(`ERROR: ${message}`, 'error');
             };
             
             /**
@@ -2055,7 +2507,8 @@
             const showSuccess = (message) => {
                 showToast(`✅ ${message}`, 'success', 3000);
                 const statusMsg = document.getElementById('status-message');
-                if (statusMsg) statusMsg.innerHTML = `<i class="fas fa-check-circle" style="color: #44ff44;"></i> ${message}`;
+                if (statusMsg) statusMsg.innerHTML = `<i class="fas fa-check-circle" style="color: var(--accent-green);"></i> ${message}`;
+                DiagnosticSystem.addLogEntry(`SUCCESS: ${message}`, 'success');
             };
             
             /**
@@ -2065,7 +2518,8 @@
             const showWarning = (message) => {
                 showToast(`⚠️ ${message}`, 'warning', 4000);
                 const statusMsg = document.getElementById('status-message');
-                if (statusMsg) statusMsg.innerHTML = `<i class="fas fa-exclamation-triangle" style="color: #ffaa44;"></i> ${message}`;
+                if (statusMsg) statusMsg.innerHTML = `<i class="fas fa-exclamation-triangle" style="color: var(--accent-yellow);"></i> ${message}`;
+                DiagnosticSystem.addLogEntry(`WARNING: ${message}`, 'warning');
             };
             
             /**
@@ -2120,6 +2574,9 @@
                         origin: { y: 0.6 },
                         colors: ['#00FFFF', '#8A2BE2', '#FF44CC', '#FFFFFF']
                     });
+                    DiagnosticSystem.addLogEntry(`Celebration with ${count} confetti`, 'success');
+                } else {
+                    DiagnosticSystem.addLogEntry('Confetti not available', 'warning');
                 }
             };
             
@@ -2148,6 +2605,7 @@
                         'runner': { progress: 0, total: 1, completed: false }
                     };
                     
+                    DiagnosticSystem.addLogEntry('Gamification system initialized', 'info');
                     this.load();
                 }
                 
@@ -2162,8 +2620,10 @@
                             this.xp = parsed.xp || 0;
                             this.achievements = parsed.achievements || this.achievements;
                             this.quests = parsed.quests || this.quests;
+                            DiagnosticSystem.addLogEntry(`Loaded gamification data: ${this.xp} XP`, 'success');
                         }
                     } catch (e) {
+                        DiagnosticSystem.addLogEntry(`Failed to load gamification data: ${e.message}`, 'warning');
                         console.warn('Failed to load gamification data', e);
                     }
                     this.updateLevel();
@@ -2181,7 +2641,9 @@
                             quests: this.quests
                         };
                         localStorage.setItem('bio-react-gamification', JSON.stringify(data));
+                        DiagnosticSystem.addLogEntry('Gamification data saved', 'info');
                     } catch (e) {
+                        DiagnosticSystem.addLogEntry(`Failed to save gamification data: ${e.message}`, 'warning');
                         console.warn('Failed to save gamification data', e);
                     }
                 }
@@ -2194,6 +2656,7 @@
                         if (this.xp >= this.levelThresholds[i]) {
                             if (i > this.level) {
                                 this.level = i;
+                                DiagnosticSystem.addLogEntry(`Level up: ${this.levelNames[i]}`, 'success');
                                 showToast(`🎉 LEVEL UP! You are now a ${this.levelNames[i]}`, 'success', 5000);
                                 celebrate(200);
                             }
@@ -2209,7 +2672,9 @@
                  */
                 addXP(amount, source = null) {
                     this.xp += amount;
-                    showToast(`+${amount} XP ${source ? `- ${source}` : ''}`, 'success', 2000);
+                    const sourceText = source ? `- ${source}` : '';
+                    DiagnosticSystem.addLogEntry(`Added ${amount} XP ${sourceText}`, 'success');
+                    showToast(`+${amount} XP ${sourceText}`, 'success', 2000);
                     this.updateLevel();
                     this.save();
                     this.updateUI();
@@ -2225,6 +2690,7 @@
                     if (!quest || quest.completed) return;
                     
                     quest.progress = Math.min(quest.progress + progress, quest.total);
+                    DiagnosticSystem.addLogEntry(`Quest progress: ${questId} ${quest.progress}/${quest.total}`, 'info');
                     
                     if (quest.progress >= quest.total && !quest.completed) {
                         quest.completed = true;
@@ -2263,6 +2729,7 @@
                         case 'master': xpReward = 500; break;
                     }
                     
+                    DiagnosticSystem.addLogEntry(`Achievement unlocked: ${achievementId}`, 'success');
                     this.addXP(xpReward, `Achievement unlocked: ${achievementId}`);
                     this.updateAchievementUI(achievementId);
                     this.save();
@@ -2338,8 +2805,10 @@
                     
                     if (this.achievements[achievementId]) {
                         achievementElement.classList.remove('locked');
+                        achievementElement.classList.add('unlocked');
                     } else {
                         achievementElement.classList.add('locked');
+                        achievementElement.classList.remove('unlocked');
                     }
                 }
             }
@@ -2352,6 +2821,7 @@
                 constructor(gamification) {
                     this.abortController = null;
                     this.gamification = gamification;
+                    DiagnosticSystem.addLogEntry('FileManager initialized', 'info');
                 }
                 
                 /**
@@ -2367,6 +2837,8 @@
                     const controller = new AbortController();
                     this.abortController = controller;
                     
+                    DiagnosticSystem.addLogEntry(`Uploading file: ${file.name} (${formatFileSize(file.size)})`, 'info');
+                    
                     try {
                         const response = await fetch(`${BACKEND_URL}/upload`, {
                             method: 'POST',
@@ -2380,8 +2852,10 @@
                         }
                         
                         const data = await response.json();
+                        DiagnosticSystem.addLogEntry(`Upload successful, task ID: ${data.task_id}`, 'success');
                         return data.task_id;
                     } catch (err) {
+                        DiagnosticSystem.addLogEntry(`Upload error: ${err.message}`, 'error');
                         if (retryCount < MAX_RETRIES && err.name !== 'AbortError') {
                             showWarning(`Upload failed, retrying (${retryCount + 1}/${MAX_RETRIES})...`);
                             await new Promise(resolve => setTimeout(resolve, 2000));
@@ -2400,37 +2874,44 @@
                 async waitForCompletion(taskId, onProgress) {
                     let pollCount = 0;
                     
+                    DiagnosticSystem.addLogEntry(`Polling for task: ${taskId}`, 'info');
+                    
                     while (pollCount < MAX_POLLS) {
                         await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL));
                         
                         if (this.abortController?.signal.aborted) {
+                            DiagnosticSystem.addLogEntry('Polling aborted by user', 'warning');
                             throw new Error('Operation cancelled');
                         }
                         
                         try {
                             const response = await fetch(`${BACKEND_URL}/status/${taskId}`);
                             if (!response.ok) {
-                                throw new Error('Status check failed');
+                                throw new Error(`Status check failed: ${response.status}`);
                             }
                             
                             const data = await response.json();
                             
                             if (data.status === 'SUCCESS') {
+                                DiagnosticSystem.addLogEntry('Task completed successfully', 'success');
                                 onProgress?.('Downloading...', 80);
                                 return data.download_url;
                             } else if (data.status === 'FAILURE') {
+                                DiagnosticSystem.addLogEntry(`Task failed: ${data.error}`, 'error');
                                 throw new Error(data.error || 'Rigging failed');
                             }
                             
                             onProgress?.('Processing...', 30 + (pollCount / MAX_POLLS) * 40);
                         } catch (err) {
                             if (err.name === 'AbortError') throw err;
+                            DiagnosticSystem.addLogEntry(`Polling error: ${err.message}`, 'warning');
                             console.warn('Polling error, retrying...', err);
                         }
                         
                         pollCount++;
                     }
                     
+                    DiagnosticSystem.addLogEntry('Polling timed out', 'error');
                     throw new Error('Rigging timed out after 2 minutes');
                 }
                 
@@ -2442,6 +2923,8 @@
                 async downloadResult(downloadUrl) {
                     const fullUrl = downloadUrl.startsWith('http') ? downloadUrl : `${BACKEND_URL}${downloadUrl}`;
                     
+                    DiagnosticSystem.addLogEntry(`Downloading from: ${fullUrl}`, 'info');
+                    
                     const response = await fetch(fullUrl, {
                         signal: this.abortController?.signal
                     });
@@ -2452,7 +2935,9 @@
                     }
                     
                     const blob = await response.blob();
-                    return URL.createObjectURL(blob);
+                    const objectUrl = URL.createObjectURL(blob);
+                    DiagnosticSystem.addLogEntry(`Download complete, size: ${formatFileSize(blob.size)}`, 'success');
+                    return objectUrl;
                 }
                 
                 /**
@@ -2463,6 +2948,8 @@
                 async autoRig(file, callbacks) {
                     this.abortController = new AbortController();
                     const { onStart, onProgress, onSuccess, onError } = callbacks;
+                    
+                    DiagnosticSystem.addLogEntry('Auto-rig process started', 'info');
                     
                     try {
                         onStart?.();
@@ -2476,8 +2963,10 @@
                         
                         const modelUrl = await this.downloadResult(downloadUrl);
                         
+                        DiagnosticSystem.addLogEntry('Auto-rig process completed successfully', 'success');
                         onSuccess?.(modelUrl);
                     } catch (err) {
+                        DiagnosticSystem.addLogEntry(`Auto-rig failed: ${err.message}`, 'error');
                         if (err.name === 'AbortError') {
                             onError?.(new Error('Operation cancelled'));
                         } else {
@@ -2492,6 +2981,7 @@
                  * Cancel current operation
                  */
                 cancel() {
+                    DiagnosticSystem.addLogEntry('Operation cancelled by user', 'warning');
                     this.abortController?.abort();
                 }
             }
@@ -2527,6 +3017,7 @@
                     this.dirLight = null;
                     this.fillLight = null;
                     
+                    DiagnosticSystem.addLogEntry('SceneManager initializing...', 'info');
                     this.init();
                 }
                 
@@ -2535,6 +3026,10 @@
                  */
                 init() {
                     const container = document.getElementById('canvas-container');
+                    if (!container) {
+                        DiagnosticSystem.addLogEntry('Canvas container not found!', 'error');
+                        throw new Error('Canvas container not found');
+                    }
                     
                     // Scene
                     this.scene = new THREE.Scene();
@@ -2545,13 +3040,19 @@
                     this.camera.position.set(4, 2, 8);
                     
                     // Renderer
-                    this.renderer = new THREE.WebGLRenderer({ 
-                        antialias: true, 
-                        alpha: false, 
-                        powerPreference: "high-performance",
-                        stencil: true,
-                        depth: true
-                    });
+                    try {
+                        this.renderer = new THREE.WebGLRenderer({ 
+                            antialias: true, 
+                            alpha: false, 
+                            powerPreference: "high-performance",
+                            stencil: true,
+                            depth: true
+                        });
+                    } catch (err) {
+                        DiagnosticSystem.addLogEntry(`WebGL renderer creation failed: ${err.message}`, 'error');
+                        throw err;
+                    }
+                    
                     this.renderer.setSize(window.innerWidth, window.innerHeight);
                     this.renderer.shadowMap.enabled = true;
                     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -2560,6 +3061,8 @@
                     this.renderer.toneMappingExposure = 1.2;
                     this.renderer.outputEncoding = THREE.sRGBEncoding;
                     container.appendChild(this.renderer.domElement);
+                    
+                    DiagnosticSystem.addLogEntry('WebGL renderer initialized', 'success');
                     
                     // Controls
                     this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
@@ -2631,10 +3134,6 @@
                     gridHelper.position.y = 0.01;
                     this.scene.add(gridHelper);
                     
-                    // Axes helper (optional, can be removed)
-                    // const axesHelper = new THREE.AxesHelper(5);
-                    // this.scene.add(axesHelper);
-                    
                     // Ambient particles
                     this.initParticles();
                     
@@ -2648,6 +3147,8 @@
                     
                     // Handle resize
                     window.addEventListener('resize', () => this.onResize());
+                    
+                    DiagnosticSystem.addLogEntry('Scene initialization complete', 'success');
                 }
                 
                 /**
@@ -2691,6 +3192,8 @@
                     
                     // Store for animation
                     this.particles = particles;
+                    
+                    DiagnosticSystem.addLogEntry('Particle system initialized', 'info');
                 }
                 
                 /**
@@ -2714,6 +3217,8 @@
                     this.dirLight.intensity = p.dirIntensity;
                     this.dirLight.color.setHex(p.dirColor);
                     this.fillLight.intensity = p.fillIntensity;
+                    
+                    DiagnosticSystem.addLogEntry(`Lighting preset changed: ${preset}`, 'info');
                 }
                 
                 /**
@@ -2725,6 +3230,8 @@
                  */
                 loadModel(url, fileName, onSuccess, onError) {
                     const loader = new THREE.GLTFLoader();
+                    
+                    DiagnosticSystem.addLogEntry(`Loading model: ${fileName}`, 'info');
                     
                     loader.load(url, (gltf) => {
                         this.disposeModel();
@@ -2756,6 +3263,8 @@
                         this.bones = [];
                         this.collectBones(model);
                         
+                        DiagnosticSystem.addLogEntry(`Model loaded with ${this.bones.length} bones`, 'success');
+                        
                         // Add skeleton helper
                         this.currentSkeletonHelper = new THREE.SkeletonHelper(model);
                         this.scene.add(this.currentSkeletonHelper);
@@ -2763,11 +3272,14 @@
                         // Setup animations if any
                         if (gltf.animations && gltf.animations.length) {
                             this.currentMixer = new THREE.AnimationMixer(model);
+                            DiagnosticSystem.addLogEntry(`Model has ${gltf.animations.length} animations`, 'info');
                         }
                         
                         // Setup IK
                         if (this.bones.length > 0 && typeof CCDIKSolver !== 'undefined') {
                             this.setupIK();
+                        } else {
+                            DiagnosticSystem.addLogEntry('IK not available (no bones or solver missing)', 'warning');
                         }
                         
                         // Trigger success callback
@@ -2778,7 +3290,14 @@
                         
                         showSuccess(`Model loaded: ${fileName}`);
                         
-                    }, undefined, (err) => {
+                    }, (progress) => {
+                        // Progress callback
+                        if (progress.lengthComputable) {
+                            const percent = (progress.loaded / progress.total * 100).toFixed(0);
+                            DiagnosticSystem.addLogEntry(`Loading progress: ${percent}%`, 'info');
+                        }
+                    }, (err) => {
+                        DiagnosticSystem.addLogEntry(`Model load error: ${err.message}`, 'error');
                         console.error('Load error:', err);
                         if (onError) onError(err);
                         showError('Failed to load model: ' + err.message);
@@ -2790,6 +3309,8 @@
                  */
                 disposeModel() {
                     if (this.currentModel) {
+                        DiagnosticSystem.addLogEntry('Disposing current model', 'info');
+                        
                         // Dispose geometries and materials
                         this.currentModel.traverse(obj => {
                             if (obj.isMesh) {
@@ -2846,13 +3367,14 @@
                  */
                 setupIK() {
                     if (typeof CCDIKSolver === 'undefined') {
+                        DiagnosticSystem.addLogEntry('CCDIKSolver not available', 'error');
                         showError('CCDIKSolver not available');
                         return;
                     }
                     
                     const constraints = [];
                     
-                    // Limb definitions
+                    // Limb definitions with regex patterns
                     const limbs = [
                         { 
                             name: 'rightArm', 
@@ -2892,6 +3414,8 @@
                         }
                     ];
                     
+                    let foundChains = 0;
+                    
                     limbs.forEach(limb => {
                         const upper = limb.upper ? this.bones.find(b => limb.upper.test(b.name)) : null;
                         const lower = limb.lower ? this.bones.find(b => limb.lower.test(b.name)) : null;
@@ -2928,7 +3452,7 @@
                                 iteration: IK_ITERATIONS,
                                 minAngle: -Math.PI,
                                 maxAngle: Math.PI,
-                                                enabled: false
+                                enabled: false
                             });
                             
                             this.ikConstraints.push({ 
@@ -2937,8 +3461,32 @@
                                 enabled: false,
                                 type: 'chain'
                             });
+                            
+                            foundChains++;
+                        } else if (upper) {
+                            // 2-bone chain (e.g., head with neck)
+                            constraints.push({
+                                target: sphere,
+                                effector: end.name,
+                                links: [
+                                    { index: upper.index }
+                                ],
+                                iteration: IK_ITERATIONS,
+                                minAngle: -Math.PI,
+                                maxAngle: Math.PI,
+                                enabled: false
+                            });
+                            
+                            this.ikConstraints.push({ 
+                                name: limb.name, 
+                                targetSphere: sphere, 
+                                enabled: false,
+                                type: 'simple'
+                            });
+                            
+                            foundChains++;
                         } else {
-                            // Single bone chain (head/spine)
+                            // Single bone chain
                             constraints.push({
                                 target: sphere,
                                 effector: end.name,
@@ -2955,10 +3503,13 @@
                                 enabled: false,
                                 type: 'single'
                             });
+                            
+                            foundChains++;
                         }
                     });
                     
                     if (constraints.length === 0) {
+                        DiagnosticSystem.addLogEntry('No suitable IK chains found', 'warning');
                         showWarning('No suitable IK chains found');
                         return;
                     }
@@ -2969,6 +3520,7 @@
                     const ikToggle = document.getElementById('ik-toggle');
                     if (ikToggle) ikToggle.disabled = false;
                     
+                    DiagnosticSystem.addLogEntry(`IK setup complete with ${foundChains} chains`, 'success');
                     showSuccess('IK ready!');
                 }
                 
@@ -3008,6 +3560,7 @@
                     this.gamification = gamification;
                     this.activeLimb = 'rightArm';
                     
+                    DiagnosticSystem.addLogEntry('UIController initializing...', 'info');
                     this.initElements();
                     this.initEventListeners();
                 }
@@ -3016,6 +3569,7 @@
                  * Initialize UI elements
                  */
                 initElements() {
+                    // Get all elements with null checks
                     this.uploadBtn = document.getElementById('upload-btn');
                     this.fileInput = document.getElementById('file-input');
                     this.autoRigBtn = document.getElementById('auto-rig-btn');
@@ -3032,38 +3586,72 @@
                     this.enterPlaygroundBtn = document.getElementById('enter-playground');
                     this.soundToggle = document.getElementById('sound-toggle');
                     this.performanceSelect = document.getElementById('performance-select');
+                    this.carouselPrev = document.getElementById('carousel-prev');
+                    this.carouselNext = document.getElementById('carousel-next');
+                    
+                    // Check critical elements
+                    const criticalElements = [
+                        { el: this.uploadBtn, name: 'upload-btn' },
+                        { el: this.fileInput, name: 'file-input' },
+                        { el: this.limbSelect, name: 'limb-select' },
+                        { el: this.ikToggle, name: 'ik-toggle' },
+                        { el: this.menuDots, name: 'menu-dots' }
+                    ];
+                    
+                    criticalElements.forEach(item => {
+                        if (!item.el) {
+                            DiagnosticSystem.addLogEntry(`Critical UI element missing: ${item.name}`, 'error');
+                            console.error(`UI element missing: ${item.name}`);
+                        }
+                    });
+                    
+                    DiagnosticSystem.addLogEntry('UI elements initialized', 'info');
                 }
                 
                 /**
-                 * Initialize event listeners
+                 * Initialize event listeners with null checks
                  */
                 initEventListeners() {
-                    // Upload
-                    this.uploadBtn.addEventListener('click', () => this.fileInput.click());
-                    this.fileInput.addEventListener('change', (e) => this.handleFileUpload(e));
+                    // Upload button
+                    if (this.uploadBtn && this.fileInput) {
+                        this.uploadBtn.addEventListener('click', () => this.fileInput.click());
+                        this.fileInput.addEventListener('change', (e) => this.handleFileUpload(e));
+                        DiagnosticSystem.addLogEntry('Upload listeners attached', 'info');
+                    } else {
+                        DiagnosticSystem.addLogEntry('Upload elements missing', 'error');
+                    }
                     
-                    // Auto-rig
-                    this.autoRigBtn.addEventListener('click', () => this.startAutoRig());
+                    // Auto-rig button
+                    if (this.autoRigBtn) {
+                        this.autoRigBtn.addEventListener('click', () => this.startAutoRig());
+                    }
                     
                     // Limb select
-                    this.limbSelect.addEventListener('change', (e) => {
-                        this.activeLimb = e.target.value;
-                    });
+                    if (this.limbSelect) {
+                        this.limbSelect.addEventListener('change', (e) => {
+                            this.activeLimb = e.target.value;
+                            DiagnosticSystem.addLogEntry(`Limb changed to: ${this.activeLimb}`, 'info');
+                        });
+                    }
                     
                     // IK toggle
-                    this.ikToggle.addEventListener('click', () => this.toggleIK());
+                    if (this.ikToggle) {
+                        this.ikToggle.addEventListener('click', () => this.toggleIK());
+                    }
                     
                     // Lighting presets
-                    this.presetBtns.forEach(btn => {
-                        btn.addEventListener('click', () => {
-                            const preset = btn.dataset.preset;
-                            this.sceneManager.setLightingPreset(preset);
-                            
-                            // Update active state
-                            this.presetBtns.forEach(b => b.classList.remove('active'));
-                            btn.classList.add('active');
+                    if (this.presetBtns.length > 0) {
+                        this.presetBtns.forEach(btn => {
+                            btn.addEventListener('click', () => {
+                                const preset = btn.dataset.preset;
+                                this.sceneManager.setLightingPreset(preset);
+                                
+                                // Update active state
+                                this.presetBtns.forEach(b => b.classList.remove('active'));
+                                btn.classList.add('active');
+                            });
                         });
-                    });
+                    }
                     
                     // Runner
                     if (this.runner) {
@@ -3074,18 +3662,26 @@
                         });
                     }
                     
-                    // Drawer
-                    this.menuDots.addEventListener('click', () => this.drawer.classList.add('open'));
-                    this.drawerClose.addEventListener('click', () => this.drawer.classList.remove('open'));
+                    // Drawer controls
+                    if (this.menuDots && this.drawer) {
+                        this.menuDots.addEventListener('click', () => this.drawer.classList.add('open'));
+                    }
+                    
+                    if (this.drawerClose && this.drawer) {
+                        this.drawerClose.addEventListener('click', () => this.drawer.classList.remove('open'));
+                    }
                     
                     // Close drawer on escape
                     document.addEventListener('keydown', (e) => {
-                        if (e.key === 'Escape') this.drawer.classList.remove('open');
+                        if (e.key === 'Escape' && this.drawer) {
+                            this.drawer.classList.remove('open');
+                        }
                     });
                     
                     // Close drawer on outside click
                     document.addEventListener('click', (e) => {
-                        if (!this.drawer.contains(e.target) && 
+                        if (this.drawer && this.menuDots && 
+                            !this.drawer.contains(e.target) && 
                             !this.menuDots.contains(e.target) && 
                             this.drawer.classList.contains('open')) {
                             this.drawer.classList.remove('open');
@@ -3095,7 +3691,7 @@
                     // Enter playground button
                     if (this.enterPlaygroundBtn) {
                         this.enterPlaygroundBtn.addEventListener('click', () => {
-                            document.getElementById('playground').scrollIntoView({ behavior: 'smooth' });
+                            document.getElementById('playground')?.scrollIntoView({ behavior: 'smooth' });
                         });
                     }
                     
@@ -3106,8 +3702,23 @@
                         });
                     }
                     
+                    // Carousel controls
+                    if (this.carouselPrev && this.carouselNext) {
+                        const carousel = document.getElementById('showcase-carousel');
+                        if (carousel) {
+                            this.carouselPrev.addEventListener('click', () => {
+                                carousel.scrollBy({ left: -350, behavior: 'smooth' });
+                            });
+                            this.carouselNext.addEventListener('click', () => {
+                                carousel.scrollBy({ left: 350, behavior: 'smooth' });
+                            });
+                        }
+                    }
+                    
                     // Scroll reveal
                     this.initScrollReveal();
+                    
+                    DiagnosticSystem.addLogEntry('Event listeners initialized', 'success');
                 }
                 
                 /**
@@ -3131,11 +3742,12 @@
                     }
                     
                     showSuccess(`Selected: ${file.name} (${formatFileSize(file.size)})`);
+                    DiagnosticSystem.addLogEntry(`File selected: ${file.name} (${formatFileSize(file.size)})`, 'success');
                     
                     const url = URL.createObjectURL(file);
                     
                     this.sceneManager.loadModel(url, file.name, () => {
-                        this.autoRigBtn.disabled = false;
+                        if (this.autoRigBtn) this.autoRigBtn.disabled = false;
                     }, (err) => {
                         showError(err.message);
                     });
@@ -3145,6 +3757,11 @@
                  * Start auto-rigging process
                  */
                 startAutoRig() {
+                    if (!this.fileInput) {
+                        showError('File input not available');
+                        return;
+                    }
+                    
                     const file = this.fileInput.files[0];
                     if (!file) {
                         showError('Please upload a model first');
@@ -3153,21 +3770,21 @@
                     
                     this.fileManager.autoRig(file, {
                         onStart: () => {
-                            this.autoRigBtn.disabled = true;
+                            if (this.autoRigBtn) this.autoRigBtn.disabled = true;
                             setLoading(true);
-                            this.autoRigProgress.style.display = 'block';
-                            this.autoRigProgressBar.style.width = '0%';
+                            if (this.autoRigProgress) this.autoRigProgress.style.display = 'block';
+                            if (this.autoRigProgressBar) this.autoRigProgressBar.style.width = '0%';
                             this.updateStatus('Starting...', 'info');
                         },
                         onProgress: (msg, percent) => {
                             this.updateStatus(msg, 'info');
-                            this.autoRigProgressBar.style.width = percent + '%';
+                            if (this.autoRigProgressBar) this.autoRigProgressBar.style.width = percent + '%';
                         },
                         onSuccess: (modelUrl) => {
                             this.sceneManager.loadModel(modelUrl, 'rigged.glb', () => {
-                                this.autoRigProgressBar.style.width = '100%';
+                                if (this.autoRigProgressBar) this.autoRigProgressBar.style.width = '100%';
                                 setTimeout(() => {
-                                    this.autoRigProgress.style.display = 'none';
+                                    if (this.autoRigProgress) this.autoRigProgress.style.display = 'none';
                                 }, 1500);
                                 this.gamification.addXP(200, 'First Auto‑Rig');
                                 this.gamification.updateQuest('auto-rig');
@@ -3176,15 +3793,15 @@
                                 this.updateStatus('Auto‑rig complete!', 'success');
                             }, (err) => {
                                 showError(err.message);
-                                this.autoRigProgress.style.display = 'none';
-                                this.autoRigBtn.disabled = false;
+                                if (this.autoRigProgress) this.autoRigProgress.style.display = 'none';
+                                if (this.autoRigBtn) this.autoRigBtn.disabled = false;
                                 setLoading(false);
                             });
                         },
                         onError: (err) => {
                             showError(err.message);
-                            this.autoRigProgress.style.display = 'none';
-                            this.autoRigBtn.disabled = false;
+                            if (this.autoRigProgress) this.autoRigProgress.style.display = 'none';
+                            if (this.autoRigBtn) this.autoRigBtn.disabled = false;
                             setLoading(false);
                         }
                     });
@@ -3194,6 +3811,8 @@
                  * Toggle IK for selected limb
                  */
                 toggleIK() {
+                    if (!this.ikToggle) return;
+                    
                     if (this.ikToggle.textContent.includes('ENABLE')) {
                         const constraint = this.sceneManager.ikConstraints.find(c => c.name === this.activeLimb);
                         
@@ -3204,6 +3823,7 @@
                                 const idx = this.sceneManager.ikConstraints.findIndex(c => c.name === this.activeLimb);
                                 if (idx !== -1 && this.sceneManager.ikSolver.iks[idx]) {
                                     this.sceneManager.ikSolver.iks[idx].enabled = true;
+                                    DiagnosticSystem.addLogEntry(`IK enabled for ${this.activeLimb}`, 'info');
                                 }
                             }
                             
@@ -3218,6 +3838,7 @@
                         
                         if (this.sceneManager.ikSolver?.iks) {
                             this.sceneManager.ikSolver.iks.forEach(ik => ik.enabled = false);
+                            DiagnosticSystem.addLogEntry('IK disabled', 'info');
                         }
                         
                         this.ikToggle.innerHTML = '<i class="fas fa-hand-pointer"></i> ENABLE IK';
@@ -3230,11 +3851,13 @@
                  * @param {string} type - Message type
                  */
                 updateStatus(msg, type = 'info') {
+                    if (!this.statusMsg) return;
+                    
                     const icon = {
-                        'info': '<i class="fas fa-circle" style="color: #00FFFF;"></i>',
-                        'success': '<i class="fas fa-check-circle" style="color: #44ff44;"></i>',
-                        'error': '<i class="fas fa-exclamation-circle" style="color: #ff4444;"></i>',
-                        'warning': '<i class="fas fa-exclamation-triangle" style="color: #ffaa44;"></i>'
+                        'info': '<i class="fas fa-circle" style="color: var(--accent-cyan);"></i>',
+                        'success': '<i class="fas fa-check-circle" style="color: var(--accent-green);"></i>',
+                        'error': '<i class="fas fa-exclamation-circle" style="color: var(--accent-red);"></i>',
+                        'warning': '<i class="fas fa-exclamation-triangle" style="color: var(--accent-yellow);"></i>'
                     }[type] || '';
                     
                     this.statusMsg.innerHTML = `${icon} ${msg}`;
@@ -3266,6 +3889,7 @@
                             this.sceneManager.renderer.setPixelRatio(2);
                             break;
                     }
+                    DiagnosticSystem.addLogEntry(`Performance level set to: ${level}`, 'info');
                 }
                 
                 /**
@@ -3283,6 +3907,7 @@
                     }, { threshold: 0.1, rootMargin: '0px' });
                     
                     sections.forEach(section => observer.observe(section));
+                    DiagnosticSystem.addLogEntry('Scroll reveal initialized', 'info');
                 }
             }
             
@@ -3290,68 +3915,59 @@
             // APPLICATION INITIALIZATION
             // ==========================================================================
             
-            // Initialize systems
-            const gamification = new GamificationSystem();
-            const sceneManager = new SceneManager(gamification);
-            const fileManager = new FileManager(gamification);
-            const uiController = new UIController(sceneManager, fileManager, gamification);
+            // Initialize systems with error handling
+            let gamification, sceneManager, fileManager, uiController;
             
-            // Animation loop
-            function animate() {
-                requestAnimationFrame(animate);
-                sceneManager.update();
-            }
-            
-            animate();
-            
-            // Hide loading overlay
-            setTimeout(() => {
-                const overlay = document.getElementById('loading-overlay');
-                if (overlay) overlay.classList.add('hidden');
-            }, 2000);
-            
-            // Check backend status
-            fetch(`${BACKEND_URL}/health`)
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById('backend-status').innerHTML = '<span style="color: #44ff44;">● Online</span>';
-                })
-                .catch(() => {
-                    document.getElementById('backend-status').innerHTML = '<span style="color: #ff4444;">● Offline</span>';
-                });
-            
-            // Check IK library
-            if (typeof CCDIKSolver !== 'undefined') {
-                document.getElementById('ik-status').innerHTML = '<span style="color: #44ff44;">● Loaded</span>';
-            } else {
-                document.getElementById('ik-status').innerHTML = '<span style="color: #ff4444;">● Failed</span>';
-            }
-            
-            // Carousel controls
-            const carousel = document.getElementById('showcase-carousel');
-            const prevBtn = document.getElementById('carousel-prev');
-            const nextBtn = document.getElementById('carousel-next');
-            
-            if (prevBtn && nextBtn && carousel) {
-                prevBtn.addEventListener('click', () => {
-                    carousel.scrollBy({ left: -350, behavior: 'smooth' });
-                });
+            try {
+                DiagnosticSystem.addLogEntry('Starting application initialization...', 'info');
                 
-                nextBtn.addEventListener('click', () => {
-                    carousel.scrollBy({ left: 350, behavior: 'smooth' });
-                });
+                gamification = new GamificationSystem();
+                fileManager = new FileManager(gamification);
+                sceneManager = new SceneManager(gamification);
+                uiController = new UIController(sceneManager, fileManager, gamification);
+                
+                DiagnosticSystem.addLogEntry('All systems initialized successfully', 'success');
+                
+                // Animation loop
+                function animate() {
+                    requestAnimationFrame(animate);
+                    sceneManager.update();
+                }
+                
+                animate();
+                
+                // Hide loading overlay
+                setTimeout(() => {
+                    const overlay = document.getElementById('loading-overlay');
+                    if (overlay) overlay.classList.add('hidden');
+                    DiagnosticSystem.addLogEntry('Loading overlay hidden', 'info');
+                }, 2000);
+                
+                // Run initial diagnostic
+                setTimeout(() => {
+                    DiagnosticSystem.runFullDiagnostic();
+                }, 3000);
+                
+                // Export for debugging
+                window.BioReact = {
+                    gamification,
+                    sceneManager,
+                    fileManager,
+                    uiController,
+                    version: APP_VERSION,
+                    diagnostics: DiagnosticSystem,
+                    showDiagnosticPanel: () => DiagnosticSystem.showPanel(),
+                    runDiagnostics: () => DiagnosticSystem.runFullDiagnostic()
+                };
+                
+                DiagnosticSystem.addLogEntry(`Bio‑React v${APP_VERSION} initialized successfully`, 'success');
+                console.log(`Bio‑React v${APP_VERSION} initialized`, `Backend: ${BACKEND_URL}`);
+                
+            } catch (err) {
+                DiagnosticSystem.addLogEntry(`Initialization failed: ${err.message}`, 'error');
+                console.error('Initialization error:', err);
+                showCriticalError(err.message, err.stack);
             }
-            
-            // Export for debugging (optional)
-            window.BioReact = {
-                gamification,
-                sceneManager,
-                fileManager,
-                uiController,
-                version: APP_VERSION
-            };
-            
-            console.log(`Bio‑React v${APP_VERSION} initialized`, `Backend: ${BACKEND_URL}`);
         })();
     </script>
 </body>
