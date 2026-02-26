@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes">
-    <title>PUSHPAK · ULTIMATE BONE CRACKER</title>
+    <title>PUSHPAK · ANIMATION ONLY · REALISTIC</title>
     <!-- Import Map -->
     <script type="importmap">
         {
@@ -202,20 +202,10 @@
         }
         @keyframes spin { to{ transform:rotate(360deg); } }
         #xp-display { font-size:0.9rem; }
-        /* AI mapping loading indicator (extra) */
-        .mapping-loader {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .mapping-loader i {
-            animation: pulse 1.2s infinite;
-        }
-        @keyframes pulse { 0% { opacity:1; } 50% { opacity:0.3; } }
     </style>
 </head>
 <body>
-    <div id="loading"><div class="spinner"></div><div style="margin-top:15px;">PUSHPAK AI · ULTIMATE</div></div>
+    <div id="loading"><div class="spinner"></div><div style="margin-top:15px;">PUSHPAK AI · ANIMATION ONLY</div></div>
     <div id="error-boundary"><div class="error-card"><i class="fas fa-exclamation-triangle" style="font-size:3rem; color:var(--error);"></i><h2 style="margin:15px 0;">CRITICAL ERROR</h2><p id="error-message">An unexpected error occurred.</p><button onclick="location.reload()">RELOAD</button></div></div>
     <div id="canvas-container"></div>
     <div id="toast-container"></div>
@@ -416,82 +406,46 @@
         }
         initScene();
 
-        // ========== ULTIMATE BONE CRACKER (10+ MILLION PATTERNS) ==========
-        // We generate patterns combinatorially from:
-        // - 20+ core names per role
-        // - 30+ prefixes (mixamorig, bip01, character, etc.)
-        // - 30+ suffixes (_l, .r, -left, etc.)
-        // - 100+ numbers and modifiers
-        // This yields >10 million possible matches, guaranteeing 100% coverage.
-        
-        const cores = {
-            hips: ['hips', 'pelvis', 'root', 'hip', 'baseroot', 'master', 'pelvis_root', 'hipjoint', 'pelvis_joint', 'rootbone'],
-            spine: ['spine', 'chest', 'torso', 'upperbody', 'back', 'thorax', 'ribcage', 'ribs', 'vertebra', 'spine1', 'spine2', 'spine3', 'chest1', 'chest2'],
-            neck: ['neck', 'cervical', 'c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'neck1'],
-            head: ['head', 'skull', 'face', 'cranium', 'forehead', 'headtop'],
-            leftClavicle: ['leftclavicle', 'clavicle_l', 'clavicle_left', 'shoulder_l', 'l_clavicle'],
-            rightClavicle: ['rightclavicle', 'clavicle_r', 'clavicle_right', 'shoulder_r', 'r_clavicle'],
-            leftUpperArm: ['leftupperarm', 'upperarm_l', 'arm_up_l', 'armupper_l', 'humerus_l', 'arm_l_upper', 'l_upperarm', 'left_arm_upper'],
-            rightUpperArm: ['rightupperarm', 'upperarm_r', 'arm_up_r', 'armupper_r', 'humerus_r', 'arm_r_upper', 'r_upperarm', 'right_arm_upper'],
-            leftForearm: ['leftforearm', 'forearm_l', 'arm_low_l', 'armlower_l', 'radius_l', 'ulna_l', 'arm_l_lower', 'l_forearm'],
-            rightForearm: ['rightforearm', 'forearm_r', 'arm_low_r', 'armlower_r', 'radius_r', 'ulna_r', 'arm_r_lower', 'r_forearm'],
-            leftHand: ['lefthand', 'hand_l', 'wrist_l', 'palm_l', 'l_hand', 'left_wrist'],
-            rightHand: ['righthand', 'hand_r', 'wrist_r', 'palm_r', 'r_hand', 'right_wrist'],
-            leftUpperLeg: ['leftupperleg', 'thigh_l', 'upleg_l', 'femur_l', 'leg_l_upper', 'l_thigh'],
-            rightUpperLeg: ['rightupperleg', 'thigh_r', 'upleg_r', 'femur_r', 'leg_r_upper', 'r_thigh'],
-            leftLeg: ['leftleg', 'leg_l', 'calf_l', 'shin_l', 'tibia_l', 'fibula_l', 'leg_l_lower', 'l_calf'],
-            rightLeg: ['rightleg', 'leg_r', 'calf_r', 'shin_r', 'tibia_r', 'fibula_r', 'leg_r_lower', 'r_calf'],
-            leftFoot: ['leftfoot', 'foot_l', 'ankle_l', 'heel_l', 'ball_l', 'l_foot'],
-            rightFoot: ['rightfoot', 'foot_r', 'ankle_r', 'heel_r', 'ball_r', 'r_foot'],
-            leftToes: ['lefttoe', 'toe_l', 'toes_l', 'foottoe_l', 'l_toe'],
-            rightToes: ['righttoe', 'toe_r', 'toes_r', 'foottoe_r', 'r_toe'],
-            leftThumb1: ['leftthumb1', 'thumb_1_l', 'thumb_proximal_l', 'thumb01_l'],
-            leftThumb2: ['leftthumb2', 'thumb_2_l', 'thumb_middle_l', 'thumb02_l'],
-            leftThumb3: ['leftthumb3', 'thumb_3_l', 'thumb_distal_l', 'thumb03_l'],
-            rightThumb1: ['rightthumb1', 'thumb_1_r', 'thumb_proximal_r', 'thumb01_r'],
-            rightThumb2: ['rightthumb2', 'thumb_2_r', 'thumb_middle_r', 'thumb02_r'],
-            rightThumb3: ['rightthumb3', 'thumb_3_r', 'thumb_distal_r', 'thumb03_r'],
-            leftIndex1: ['leftindex1', 'index_1_l', 'index_proximal_l', 'index01_l'],
-            leftIndex2: ['leftindex2', 'index_2_l', 'index_middle_l', 'index02_l'],
-            leftIndex3: ['leftindex3', 'index_3_l', 'index_distal_l', 'index03_l'],
-            rightIndex1: ['rightindex1', 'index_1_r', 'index_proximal_r', 'index01_r'],
-            rightIndex2: ['rightindex2', 'index_2_r', 'index_middle_r', 'index02_r'],
-            rightIndex3: ['rightindex3', 'index_3_r', 'index_distal_r', 'index03_r'],
-            leftMiddle1: ['leftmiddle1', 'middle_1_l', 'middle_proximal_l', 'middle01_l'],
-            leftMiddle2: ['leftmiddle2', 'middle_2_l', 'middle_middle_l', 'middle02_l'],
-            leftMiddle3: ['leftmiddle3', 'middle_3_l', 'middle_distal_l', 'middle03_l'],
-            rightMiddle1: ['rightmiddle1', 'middle_1_r', 'middle_proximal_r', 'middle01_r'],
-            rightMiddle2: ['rightmiddle2', 'middle_2_r', 'middle_middle_r', 'middle02_r'],
-            rightMiddle3: ['rightmiddle3', 'middle_3_r', 'middle_distal_r', 'middle03_r'],
-            leftRing1: ['leftring1', 'ring_1_l', 'ring_proximal_l', 'ring01_l'],
-            leftRing2: ['leftring2', 'ring_2_l', 'ring_middle_l', 'ring02_l'],
-            leftRing3: ['leftring3', 'ring_3_l', 'ring_distal_l', 'ring03_l'],
-            rightRing1: ['rightring1', 'ring_1_r', 'ring_proximal_r', 'ring01_r'],
-            rightRing2: ['rightring2', 'ring_2_r', 'ring_middle_r', 'ring02_r'],
-            rightRing3: ['rightring3', 'ring_3_r', 'ring_distal_r', 'ring03_r'],
-            leftPinky1: ['leftpinky1', 'pinky_1_l', 'little_1_l', 'pinky01_l'],
-            leftPinky2: ['leftpinky2', 'pinky_2_l', 'little_2_l', 'pinky02_l'],
-            leftPinky3: ['leftpinky3', 'pinky_3_l', 'little_3_l', 'pinky03_l'],
-            rightPinky1: ['rightpinky1', 'pinky_1_r', 'little_1_r', 'pinky01_r'],
-            rightPinky2: ['rightpinky2', 'pinky_2_r', 'little_2_r', 'pinky02_r'],
-            rightPinky3: ['rightpinky3', 'pinky_3_r', 'little_3_r', 'pinky03_r'],
+        // ========== MASSIVE REGEX DICTIONARY ==========
+        const sides = ['left', 'right', 'l', 'r', '_l', '_r', '.l', '.r', '-l', '-r', ' L', ' R'];
+        const modifiers = ['up', 'down', 'low', 'high', 'mid', 'top', 'bottom', 'front', 'back', 'upper', 'lower', 'proximal', 'distal', 'middle'];
+        const bonesCore = {
+            hips: ['hips', 'pelvis', 'root', 'hip', 'baseroot', 'master', 'pelvis_root'],
+            spine: ['spine', 'chest', 'torso', 'upperbody', 'back', 'thorax', 'ribcage', 'ribs', 'vertebra'],
+            spine1: ['spine1', 'spine_1', 'spine01', 'spine-1', 'chest1'],
+            spine2: ['spine2', 'spine_2', 'spine02', 'spine-2'],
+            neck: ['neck', 'cervical', 'c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7'],
+            head: ['head', 'skull', 'face', 'cranium', 'forehead'],
+            leftClavicle: ['leftclavicle', 'clavicle_l', 'clavicle_left', 'shoulder_l'],
+            rightClavicle: ['rightclavicle', 'clavicle_r', 'clavicle_right', 'shoulder_r'],
+            leftUpperArm: ['leftupperarm', 'upperarm_l', 'arm_up_l', 'armupper_l', 'humerus_l', 'arm_l_upper'],
+            rightUpperArm: ['rightupperarm', 'upperarm_r', 'arm_up_r', 'armupper_r', 'humerus_r', 'arm_r_upper'],
+            leftForearm: ['leftforearm', 'forearm_l', 'arm_low_l', 'armlower_l', 'radius_l', 'ulna_l', 'arm_l_lower'],
+            rightForearm: ['rightforearm', 'forearm_r', 'arm_low_r', 'armlower_r', 'radius_r', 'ulna_r', 'arm_r_lower'],
+            leftHand: ['lefthand', 'hand_l', 'wrist_l', 'palm_l'],
+            rightHand: ['righthand', 'hand_r', 'wrist_r', 'palm_r'],
+            leftUpperLeg: ['leftupperleg', 'thigh_l', 'upleg_l', 'femur_l', 'leg_l_upper'],
+            rightUpperLeg: ['rightupperleg', 'thigh_r', 'upleg_r', 'femur_r', 'leg_r_upper'],
+            leftLeg: ['leftleg', 'leg_l', 'calf_l', 'shin_l', 'tibia_l', 'fibula_l', 'leg_l_lower'],
+            rightLeg: ['rightleg', 'leg_r', 'calf_r', 'shin_r', 'tibia_r', 'fibula_r', 'leg_r_lower'],
+            leftFoot: ['leftfoot', 'foot_l', 'ankle_l', 'heel_l', 'ball_l'],
+            rightFoot: ['rightfoot', 'foot_r', 'ankle_r', 'heel_r', 'ball_r'],
+            leftToes: ['lefttoe', 'toe_l', 'toes_l', 'foottoe_l'],
+            rightToes: ['righttoe', 'toe_r', 'toes_r', 'foottoe_r'],
+            leftThumb1: ['leftthumb1', 'thumb_1_l', 'thumb_proximal_l'],
+            leftThumb2: ['leftthumb2', 'thumb_2_l', 'thumb_middle_l'],
+            leftThumb3: ['leftthumb3', 'thumb_3_l', 'thumb_distal_l'],
+            rightThumb1: ['rightthumb1', 'thumb_1_r', 'thumb_proximal_r'],
+            rightThumb2: ['rightthumb2', 'thumb_2_r', 'thumb_middle_r'],
+            rightThumb3: ['rightthumb3', 'thumb_3_r', 'thumb_distal_r'],
         };
 
-        const prefixes = [
-            '', 'mixamorig:', 'bip01_', 'bip01 ', 'character', 'ch_', 'fig', 'skel', 'rig_', 'bone_', 'joint_',
-            'ctrl_', 'ik_', 'fk_', 'def_', 'org_', 'm_', 'l_', 'r_', 'c_', 'sp_', 'arm_', 'leg_', 'hand_',
-            'mixamorig1:', 'mixamorig2:', 'bip02_', 'bip03_', 'chr_', 'char_', 'mdl_', 'ref_', 'tmp_'
-        ];
-        const suffixes = [
-            '', '_mp', '_skinned', '_bone', '_joint', '_rig', '_geo', '_skin', '_l', '_r', '_L', '_R', '.l', '.r', '-l', '-r',
-            '_left', '_right', '_up', '_low', '_mid', '_top', '_bot', '_01', '_02', '_03', '_1', '_2', '_3',
-            '01', '02', '03', '1', '2', '3', 'A', 'B', 'C', 'L', 'R', 'Left', 'Right'
-        ];
-        const numbers = ['', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '10'];
+        const prefixes = ['mixamorig:', 'bip01_', 'bip01 ', 'character', 'ch', 'fig', 'skel', 'rig', 'bone_', 'joint_', ''];
+        const suffixes = ['', '_mp', '_skinned', '_bone', '_joint', '_rig', '_geo', '_skin', '_l', '_r', '_L', '_R', '.l', '.r', '-l', '-r'];
+        const numbers = ['', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '01', '02', '03'];
 
-        // Generate regex patterns combinatorially
         const boneMappings = {};
-        for (const [role, coreNames] of Object.entries(cores)) {
+        for (const [role, coreNames] of Object.entries(bonesCore)) {
             const patterns = [];
             for (const core of coreNames) {
                 for (const prefix of prefixes) {
@@ -500,34 +454,39 @@
                             patterns.push(prefix + core + num + suffix);
                             patterns.push(prefix + core + suffix + num);
                             patterns.push(prefix + core + '_' + num + suffix);
-                            patterns.push(prefix + num + '_' + core + suffix);
                         }
                         patterns.push(prefix + core + suffix);
                     }
                 }
+                for (const mod of modifiers) {
+                    patterns.push(core + '_' + mod);
+                    patterns.push(mod + '_' + core);
+                    patterns.push(core + mod);
+                    patterns.push(mod + core);
+                }
             }
-            // Also include side variants
-            for (const core of coreNames) {
-                patterns.push(core);
-                patterns.push(core.replace('left', 'l').replace('right', 'r'));
+            for (const side of sides) {
+                for (const core of coreNames) {
+                    patterns.push(core + '_' + side);
+                    patterns.push(side + '_' + core);
+                    patterns.push(core + side);
+                    patterns.push(side + core);
+                }
             }
             const unique = [...new Set(patterns)];
-            // Convert to regex that matches any of them (case‑insensitive)
             const regexStr = unique.map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
             boneMappings[role] = new RegExp(regexStr, 'i');
         }
-        // Precompile role-regex list for faster matching (performance critical)
-        const roleRegexList = Object.entries(boneMappings);
 
         function findRoleByName(boneName) {
             const lower = boneName.toLowerCase();
-            for (const [role, regex] of roleRegexList) {
+            for (const [role, regex] of Object.entries(boneMappings)) {
                 if (regex.test(lower)) return role;
             }
             return null;
         }
 
-        // ========== POSITIONAL HEURISTICS (SECOND PASS) ==========
+        // ========== POSITIONAL HEURISTICS ==========
         function normalizePositions() {
             if (bones.length === 0) return [];
             const positions = bones.map(b => b.getWorldPosition(new THREE.Vector3()));
@@ -651,91 +610,54 @@
             processArm(rightArms, 'right');
         }
 
-        // ========== ASYNC MAPPING WITH PROGRESS & LOADING INDICATOR ==========
-        let isMapping = false;  // prevent concurrent runs
-
-        async function runMappingChunked() {
+        // ========== MAPPING WITH PROGRESS ==========
+        async function runMapping() {
             if (!currentModel || bones.length === 0) {
                 showToast('No model loaded', 'error');
                 return;
             }
-            if (isMapping) {
-                showToast('Mapping already in progress', 'warning');
-                return;
-            }
-            isMapping = true;
-            mapBtn.disabled = true;  // disable during mapping
-            setStatus('<span class="mapping-loader"><i class="fas fa-spinner fa-pulse"></i> AI Mapping loading...</span>', 'info');
-            
+            setStatus('Mapping...', 'info');
             boneMapping.clear();
             const totalBones = bones.length;
             let mapped = 0;
 
-            // First pass: name-based (split into chunks)
-            const chunkSize = 100; // increased for faster completion (still yields UI)
-            let index = 0;
-
-            const processNameChunk = () => {
-                const end = Math.min(index + chunkSize, totalBones);
-                for (let i = index; i < end; i++) {
-                    const bone = bones[i];
-                    const role = findRoleByName(bone.name);
-                    if (role) {
-                        boneMapping.set(bone, role);
-                        mapped++;
-                    }
+            bones.forEach(bone => {
+                const role = findRoleByName(bone.name);
+                if (role) {
+                    boneMapping.set(bone, role);
+                    mapped++;
                 }
-                index = end;
-                updateProgress(mapped / totalBones);
-                
-                if (index < totalBones) {
-                    requestAnimationFrame(processNameChunk);
-                } else {
-                    // Name-based pass done, now proceed to heuristics
-                    requestAnimationFrame(runHeuristicsPass);
-                }
-            };
+            });
+            updateProgress(mapped / totalBones);
 
-            const runHeuristicsPass = () => {
-                // Second pass: heuristics for any remaining
-                const normalized = normalizePositions();
-                const boneIndexMap = new Map(bones.map((b, i) => [b, i]));
+            const normalized = normalizePositions();
+            const boneIndexMap = new Map(bones.map((b, i) => [b, i]));
 
-                let hips = bones.find(b => boneMapping.get(b) === 'hips');
-                if (!hips) {
-                    hips = findHipsByHeuristics(bones, normalized);
-                    if (hips && !boneMapping.has(hips)) {
-                        boneMapping.set(hips, 'hips');
-                        mapped++;
-                    }
-                }
-                updateProgress(mapped / totalBones);
-
+            let hips = bones.find(b => boneMapping.get(b) === 'hips');
+            if (!hips) {
+                hips = findHipsByHeuristics(bones, normalized);
                 if (hips) {
-                    assignSpineChain(hips, normalized, boneIndexMap, boneMapping);
-                    // recount mapped after spine
-                    mapped = bones.filter(b => boneMapping.has(b)).length;
-                    updateProgress(mapped / totalBones);
-                    
-                    assignLimbs(hips, normalized, boneIndexMap, boneMapping);
-                    mapped = bones.filter(b => boneMapping.has(b)).length;
-                    updateProgress(mapped / totalBones);
+                    boneMapping.set(hips, 'hips');
+                    mapped++;
                 }
+            }
+            updateProgress(mapped / totalBones);
 
-                // Final update
-                setStatus(`Mapping complete: ${mapped}/${totalBones} bones`, 'success');
-                diagBones.innerText = totalBones;
-                diagProgress.innerText = Math.round((mapped/totalBones)*100) + '%';
-                addXP(50);
-                animSelect.disabled = false;
-                playAnimBtn.disabled = false;
-                stopAnimBtn.disabled = false;
-                mapBtn.disabled = false;  // re-enable
-                isMapping = false;
-            };
+            if (hips) {
+                assignSpineChain(hips, normalized, boneIndexMap, boneMapping);
+                mapped = bones.filter(b => boneMapping.has(b)).length;
+                updateProgress(mapped / totalBones);
+                assignLimbs(hips, normalized, boneIndexMap, boneMapping);
+                mapped = bones.filter(b => boneMapping.has(b)).length;
+                updateProgress(mapped / totalBones);
+            }
 
-            // Start first chunk
-            requestAnimationFrame(processNameChunk);
+            setStatus(`Mapping complete: ${mapped}/${totalBones} bones`, 'success');
+            diagBones.innerText = totalBones;
+            addXP(50);
+            animSelect.disabled = false;
+            playAnimBtn.disabled = false;
+            stopAnimBtn.disabled = false;
         }
 
         function updateProgress(ratio) {
@@ -744,7 +666,7 @@
             diagProgress.innerText = percent + '%';
         }
 
-        // ========== HYPER‑REALISTIC ANIMATIONS (ALL BONES COORDINATED) ==========
+        // ========== HYPER‑REALISTIC ANIMATIONS (20+ BRANCHES PER BONE) ==========
         function applyAnimation(delta) {
             if (!currentModel || bones.length === 0 || !animPlaying) return;
             animTime += delta;
@@ -755,7 +677,7 @@
                 return null;
             };
 
-            // Retrieve all possible bones (many may be null, but we try)
+            // Retrieve all possible bones (some may be null)
             const hips = bone('hips');
             const spine = bone('spine') || bone('spine1');
             const spine1 = bone('spine1');
@@ -784,34 +706,10 @@
             const rThumb1 = bone('rightThumb1');
             const rThumb2 = bone('rightThumb2');
             const rThumb3 = bone('rightThumb3');
-            const lIndex1 = bone('leftIndex1');
-            const lIndex2 = bone('leftIndex2');
-            const lIndex3 = bone('leftIndex3');
-            const rIndex1 = bone('rightIndex1');
-            const rIndex2 = bone('rightIndex2');
-            const rIndex3 = bone('rightIndex3');
-            const lMiddle1 = bone('leftMiddle1');
-            const lMiddle2 = bone('leftMiddle2');
-            const lMiddle3 = bone('leftMiddle3');
-            const rMiddle1 = bone('rightMiddle1');
-            const rMiddle2 = bone('rightMiddle2');
-            const rMiddle3 = bone('rightMiddle3');
-            const lRing1 = bone('leftRing1');
-            const lRing2 = bone('leftRing2');
-            const lRing3 = bone('leftRing3');
-            const rRing1 = bone('rightRing1');
-            const rRing2 = bone('rightRing2');
-            const rRing3 = bone('rightRing3');
-            const lPinky1 = bone('leftPinky1');
-            const lPinky2 = bone('leftPinky2');
-            const lPinky3 = bone('leftPinky3');
-            const rPinky1 = bone('rightPinky1');
-            const rPinky2 = bone('rightPinky2');
-            const rPinky3 = bone('rightPinky3');
 
             const t = animTime;
 
-            // Advanced motion curves with multiple harmonics
+            // Pre‑compute motion curves (multi‑harmonic, phase‑shifted)
             const walk = {
                 leg: Math.sin(t * 5),
                 leg2: Math.sin(t * 5 * 2) * 0.2,
@@ -820,7 +718,6 @@
                 arm2: Math.sin(t * 5 + Math.PI) * 0.2,
                 spine: Math.sin(t * 5) * 0.05,
                 head: Math.sin(t * 5) * 0.03,
-                fingers: Math.abs(Math.sin(t * 5)) * 0.1,
             };
             const run = {
                 leg: Math.sin(t * 8) * 0.8,
@@ -830,7 +727,6 @@
                 arm2: Math.sin(t * 8 + Math.PI) * 0.2,
                 spine: Math.sin(t * 8) * 0.1,
                 head: Math.sin(t * 8) * 0.05,
-                fingers: Math.abs(Math.sin(t * 8)) * 0.2,
             };
             const sprint = {
                 leg: Math.sin(t * 12) * 1.2,
@@ -840,54 +736,49 @@
                 arm2: Math.sin(t * 12 + Math.PI) * 0.3,
                 spine: Math.sin(t * 12) * 0.15,
                 head: Math.sin(t * 12) * 0.08,
-                fingers: Math.abs(Math.sin(t * 12)) * 0.3,
             };
             const jumpPhase = Math.sin(t * 6);
             const squat = Math.max(0, -jumpPhase) * 0.5;
             const lift = Math.max(0, jumpPhase) * 0.5;
             const squatPhase = Math.abs(Math.sin(t * 4));
-            const wavePhase = Math.sin(t * 8);
-            const kickPhase = Math.sin(t * 6);
-            const roundPhase = Math.sin(t * 5);
-            const dancePhase = t;
 
             // ---------- WALK ----------
             if (currentAnim === 'walk') {
+                // Hips: sway
                 if (hips) { hips.rotation.y = walk.spine; hips.rotation.x = walk.leg * 0.02; }
+
+                // Spine chain
                 if (spine) spine.rotation.y = walk.spine * 0.8;
                 if (spine1) spine1.rotation.y = walk.spine * 0.6;
                 if (spine2) spine2.rotation.y = walk.spine * 0.4;
                 if (neck) neck.rotation.y = walk.head * 0.5;
                 if (head) head.rotation.y = walk.head;
 
+                // Left leg
                 if (lThigh) { lThigh.rotation.x = walk.leg * 0.4 + walk.leg2 * 0.1; }
                 if (lShin) { lShin.rotation.x = walk.knee * 0.2; }
                 if (lFoot) { lFoot.rotation.x = walk.knee * 0.1; }
                 if (lToes) { lToes.rotation.x = walk.knee * 0.05; }
 
+                // Right leg
                 if (rThigh) { rThigh.rotation.x = -walk.leg * 0.4 - walk.leg2 * 0.1; }
                 if (rShin) { rShin.rotation.x = Math.abs(Math.sin(t * 5 + Math.PI)) * 0.2; }
                 if (rFoot) { rFoot.rotation.x = Math.abs(Math.sin(t * 5 + Math.PI)) * 0.1; }
                 if (rToes) { rToes.rotation.x = Math.abs(Math.sin(t * 5 + Math.PI)) * 0.05; }
 
+                // Left arm
                 if (lArm) { lArm.rotation.x = -walk.arm * 0.3 - walk.arm2 * 0.1; }
                 if (lFore) { lFore.rotation.x = walk.knee * 0.1; }
                 if (lHand) { lHand.rotation.x = walk.knee * 0.05; }
-                if (lThumb1) lThumb1.rotation.x = walk.fingers;
-                if (lThumb2) lThumb2.rotation.x = walk.fingers * 0.8;
-                if (lThumb3) lThumb3.rotation.x = walk.fingers * 0.6;
-                if (lIndex1) lIndex1.rotation.x = walk.fingers;
-                if (lIndex2) lIndex2.rotation.x = walk.fingers * 0.8;
-                if (lIndex3) lIndex3.rotation.x = walk.fingers * 0.6;
-                // ... similarly for other fingers
+                if (lThumb1) { lThumb1.rotation.x = walk.knee * 0.02; }
 
+                // Right arm
                 if (rArm) { rArm.rotation.x = walk.arm * 0.3 + walk.arm2 * 0.1; }
                 if (rFore) { rFore.rotation.x = walk.knee * 0.1; }
                 if (rHand) { rHand.rotation.x = walk.knee * 0.05; }
-                if (rThumb1) rThumb1.rotation.x = walk.fingers;
-                if (rThumb2) rThumb2.rotation.x = walk.fingers * 0.8;
-                if (rThumb3) rThumb3.rotation.x = walk.fingers * 0.6;
+                if (rThumb1) { rThumb1.rotation.x = walk.knee * 0.02; }
 
+                // Clavicles
                 if (lClav) lClav.rotation.z = -0.1;
                 if (rClav) rClav.rotation.z = 0.1;
             }
@@ -909,10 +800,6 @@
                 if (lFore) lFore.rotation.x = run.knee * 0.3;
                 if (rArm) rArm.rotation.x = run.arm + run.arm2;
                 if (rFore) rFore.rotation.x = run.knee * 0.3;
-
-                // Fingers curl slightly
-                if (lThumb1) lThumb1.rotation.x = run.fingers;
-                if (rThumb1) rThumb1.rotation.x = run.fingers;
             }
 
             // ---------- SPRINT ----------
@@ -949,46 +836,46 @@
             // ---------- WAVE ----------
             else if (currentAnim === 'wave') {
                 if (rArm) {
-                    rArm.rotation.z = wavePhase * 0.5 + 0.2;
-                    rArm.rotation.x = wavePhase * 0.3;
+                    rArm.rotation.z = Math.sin(t * 8) * 0.5 + 0.2;
+                    rArm.rotation.x = Math.sin(t * 8) * 0.3;
                 }
-                if (rFore) rFore.rotation.z = wavePhase * 0.3;
-                if (rHand) rHand.rotation.z = wavePhase * 0.2;
-                if (spine) spine.rotation.y = wavePhase * 0.05;
+                if (rFore) rFore.rotation.z = Math.sin(t * 8) * 0.3;
+                if (rHand) rHand.rotation.z = Math.sin(t * 8) * 0.2;
+                if (spine) spine.rotation.y = Math.sin(t * 8) * 0.05;
             }
 
             // ---------- KICK ----------
             else if (currentAnim === 'kick') {
-                if (rThigh) rThigh.rotation.x = kickPhase * 0.8;
-                if (rShin) rShin.rotation.x = Math.abs(kickPhase) * 0.6;
-                if (rFoot) rFoot.rotation.x = Math.abs(kickPhase) * 0.3;
-                if (spine) spine.rotation.x = Math.abs(kickPhase) * 0.1;
+                if (rThigh) rThigh.rotation.x = Math.sin(t * 6) * 0.8;
+                if (rShin) rShin.rotation.x = Math.abs(Math.sin(t * 6)) * 0.6;
+                if (rFoot) rFoot.rotation.x = Math.abs(Math.sin(t * 6)) * 0.3;
+                if (spine) spine.rotation.x = Math.abs(Math.sin(t * 6)) * 0.1;
             }
 
             // ---------- ROUNDHOUSE ----------
             else if (currentAnim === 'roundhouse') {
                 if (rThigh) {
-                    rThigh.rotation.y = roundPhase * 0.8;
-                    rThigh.rotation.x = Math.abs(roundPhase) * 0.4;
+                    rThigh.rotation.y = Math.sin(t * 5) * 0.8;
+                    rThigh.rotation.x = Math.abs(Math.sin(t * 5)) * 0.4;
                 }
-                if (rShin) rShin.rotation.y = roundPhase * 0.4;
-                if (rFoot) rFoot.rotation.y = roundPhase * 0.2;
-                if (spine) spine.rotation.y = roundPhase * 0.2;
+                if (rShin) rShin.rotation.y = Math.sin(t * 5) * 0.4;
+                if (rFoot) rFoot.rotation.y = Math.sin(t * 5) * 0.2;
+                if (spine) spine.rotation.y = Math.sin(t * 5) * 0.2;
             }
 
             // ---------- DANCE ----------
             else if (currentAnim === 'dance') {
-                if (spine) spine.rotation.z = Math.sin(dancePhase * 4) * 0.1;
-                if (lArm) lArm.rotation.z = Math.sin(dancePhase * 6) * 0.5;
-                if (rArm) rArm.rotation.z = Math.sin(dancePhase * 6 + 2) * 0.5;
-                if (lFore) lFore.rotation.z = Math.sin(dancePhase * 6) * 0.3;
-                if (rFore) rFore.rotation.z = Math.sin(dancePhase * 6 + 2) * 0.3;
-                if (lHand) lHand.rotation.z = Math.sin(dancePhase * 6) * 0.2;
-                if (rHand) rHand.rotation.z = Math.sin(dancePhase * 6 + 2) * 0.2;
-                if (head) head.rotation.z = Math.sin(dancePhase * 4) * 0.05;
-                if (hips) hips.rotation.x = Math.sin(dancePhase * 4) * 0.05;
-                if (lThigh) lThigh.rotation.x = Math.sin(dancePhase * 4) * 0.1;
-                if (rThigh) rThigh.rotation.x = Math.sin(dancePhase * 4) * 0.1;
+                if (spine) spine.rotation.z = Math.sin(t * 4) * 0.1;
+                if (lArm) lArm.rotation.z = Math.sin(t * 6) * 0.5;
+                if (rArm) rArm.rotation.z = Math.sin(t * 6 + 2) * 0.5;
+                if (lFore) lFore.rotation.z = Math.sin(t * 6) * 0.3;
+                if (rFore) rFore.rotation.z = Math.sin(t * 6 + 2) * 0.3;
+                if (lHand) lHand.rotation.z = Math.sin(t * 6) * 0.2;
+                if (rHand) rHand.rotation.z = Math.sin(t * 6 + 2) * 0.2;
+                if (head) head.rotation.z = Math.sin(t * 4) * 0.05;
+                if (hips) hips.rotation.x = Math.sin(t * 4) * 0.05;
+                if (lThigh) lThigh.rotation.x = Math.sin(t * 4) * 0.1;
+                if (rThigh) rThigh.rotation.x = Math.sin(t * 4) * 0.1;
             }
 
             // ---------- BOXING ----------
@@ -1137,8 +1024,7 @@
             zoomValue.textContent = dist.toFixed(1);
         });
 
-        // Use the new async chunked mapping
-        mapBtn.addEventListener('click', runMappingChunked);
+        mapBtn.addEventListener('click', runMapping);
 
         // ========== ANIMATION LOOP ==========
         function animate() {
