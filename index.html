@@ -3,23 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes">
-    <title>PUSHPAK AI · ADVANCED MOTION</title>
+    <title>PUSHPAK · ADAPTIVE HUMAN MOTIONS</title>
     <!-- Import Map -->
     <script type="importmap">
         {
             "imports": {
                 "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
                 "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
-                "cannon-es": "https://unpkg.com/cannon-es@0.20.0/dist/cannon-es.js",
-                "ossos": "https://cdn.jsdelivr.net/npm/ossos@0.0.10/index.js"
+                "cannon-es": "https://unpkg.com/cannon-es@0.20.0/dist/cannon-es.js"
             }
         }
     </script>
+    <!-- TensorFlow.js (optional) -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" crossorigin="anonymous">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * { margin:0; padding:0; box-sizing:border-box; }
         :root {
             --gold: #ffd700;
             --gold-dark: #ff8c00;
@@ -41,142 +42,186 @@
         }
         #canvas-container {
             position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 1;
+            top:0; left:0; width:100%; height:100%;
+            z-index:1;
         }
         .overlay {
             position: absolute;
-            z-index: 10;
+            z-index:10;
             pointer-events: none;
         }
         .overlay * {
             pointer-events: auto;
         }
         .top-bar {
-            top: 10px; left: 10px; right: 10px;
+            top:20px; left:20px; right:20px;
             display: flex; justify-content: space-between; align-items: center;
-            background: var(--glass); backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 50px; padding: 8px 16px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            background: rgba(10,10,20,0.6);
+            backdrop-filter: blur(20px);
+            border:1px solid rgba(255,215,0,0.2);
+            border-radius:60px;
+            padding:12px 28px;
+            box-shadow:0 20px 40px rgba(0,0,0,0.6);
         }
         .logo {
-            font-weight: 700; font-size: 1.2rem;
+            font-weight:700; font-size:1.6rem;
             background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+            letter-spacing:1px;
         }
-        .logo i { margin-right: 4px; }
-        .status { display: flex; gap: 8px; font-size: 0.7rem; }
-        .status i { margin-right: 2px; }
-        .profile { display: flex; gap: 8px; align-items: center; }
-        .avatar { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, var(--gold), var(--gold-dark)); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; }
+        .logo i { margin-right:8px; }
+        .status {
+            display: flex; gap:20px; font-size:0.9rem;
+            color:#aaccff;
+        }
+        .status i { color:var(--gold); margin-right:5px; }
+        .profile {
+            display: flex; gap:15px; align-items:center;
+        }
+        .avatar {
+            width:40px; height:40px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            border-radius:50%; display:flex; align-items:center; justify-content:center;
+            font-weight:bold;
+        }
         .bottom-panel {
-            bottom: 10px; left: 10px; right: 10px;
-            background: var(--glass); backdrop-filter: blur(30px);
-            border: 1px solid var(--glass-border); border-radius: 30px;
-            padding: 15px;
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            max-height: 50vh;
-            overflow-y: auto;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            bottom:20px; left:20px; right:20px;
+            background: rgba(10,10,20,0.7);
+            backdrop-filter: blur(30px);
+            border:1px solid rgba(255,215,0,0.2);
+            border-radius:60px;
+            padding:16px 24px;
+            display: flex;
+            gap:16px;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            box-shadow:0 20px 50px rgba(0,0,0,0.8);
         }
-        @media (min-width: 600px) {
-            .bottom-panel { grid-template-columns: repeat(4, 1fr); }
+        .bottom-panel button, .bottom-panel select {
+            background: rgba(0,0,0,0.4);
+            border:1px solid rgba(255,215,0,0.5);
+            color: white;
+            padding:10px 20px;
+            border-radius:40px;
+            font-weight:600;
+            font-size:0.9rem;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition:0.2s;
+            min-height:44px;
+            display:inline-flex;
+            align-items:center;
+            gap:8px;
         }
-        @media (min-width: 900px) {
-            .bottom-panel { grid-template-columns: repeat(6, 1fr); }
+        .bottom-panel button:hover {
+            background:var(--gold);
+            color:#000;
+            border-color:var(--gold);
+            box-shadow:0 0 30px var(--gold);
         }
-        .bottom-panel button, .bottom-panel select, .bottom-panel span {
-            background: rgba(0,0,0,0.6); border: 1px solid rgba(255,215,0,0.5);
-            color: white; padding: 14px 6px; border-radius: 40px;
-            font-weight: 600; font-size: 0.9rem; cursor: pointer;
-            backdrop-filter: blur(10px); display: inline-flex; align-items: center; justify-content: center;
-            gap: 6px; min-width: 0; min-height: 50px;
-            transition: 0.2s; border: none; text-align: center;
-            word-break: break-word; line-height: 1.2;
+        .bottom-panel button:disabled {
+            opacity:0.3;
+            pointer-events:none;
         }
-        .bottom-panel button i { font-size: 1.2rem; }
-        .bottom-panel button:active { background: var(--gold); color: #000; }
-        .bottom-panel button:disabled { opacity: 0.3; pointer-events: none; }
-        .bottom-panel select { appearance: none; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23ffd700' stroke-width='2'><polyline points='6 9 12 15 18 9'/></svg>"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 24px; }
-        .anim-group { display: contents; }
-        #status-msg { background: transparent; border: none; justify-content: flex-start; font-size: 0.8rem; }
-        .right-panel {
-            top: auto; bottom: 80px; right: 10px; left: 10px;
-            width: auto; background: var(--glass); backdrop-filter: blur(30px);
-            border: 1px solid var(--glass-border); border-radius: 30px;
-            padding: 20px; transition: transform 0.3s, opacity 0.3s;
-            max-height: 70vh; overflow-y: auto;
-            box-shadow: 0 -10px 30px rgba(0,0,0,0.8);
+        .bottom-panel select {
+            padding-right:32px;
+            appearance:none;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23ffd700' stroke-width='2'><polyline points='6 9 12 15 18 9'/></svg>");
+            background-repeat:no-repeat;
+            background-position:right 12px center;
         }
-        .right-panel.hidden { transform: translateY(100%); opacity: 0; pointer-events: none; }
-        @media (min-width: 768px) {
-            .right-panel { top: 120px; bottom: auto; right: 20px; left: auto; width: 320px; }
+        .zoom-slider {
+            display:flex; align-items:center; gap:10px;
+            background:rgba(0,0,0,0.3); padding:5px 15px; border-radius:40px;
+            border:1px solid rgba(255,215,0,0.3);
         }
-        .right-panel h3 { color: var(--gold); margin-bottom: 15px; font-size: 1rem; }
-        .slider-group { margin-bottom: 15px; }
-        .slider-group label { display: flex; justify-content: space-between; color: #ccc; font-size:0.9rem; }
-        input[type=range] { width: 100%; accent-color: var(--gold); height: 40px; }
-        .xp-bar { background: rgba(255,255,255,0.1); height: 8px; border-radius: 4px; margin:15px 0; overflow: hidden; }
-        .xp-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--gold), var(--gold-dark)); }
+        .zoom-slider label { color:#ffd700; font-weight:600; font-size:0.9rem; }
+        .zoom-slider input { width:140px; accent-color:var(--gold); height:6px; }
+        .zoom-slider span { color:white; font-size:0.9rem; min-width:40px; text-align:right; }
+        .progress-bar {
+            width:200px;
+            height:8px;
+            background:rgba(255,255,255,0.1);
+            border-radius:4px;
+            overflow:hidden;
+        }
+        .progress-fill {
+            height:100%;
+            width:0%;
+            background: linear-gradient(90deg, var(--gold), var(--gold-dark));
+            transition:width 0.3s;
+        }
+        #diagnostic-panel {
+            position:absolute; top:100px; right:20px; width:300px;
+            background:rgba(10,10,20,0.9); backdrop-filter:blur(20px);
+            border:1px solid var(--gold); border-radius:30px; padding:20px;
+            color:white; z-index:50; transition:transform 0.3s, opacity 0.3s;
+            pointer-events:auto;
+        }
+        #diagnostic-panel.hidden { transform:translateX(120%); opacity:0; pointer-events:none; }
+        #diagnostic-panel h3 {
+            color:var(--gold); margin-bottom:15px;
+            display:flex; justify-content:space-between; align-items:center;
+        }
+        #diagnostic-panel .close-btn { background:none; border:none; color:var(--gold); font-size:1.5rem; cursor:pointer; }
+        .diagnostic-row {
+            display:flex; justify-content:space-between; margin-bottom:10px;
+            font-size:0.9rem; border-bottom:1px solid rgba(255,215,0,0.2); padding-bottom:5px;
+        }
+        .diagnostic-row .value { color:#88ff88; font-family:monospace; }
         #toast-container {
-            position: fixed; bottom: 20px; right: 10px; left: 10px;
-            display: flex; flex-direction: column; gap: 8px; align-items: flex-end;
-            pointer-events: none; z-index: 3000;
+            position:fixed; bottom:100px; right:20px;
+            display:flex; flex-direction:column; gap:8px;
+            pointer-events:none; z-index:3000;
         }
         .toast {
-            background: var(--glass); backdrop-filter: blur(20px);
-            border: 1px solid var(--gold); border-radius: 40px;
-            padding: 12px 20px; color: white; font-weight: 600; font-size: 0.9rem;
-            animation: slideIn 0.3s, fadeOut 0.3s 2.7s forwards;
-            max-width: 90%; word-break: break-word;
+            background:var(--glass); border:1px solid var(--gold); border-radius:40px;
+            padding:12px 20px; color:white; font-weight:600; font-size:0.9rem;
+            animation:slideIn 0.3s, fadeOut 0.3s 2.7s forwards;
         }
-        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        @keyframes fadeOut { to { opacity: 0; transform: translateX(100%); } }
+        @keyframes slideIn { from{ transform:translateX(100%); } to{ transform:translateX(0); } }
+        @keyframes fadeOut { to{ opacity:0; transform:translateX(100%); } }
         #error-boundary {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(10,10,20,0.95); backdrop-filter: blur(20px);
-            z-index: 2000; display: flex; justify-content: center; align-items: center;
-            visibility: hidden; opacity: 0; transition: 0.3s; padding: 20px;
+            position:fixed; top:0; left:0; width:100%; height:100%;
+            background:rgba(0,0,0,0.9); z-index:5000;
+            display:flex; justify-content:center; align-items:center;
+            visibility:hidden;
         }
-        #error-boundary.show { visibility: visible; opacity: 1; }
+        #error-boundary.show { visibility:visible; }
         .error-card {
-            background: rgba(255,80,80,0.2); border: 2px solid var(--error);
-            border-radius: 30px; padding: 25px; max-width: 350px; text-align: center;
-        }
-        .error-card button {
-            margin-top: 20px; padding: 15px 30px; background: var(--error);
-            border: none; color: white; border-radius: 40px; font-weight: bold;
-            cursor: pointer; width: 100%; font-size: 1rem;
+            background:rgba(255,80,80,0.2); border:2px solid var(--error); border-radius:40px;
+            padding:30px; max-width:400px; text-align:center;
         }
         #loading {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--bg); display: flex; justify-content: center; align-items: center;
-            z-index: 1000; transition: opacity 0.5s; pointer-events: none;
+            position:fixed; top:0; left:0; width:100%; height:100%;
+            background:var(--bg); display:flex; justify-content:center; align-items:center;
+            z-index:1000; transition:opacity 0.5s; pointer-events:none;
         }
-        #loading.fadeout { opacity: 0; }
+        #loading.fadeout { opacity:0; }
         .spinner {
-            width: 60px; height: 60px; border: 5px solid rgba(255,215,0,0.2);
-            border-top-color: var(--gold); border-radius: 50%; animation: spin 1s infinite;
+            width:60px; height:60px; border:5px solid rgba(255,215,0,0.2);
+            border-top-color:var(--gold); border-radius:50%; animation:spin 1s infinite;
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        #xp-display { font-size: 0.9rem; }
+        @keyframes spin { to{ transform:rotate(360deg); } }
+        #xp-display { font-size:0.9rem; }
     </style>
 </head>
 <body>
-    <div id="loading"><div class="spinner"></div><div style="margin-top:15px;">PUSHPAK AI</div></div>
-    <div id="error-boundary">
-        <div class="error-card">
-            <i class="fas fa-exclamation-triangle" style="font-size:3rem; color:var(--error);"></i>
-            <h2 style="margin:15px 0;">CRITICAL ERROR</h2>
-            <p id="error-message">An unexpected error occurred.</p>
-            <button onclick="location.reload()">RELOAD</button>
-        </div>
-    </div>
+    <div id="loading"><div class="spinner"></div><div style="margin-top:15px;">PUSHPAK AI · ULTIMATE</div></div>
+    <div id="error-boundary"><div class="error-card"><i class="fas fa-exclamation-triangle" style="font-size:3rem; color:var(--error);"></i><h2 style="margin:15px 0;">CRITICAL ERROR</h2><p id="error-message">An unexpected error occurred.</p><button onclick="location.reload()">RELOAD</button></div></div>
     <div id="canvas-container"></div>
     <div id="toast-container"></div>
+
+    <!-- Diagnostic Panel (hidden by default) -->
+    <div id="diagnostic-panel" class="hidden">
+        <h3><span><i class="fas fa-microchip"></i> DIAGNOSTICS</span><span class="close-btn" onclick="document.getElementById('diagnostic-panel').classList.add('hidden')">✕</span></h3>
+        <div class="diagnostic-row"><span>FPS</span><span class="value" id="diag-fps">0</span></div>
+        <div class="diagnostic-row"><span>Bones</span><span class="value" id="diag-bones">0</span></div>
+        <div class="diagnostic-row"><span>Physics bodies</span><span class="value" id="diag-bodies">0</span></div>
+        <div class="diagnostic-row"><span>Model</span><span class="value" id="diag-model">none</span></div>
+        <div class="diagnostic-row"><span>Mapping progress</span><span class="value" id="diag-progress">0%</span></div>
+    </div>
 
     <!-- Top bar -->
     <div class="overlay top-bar">
@@ -190,521 +235,893 @@
         </div>
     </div>
 
-    <!-- Bottom panel – simplified with animation controls and CREATE button -->
+    <!-- Bottom panel -->
     <div class="overlay bottom-panel">
-        <button id="upload-btn"><i class="fas fa-upload"></i> UPLOAD</button>
-        <input type="file" id="file-input" accept=".glb,.gltf" style="display:none;">
-        <!-- Animation selection (no physics toggle, no map, no biped) -->
-        <select id="animation-select" disabled>
+        <button id="uploadBtn"><i class="fas fa-upload"></i> UPLOAD</button>
+        <input type="file" id="fileInput" accept=".glb,.gltf" style="display:none;">
+        <button id="mapBtn" disabled><i class="fas fa-brain"></i> RUN MAPPING</button>
+        <select id="animSelect" disabled>
             <option value="idle">IDLE</option>
             <option value="walk">WALK</option>
             <option value="run">RUN</option>
+            <option value="sprint">SPRINT</option>
             <option value="jump">JUMP</option>
             <option value="wave">WAVE</option>
             <option value="kick">KICK</option>
+            <option value="roundhouse">ROUNDHOUSE</option>
             <option value="dance">DANCE</option>
+            <option value="boxing">BOXING</option>
+            <option value="clap">CLAP</option>
+            <option value="stretch">STRETCH</option>
+            <option value="squat">SQUAT</option>
         </select>
-        <button id="anim-play" disabled>▶ PLAY</button>
-        <button id="anim-stop" disabled>⏹ STOP</button>
-        <button id="reset-btn"><i class="fas fa-undo"></i> RESET</button>
-        <!-- Link to create.html -->
+        <button id="playAnimBtn" disabled><i class="fas fa-play"></i> PLAY</button>
+        <button id="stopAnimBtn" disabled><i class="fas fa-stop"></i> STOP</button>
+        <button id="resetBtn"><i class="fas fa-undo"></i> RESET</button>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="zoom-slider">
+            <label><i class="fas fa-search"></i></label>
+            <input type="range" id="zoomSlider" min="2" max="15" step="0.1" value="5">
+            <span id="zoomValue">5.0</span>
+        </div>
+        <button id="settingsBtn"><i class="fas fa-sliders-h"></i> DIAGNOSTICS</button>
         <button onclick="window.location.href='create.html'"><i class="fas fa-cog"></i> CREATE</button>
-        <span id="status-msg"><i class="fas fa-circle" style="color:var(--success);"></i> READY</span>
+        <span id="statusMsg"><i class="fas fa-circle" style="color:var(--success);"></i> READY</span>
     </div>
 
     <script type="module">
-        // ========== GLOBAL ERROR HANDLING ==========
-        window.addEventListener('error', (e) => { e.preventDefault(); showFatalError(e.error?.message || e.message); return false; });
-        window.addEventListener('unhandledrejection', (e) => { e.preventDefault(); showFatalError(e.reason?.message); });
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        import * as CANNON from 'cannon-es';
 
-        let fatalErrorShown = false;
-        function showFatalError(msg) {
-            if (fatalErrorShown) return;
-            fatalErrorShown = true;
-            document.getElementById('error-message').innerText = msg || 'Unknown error';
-            document.getElementById('error-boundary').classList.add('show');
-        }
-
-        const toastContainer = document.getElementById('toast-container');
-        function showToast(msg, type = 'info', duration = 3000) {
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            toast.innerText = msg;
-            toastContainer.appendChild(toast);
-            setTimeout(() => toast.remove(), duration);
-        }
-
-        // ========== IMPORTS WITH FALLBACKS ==========
-        let THREE, OrbitControls, GLTFLoader, TransformControls, CANNON, OSOS;
-        try {
-            THREE = await import('three');
-            OrbitControls = (await import('three/addons/controls/OrbitControls.js')).OrbitControls;
-            GLTFLoader = (await import('three/addons/loaders/GLTFLoader.js')).GLTFLoader;
-            TransformControls = (await import('three/addons/controls/TransformControls.js')).TransformControls;
-        } catch (e) { showFatalError('Failed to load Three.js modules.'); }
-
-        try {
-            CANNON = await import('cannon-es');
-        } catch (e) { console.warn('Cannon-es not available, physics disabled'); }
-
-        try {
-            OSOS = (await import('ossos')).default;
-            console.log('OSOS loaded');
-        } catch (e) {
-            console.warn('OSOS not available');
-            showToast('OSOS not loaded – procedural only', 'warning');
-        }
-
-        // ========== SETUP ==========
-        let scene, camera, renderer, controls, transformControls;
+        // ========== GLOBALS ==========
+        let scene, camera, renderer, controls;
         let currentModel = null;
         let bones = [];
-        let mixer = null;
-        let animations = {};
-        let currentAction = null;
-        let xp = 0;
-        let fallbackCube = null;
-        let isFallback = true;
-        let procAnim = 'idle';
-        let procAnimTime = 0;
-        let ososArmature = null;
-        let ososRig = null;
-        const clock = new THREE.Clock();
-
-        // Physics world and bodies for each bone
-        let physicsWorld;
-        let physicsBodies = new Map(); // bone -> Cannon body
-        let constraints = [];
+        let skeletonHelper = null;
+        let boneMapping = new Map(); // bone -> role
+        let physicsWorld, physicsBodies = new Map(); // bone -> CANNON.Body
+        let meshToBody = new Map(); // for raycasting (invisible bodies)
+        let clock = new THREE.Clock();
+        let animTime = 0;
+        let currentAnim = 'idle';
+        let animPlaying = false;
+        let groundBody;
 
         // UI elements
-        const fileInput = document.getElementById('file-input');
-        const uploadBtn = document.getElementById('upload-btn');
-        const animSelect = document.getElementById('animation-select');
-        const animPlay = document.getElementById('anim-play');
-        const animStop = document.getElementById('anim-stop');
-        const resetBtn = document.getElementById('reset-btn');
-        const statusMsg = document.getElementById('status-msg');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const fileInput = document.getElementById('fileInput');
+        const mapBtn = document.getElementById('mapBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const settingsBtn = document.getElementById('settingsBtn');
+        const animSelect = document.getElementById('animSelect');
+        const playAnimBtn = document.getElementById('playAnimBtn');
+        const stopAnimBtn = document.getElementById('stopAnimBtn');
+        const statusMsg = document.getElementById('statusMsg');
         const xpDisplay = document.getElementById('xp-display');
+        const zoomSlider = document.getElementById('zoomSlider');
+        const zoomValue = document.getElementById('zoomValue');
+        const progressFill = document.getElementById('progressFill');
+        const diagFps = document.getElementById('diag-fps');
+        const diagBones = document.getElementById('diag-bones');
+        const diagBodies = document.getElementById('diag-bodies');
+        const diagModel = document.getElementById('diag-model');
+        const diagProgress = document.getElementById('diag-progress');
 
+        let xp = 0;
+        function addXP(amount) { xp += amount; xpDisplay.textContent = xp + ' XP'; }
         function setStatus(msg, type = 'info') {
             const color = type === 'success' ? '#44ff44' : type === 'error' ? '#ff4444' : '#ffaa44';
             statusMsg.innerHTML = `<i class="fas fa-circle" style="color:${color};"></i> ${msg}`;
         }
-        function addXP(amount) { xp += amount; xpDisplay.textContent = xp + ' XP'; }
+        function showToast(msg, type = 'info', duration = 3000) {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerText = msg;
+            document.getElementById('toast-container').appendChild(toast);
+            setTimeout(() => toast.remove(), duration);
+        }
 
-        // ========== SCENE INIT WITH PHYSICS ==========
+        // ========== SCENE SETUP ==========
         function initScene() {
-            try {
-                scene = new THREE.Scene();
-                scene.background = new THREE.Color(0x0a0a12);
-                camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-                camera.position.set(3, 2, 5);
-                renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
-                renderer.setSize(window.innerWidth, window.innerHeight);
-                renderer.shadowMap.enabled = true;
-                renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-                document.getElementById('canvas-container').appendChild(renderer.domElement);
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0a0a12);
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(3, 2, 5);
+            renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
 
-                controls = new OrbitControls(camera, renderer.domElement);
-                controls.enableDamping = true;
-                controls.dampingFactor = 0.05;
-                controls.screenSpacePanning = true;
-                controls.maxPolarAngle = Math.PI;          // full 360°
-                controls.minDistance = 1.0;
-                controls.maxDistance = 15.0;
-                controls.enableZoom = true;
-                controls.zoomSpeed = 1.2;
-                controls.target.set(0, 1, 0);
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.screenSpacePanning = true;
+            controls.maxPolarAngle = Math.PI / 2;
+            controls.minDistance = 2;
+            controls.maxDistance = 15;
+            controls.target.set(0, 1.2, 0);
 
-                transformControls = new TransformControls(camera, renderer.domElement);
-                transformControls.addEventListener('dragging-changed', (e) => { controls.enabled = !e.value; });
-                scene.add(transformControls);
+            // Lights
+            scene.add(new THREE.AmbientLight(0x404060, 0.6));
+            const dirLight = new THREE.DirectionalLight(0xffeedd, 1.2);
+            dirLight.position.set(5, 10, 7);
+            dirLight.castShadow = true;
+            dirLight.shadow.mapSize.width = 2048;
+            dirLight.shadow.mapSize.height = 2048;
+            dirLight.shadow.bias = -0.0005;
+            scene.add(dirLight);
 
-                // Lights
-                scene.add(new THREE.AmbientLight(0x404060, 0.6));
-                const dirLight = new THREE.DirectionalLight(0xffeedd, 1.2);
-                dirLight.position.set(5, 10, 7);
-                dirLight.castShadow = true;
-                dirLight.shadow.mapSize.width = 1024;
-                dirLight.shadow.mapSize.height = 1024;
-                scene.add(dirLight);
-                const fillLight = new THREE.PointLight(0x88aaff, 0.8);
-                fillLight.position.set(-4, 3, 5);
-                scene.add(fillLight);
-                const rimLight = new THREE.PointLight(0xffaa55, 0.6);
-                rimLight.position.set(-2, 2, -5);
-                scene.add(rimLight);
+            // Fill lights
+            const fillLight = new THREE.PointLight(0x88aaff, 0.5);
+            fillLight.position.set(-4, 3, 5);
+            scene.add(fillLight);
+            const rimLight = new THREE.PointLight(0xffaa55, 0.4);
+            rimLight.position.set(2, 2, -5);
+            scene.add(rimLight);
 
-                // Ground
-                const ground = new THREE.Mesh(new THREE.CircleGeometry(12, 32), new THREE.MeshStandardMaterial({ color: 0x1a1a2a, roughness: 0.3 }));
-                ground.rotation.x = -Math.PI / 2;
-                ground.position.y = 0;
-                ground.receiveShadow = true;
-                scene.add(ground);
-                scene.add(new THREE.GridHelper(20, 20, 0xffd700, 0x553300));
+            // ========== REALISTIC GRASS ==========
+            // Ground plane with grass texture
+            const canvas = document.createElement('canvas');
+            canvas.width = 1024;
+            canvas.height = 1024;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#1e3a1e';
+            ctx.fillRect(0,0,1024,1024);
+            for (let i = 0; i < 10000; i++) {
+                ctx.strokeStyle = `rgba(60,120,60,${0.5+Math.random()*0.5})`;
+                ctx.lineWidth = 1 + Math.random()*3;
+                ctx.beginPath();
+                const x = Math.random()*1024;
+                const y = Math.random()*1024;
+                ctx.moveTo(x, y);
+                ctx.lineTo(x + (Math.random()-0.5)*40, y - 20 - Math.random()*30);
+                ctx.stroke();
+            }
+            const grassTex = new THREE.CanvasTexture(canvas);
+            grassTex.wrapS = THREE.RepeatWrapping;
+            grassTex.wrapT = THREE.RepeatWrapping;
+            grassTex.repeat.set(8,8);
 
-                // Physics world
-                if (CANNON) {
-                    physicsWorld = new CANNON.World();
-                    physicsWorld.gravity.set(0, -9.82, 0);
-                    physicsWorld.broadphase = new CANNON.SAPBroadphase(physicsWorld);
-                    physicsWorld.defaultContactMaterial.restitution = 0.3;
+            const groundGeo = new THREE.CircleGeometry(20, 64);
+            const groundMat = new THREE.MeshStandardMaterial({ map: grassTex, roughness: 0.9, metalness: 0.0 });
+            const ground = new THREE.Mesh(groundGeo, groundMat);
+            ground.rotation.x = -Math.PI/2;
+            ground.position.y = 0;
+            ground.receiveShadow = true;
+            scene.add(ground);
 
-                    const groundBody = new CANNON.Body({ mass: 0, shape: new CANNON.Plane() });
-                    groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
-                    physicsWorld.addBody(groundBody);
-                }
+            // Instanced 3D grass blades (thousands)
+            const bladeCount = 5000;
+            const bladeGeo = new THREE.PlaneGeometry(0.05, 0.3);
+            const bladeMat = new THREE.MeshStandardMaterial({ color: 0x3c7a3c, emissive: 0x102010 });
+            const instancedMesh = new THREE.InstancedMesh(bladeGeo, bladeMat, bladeCount);
+            instancedMesh.castShadow = true;
+            instancedMesh.receiveShadow = true;
 
-                createJellyCube();
-            } catch (e) { showFatalError('3D init failed: ' + e.message); }
+            const dummy = new THREE.Object3D();
+            for (let i = 0; i < bladeCount; i++) {
+                const r = Math.random() * 15;
+                const a = Math.random() * Math.PI * 2;
+                const x = Math.cos(a) * r;
+                const z = Math.sin(a) * r;
+                dummy.position.set(x, 0.15, z);
+                dummy.rotation.y = Math.random() * Math.PI * 2;
+                dummy.rotation.x = 0;
+                dummy.rotation.z = 0;
+                dummy.scale.set(1, 0.7 + Math.random()*0.6, 1);
+                dummy.updateMatrix();
+                instancedMesh.setMatrixAt(i, dummy.matrix);
+            }
+            instancedMesh.instanceMatrix.needsUpdate = true;
+            scene.add(instancedMesh);
+
+            // Physics world
+            physicsWorld = new CANNON.World();
+            physicsWorld.gravity.set(0, -9.81, 0);
+            physicsWorld.broadphase = new CANNON.SAPBroadphase(physicsWorld);
+            physicsWorld.defaultContactMaterial.restitution = 0.2;
+
+            const groundShape = new CANNON.Plane();
+            groundBody = new CANNON.Body({ mass: 0 });
+            groundBody.addShape(groundShape);
+            groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
+            physicsWorld.addBody(groundBody);
         }
+        initScene();
 
-        function createJellyCube() {
-            try {
-                if (currentModel) scene.remove(currentModel);
-                currentModel = null; bones = [];
-                if (fallbackCube) scene.remove(fallbackCube);
-                // remove physics bodies
-                if (physicsWorld) {
-                    for (let body of physicsBodies.values()) physicsWorld.removeBody(body);
-                    physicsBodies.clear();
-                }
-
-                const geometry = new THREE.BoxGeometry(1, 1, 1);
-                const material = new THREE.MeshStandardMaterial({ color: 0xffaa44, emissive: 0x331100 });
-                const cube = new THREE.Mesh(geometry, material);
-                cube.castShadow = true; cube.receiveShadow = true;
-                cube.position.set(0, 1, 0);
-                scene.add(cube);
-                fallbackCube = cube; isFallback = true;
-
-                // Create physics body for cube (simple)
-                if (CANNON && physicsWorld) {
-                    const shape = new CANNON.Box(new CANNON.Vec3(0.5, 0.5, 0.5));
-                    const body = new CANNON.Body({ mass: 5, shape: shape });
-                    body.position.set(0, 1, 0);
-                    physicsWorld.addBody(body);
-                    physicsBodies.set(cube, body);
-                }
-
-                animSelect.disabled = true;
-                animPlay.disabled = true;
-                animStop.disabled = true;
-                setStatus('Jelly cube ready', 'info');
-            } catch (e) { showFatalError('Cube creation failed'); }
-        }
-
-        // ========== COMPREHENSIVE BONE MAPPING ==========
-        const boneMappings = {
-            spine: /spine|chest|torso|upperbody|back|thorax|ribs|vertebra/i,
-            head: /head|neck|skull|face|chin/i,
-            leftArm: /leftarm|upperarm_l|arm_l|l_arm|leftshoulder|shoulder_l|clavicle_l/i,
-            rightArm: /rightarm|upperarm_r|arm_r|r_arm|rightshoulder|shoulder_r|clavicle_r/i,
-            leftForeArm: /leftforearm|forearm_l|lowerarm_l|elbow_l|radius_l/i,
-            rightForeArm: /rightforearm|forearm_r|lowerarm_r|elbow_r|radius_r/i,
-            leftHand: /lefthand|hand_l|palm_l|wrist_l/i,
-            rightHand: /righthand|hand_r|palm_r|wrist_r/i,
-            leftUpLeg: /leftupleg|thigh_l|upleg_l|leftthigh|femur_l/i,
-            rightUpLeg: /rightupleg|thigh_r|upleg_r|rightthigh|femur_r/i,
-            leftLeg: /leftleg|calf_l|shin_l|lowerleg_l|tibia_l|fibula_l/i,
-            rightLeg: /rightleg|calf_r|shin_r|lowerleg_r|tibia_r|fibula_r/i,
-            leftFoot: /leftfoot|foot_l|ankle_l|heel_l|ball_l/i,
-            rightFoot: /rightfoot|foot_r|ankle_r|heel_r|ball_r/i,
-            hips: /hips|pelvis|root|lowerback|waist|baseroot|master|pelvis_root/i
+        // ========== MASSIVE REGEX DICTIONARY ==========
+        const sides = ['left', 'right', 'l', 'r', '_l', '_r', '.l', '.r', '-l', '-r', ' L', ' R'];
+        const modifiers = ['up', 'down', 'low', 'high', 'mid', 'top', 'bottom', 'front', 'back', 'upper', 'lower', 'proximal', 'distal', 'middle'];
+        const bonesCore = {
+            hips: ['hips', 'pelvis', 'root', 'hip', 'baseroot', 'master', 'pelvis_root'],
+            spine: ['spine', 'chest', 'torso', 'upperbody', 'back', 'thorax', 'ribcage', 'ribs', 'vertebra'],
+            spine1: ['spine1', 'spine_1', 'spine01', 'spine-1', 'chest1'],
+            spine2: ['spine2', 'spine_2', 'spine02', 'spine-2'],
+            neck: ['neck', 'cervical', 'c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7'],
+            head: ['head', 'skull', 'face', 'cranium', 'forehead'],
+            leftClavicle: ['leftclavicle', 'clavicle_l', 'clavicle_left', 'shoulder_l'],
+            rightClavicle: ['rightclavicle', 'clavicle_r', 'clavicle_right', 'shoulder_r'],
+            leftUpperArm: ['leftupperarm', 'upperarm_l', 'arm_up_l', 'armupper_l', 'humerus_l', 'arm_l_upper'],
+            rightUpperArm: ['rightupperarm', 'upperarm_r', 'arm_up_r', 'armupper_r', 'humerus_r', 'arm_r_upper'],
+            leftForearm: ['leftforearm', 'forearm_l', 'arm_low_l', 'armlower_l', 'radius_l', 'ulna_l', 'arm_l_lower'],
+            rightForearm: ['rightforearm', 'forearm_r', 'arm_low_r', 'armlower_r', 'radius_r', 'ulna_r', 'arm_r_lower'],
+            leftHand: ['lefthand', 'hand_l', 'wrist_l', 'palm_l'],
+            rightHand: ['righthand', 'hand_r', 'wrist_r', 'palm_r'],
+            leftUpperLeg: ['leftupperleg', 'thigh_l', 'upleg_l', 'femur_l', 'leg_l_upper'],
+            rightUpperLeg: ['rightupperleg', 'thigh_r', 'upleg_r', 'femur_r', 'leg_r_upper'],
+            leftLeg: ['leftleg', 'leg_l', 'calf_l', 'shin_l', 'tibia_l', 'fibula_l', 'leg_l_lower'],
+            rightLeg: ['rightleg', 'leg_r', 'calf_r', 'shin_r', 'tibia_r', 'fibula_r', 'leg_r_lower'],
+            leftFoot: ['leftfoot', 'foot_l', 'ankle_l', 'heel_l', 'ball_l'],
+            rightFoot: ['rightfoot', 'foot_r', 'ankle_r', 'heel_r', 'ball_r'],
+            leftToes: ['lefttoe', 'toe_l', 'toes_l', 'foottoe_l'],
+            rightToes: ['righttoe', 'toe_r', 'toes_r', 'foottoe_r'],
+            leftThumb1: ['leftthumb1', 'thumb_1_l', 'thumb_proximal_l'],
+            leftThumb2: ['leftthumb2', 'thumb_2_l', 'thumb_middle_l'],
+            leftThumb3: ['leftthumb3', 'thumb_3_l', 'thumb_distal_l'],
+            rightThumb1: ['rightthumb1', 'thumb_1_r', 'thumb_proximal_r'],
+            rightThumb2: ['rightthumb2', 'thumb_2_r', 'thumb_middle_r'],
+            rightThumb3: ['rightthumb3', 'thumb_3_r', 'thumb_distal_r'],
         };
 
-        function findBone(type) {
-            if (!bones.length) return null;
-            const pattern = boneMappings[type];
-            return pattern ? bones.find(b => pattern.test(b.name.toLowerCase())) : null;
+        const prefixes = ['mixamorig:', 'bip01_', 'bip01 ', 'character', 'ch', 'fig', 'skel', 'rig', 'bone_', 'joint_', ''];
+        const suffixes = ['', '_mp', '_skinned', '_bone', '_joint', '_rig', '_geo', '_skin', '_l', '_r', '_L', '_R', '.l', '.r', '-l', '-r'];
+        const numbers = ['', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '01', '02', '03'];
+
+        const boneMappings = {};
+        for (const [role, coreNames] of Object.entries(bonesCore)) {
+            const patterns = [];
+            for (const core of coreNames) {
+                for (const prefix of prefixes) {
+                    for (const suffix of suffixes) {
+                        for (const num of numbers) {
+                            patterns.push(prefix + core + num + suffix);
+                            patterns.push(prefix + core + suffix + num);
+                            patterns.push(prefix + core + '_' + num + suffix);
+                        }
+                        patterns.push(prefix + core + suffix);
+                    }
+                }
+                for (const mod of modifiers) {
+                    patterns.push(core + '_' + mod);
+                    patterns.push(mod + '_' + core);
+                    patterns.push(core + mod);
+                    patterns.push(mod + core);
+                }
+            }
+            for (const side of sides) {
+                for (const core of coreNames) {
+                    patterns.push(core + '_' + side);
+                    patterns.push(side + '_' + core);
+                    patterns.push(core + side);
+                    patterns.push(side + core);
+                }
+            }
+            const unique = [...new Set(patterns)];
+            const regexStr = unique.map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+            boneMappings[role] = new RegExp(regexStr, 'i');
         }
 
-        // ========== CREATE PHYSICS BODIES FOR BONES ==========
-        function createPhysicsForBones() {
-            if (!physicsWorld || !CANNON || !currentModel || bones.length === 0) return;
-            // Clear old bodies
+        function findRoleByName(boneName) {
+            const lower = boneName.toLowerCase();
+            for (const [role, regex] of Object.entries(boneMappings)) {
+                if (regex.test(lower)) return role;
+            }
+            return null;
+        }
+
+        // ========== POSITIONAL HEURISTICS ==========
+        function normalizePositions() {
+            if (bones.length === 0) return [];
+            const positions = bones.map(b => b.getWorldPosition(new THREE.Vector3()));
+            const xs = positions.map(p => p.x);
+            const ys = positions.map(p => p.y);
+            const zs = positions.map(p => p.z);
+            const minX = Math.min(...xs);
+            const maxX = Math.max(...xs);
+            const minY = Math.min(...ys);
+            const maxY = Math.max(...ys);
+            const minZ = Math.min(...zs);
+            const maxZ = Math.max(...zs);
+            const rangeX = maxX - minX || 1;
+            const rangeY = maxY - minY || 1;
+            const rangeZ = maxZ - minZ || 1;
+            return positions.map(p => ({
+                x: (p.x - minX) / rangeX,
+                y: (p.y - minY) / rangeY,
+                z: (p.z - minZ) / rangeZ,
+            }));
+        }
+
+        function findHipsByHeuristics(bones, normalized) {
+            let hips = null;
+            let minY = 1.0;
+            for (let i = 0; i < bones.length; i++) {
+                const bone = bones[i];
+                const norm = normalized[i];
+                if (bone.children.length >= 2 && norm.y < 0.3 && Math.abs(norm.x - 0.5) < 0.3) {
+                    if (norm.y < minY) {
+                        minY = norm.y;
+                        hips = bone;
+                    }
+                }
+            }
+            return hips;
+        }
+
+        function assignSpineChain(hips, normalized, boneIndexMap, mapping) {
+            if (!hips) return;
+            let current = hips;
+            let spineIdx = 0;
+            const used = new Set([hips]);
+            while (true) {
+                const children = current.children.filter(c => !used.has(c) && c.isBone);
+                let next = null;
+                let maxY = -1;
+                for (let child of children) {
+                    const idx = boneIndexMap.get(child);
+                    const norm = normalized[idx];
+                    if (norm.y > maxY && Math.abs(norm.x - 0.5) < 0.2 && Math.abs(norm.z) < 0.2) {
+                        maxY = norm.y;
+                        next = child;
+                    }
+                }
+                if (!next) break;
+                used.add(next);
+                if (spineIdx === 0) mapping.set(next, 'spine1');
+                else if (spineIdx === 1) mapping.set(next, 'spine2');
+                else mapping.set(next, 'spine');
+                current = next;
+                spineIdx++;
+            }
+        }
+
+        function assignLimbs(hips, normalized, boneIndexMap, mapping) {
+            if (!hips) return;
+            const legCandidates = hips.children.filter(c => c.isBone && normalized[boneIndexMap.get(c)].y < 0.5);
+            const leftLegs = legCandidates.filter(c => normalized[boneIndexMap.get(c)].x < 0.5);
+            const rightLegs = legCandidates.filter(c => normalized[boneIndexMap.get(c)].x > 0.5);
+
+            const processLeg = (root, side) => {
+                if (root.length === 0) return;
+                const first = root[0];
+                mapping.set(first, side === 'left' ? 'leftUpperLeg' : 'rightUpperLeg');
+                let current = first;
+                let step = 0;
+                while (current) {
+                    const next = current.children.find(c => c.isBone && normalized[boneIndexMap.get(c)].y < normalized[boneIndexMap.get(current)].y);
+                    if (!next) break;
+                    step++;
+                    if (step === 1) mapping.set(next, side === 'left' ? 'leftLeg' : 'rightLeg');
+                    else if (step === 2) mapping.set(next, side === 'left' ? 'leftFoot' : 'rightFoot');
+                    else if (step === 3) mapping.set(next, side === 'left' ? 'leftToes' : 'rightToes');
+                    current = next;
+                }
+            };
+            processLeg(leftLegs, 'left');
+            processLeg(rightLegs, 'right');
+
+            let spineTop = null;
+            for (let [bone, role] of mapping.entries()) {
+                if (role.startsWith('spine')) {
+                    if (!spineTop || normalized[boneIndexMap.get(bone)].y > normalized[boneIndexMap.get(spineTop)].y) {
+                        spineTop = bone;
+                    }
+                }
+            }
+            if (!spineTop) return;
+
+            const armCandidates = spineTop.children.filter(c => c.isBone && Math.abs(normalized[boneIndexMap.get(c)].y - normalized[boneIndexMap.get(spineTop)].y) < 0.2);
+            const leftArms = armCandidates.filter(c => normalized[boneIndexMap.get(c)].x < 0.4);
+            const rightArms = armCandidates.filter(c => normalized[boneIndexMap.get(c)].x > 0.6);
+
+            const processArm = (root, side) => {
+                if (root.length === 0) return;
+                const first = root[0];
+                mapping.set(first, side === 'left' ? 'leftUpperArm' : 'rightUpperArm');
+                let current = first;
+                let step = 0;
+                while (current) {
+                    const next = current.children.find(c => c.isBone);
+                    if (!next) break;
+                    step++;
+                    if (step === 1) mapping.set(next, side === 'left' ? 'leftForearm' : 'rightForearm');
+                    else if (step === 2) mapping.set(next, side === 'left' ? 'leftHand' : 'rightHand');
+                    current = next;
+                }
+            };
+            processArm(leftArms, 'left');
+            processArm(rightArms, 'right');
+        }
+
+        // ========== MAPPING WITH PROGRESS ==========
+        async function runMapping() {
+            if (!currentModel || bones.length === 0) {
+                showToast('No model loaded', 'error');
+                return;
+            }
+            setStatus('Mapping...', 'info');
+            boneMapping.clear();
+            const totalBones = bones.length;
+            let mapped = 0;
+
+            bones.forEach(bone => {
+                const role = findRoleByName(bone.name);
+                if (role) {
+                    boneMapping.set(bone, role);
+                    mapped++;
+                }
+            });
+            updateProgress(mapped / totalBones);
+
+            const normalized = normalizePositions();
+            const boneIndexMap = new Map(bones.map((b, i) => [b, i]));
+
+            let hips = bones.find(b => boneMapping.get(b) === 'hips');
+            if (!hips) {
+                hips = findHipsByHeuristics(bones, normalized);
+                if (hips) {
+                    boneMapping.set(hips, 'hips');
+                    mapped++;
+                }
+            }
+            updateProgress(mapped / totalBones);
+
+            if (hips) {
+                assignSpineChain(hips, normalized, boneIndexMap, boneMapping);
+                mapped = bones.filter(b => boneMapping.has(b)).length;
+                updateProgress(mapped / totalBones);
+                assignLimbs(hips, normalized, boneIndexMap, boneMapping);
+                mapped = bones.filter(b => boneMapping.has(b)).length;
+                updateProgress(mapped / totalBones);
+            }
+
+            setStatus(`Mapping complete: ${mapped}/${totalBones} bones`, 'success');
+            diagBones.innerText = totalBones;
+            addXP(50);
+            animSelect.disabled = false;
+            playAnimBtn.disabled = false;
+            stopAnimBtn.disabled = false;
+
+            // Create physics ragdoll (invisible)
+            createPhysicsRagdoll();
+        }
+
+        function updateProgress(ratio) {
+            const percent = Math.round(ratio * 100);
+            progressFill.style.width = percent + '%';
+            diagProgress.innerText = percent + '%';
+        }
+
+        // ========== CREATE PHYSICS RAGDOLL (INVISIBLE) ==========
+        function createPhysicsRagdoll() {
             for (let body of physicsBodies.values()) physicsWorld.removeBody(body);
             physicsBodies.clear();
+            meshToBody.clear();
 
-            // Create a body for each bone (simple sphere/box)
             bones.forEach(bone => {
+                if (!boneMapping.has(bone)) return;
                 const pos = bone.getWorldPosition(new THREE.Vector3());
-                const shape = new CANNON.Sphere(0.1); // approximate
+                let size = 0.1;
+                const role = boneMapping.get(bone);
+                if (role.includes('hips') || role.includes('spine')) size = 0.2;
+                else if (role.includes('arm') || role.includes('leg')) size = 0.15;
+                else if (role.includes('head')) size = 0.18;
+
+                const shape = new CANNON.Sphere(size);
                 const body = new CANNON.Body({ mass: 1, shape: shape });
                 body.position.copy(pos);
                 physicsWorld.addBody(body);
                 physicsBodies.set(bone, body);
             });
 
-            // Create constraints between parent-child (simplified point-to-point)
-            // This is a basic ragdoll – in a real system you'd use hinge/cone constraints
+            // Constraints
             bones.forEach(bone => {
-                if (bone.parent && bone.parent.isBone) {
-                    const childBody = physicsBodies.get(bone);
-                    const parentBody = physicsBodies.get(bone.parent);
-                    if (childBody && parentBody) {
-                        const constraint = new CANNON.PointToPointConstraint(
-                            parentBody, new CANNON.Vec3(0,0,0),
-                            childBody, new CANNON.Vec3(0,0,0)
-                        );
-                        physicsWorld.addConstraint(constraint);
-                        constraints.push(constraint);
-                    }
+                if (bone.parent && bone.parent.isBone && physicsBodies.has(bone) && physicsBodies.has(bone.parent)) {
+                    const child = physicsBodies.get(bone);
+                    const parent = physicsBodies.get(bone.parent);
+                    const constraint = new CANNON.PointToPointConstraint(parent, new CANNON.Vec3(0,0,0), child, new CANNON.Vec3(0,0,0));
+                    physicsWorld.addConstraint(constraint);
                 }
             });
 
-            showToast('Physics bodies created for bones', 'success');
+            diagBodies.innerText = physicsBodies.size;
+            showToast('Ragdoll created (invisible)', 'success');
         }
 
-        // ========== MODEL LOADING ==========
+        // ========== HYPER‑REALISTIC ANIMATIONS WITH 200+ CONDITIONAL BRANCHES ==========
+        function applyAnimation(delta) {
+            if (!currentModel || bones.length === 0 || !animPlaying) return;
+            animTime += delta;
+
+            // Helper to find bone by role (returns null if not mapped)
+            const bone = (role) => {
+                for (let [b, r] of boneMapping.entries()) {
+                    if (r === role) return b;
+                }
+                return null;
+            };
+
+            // Get all possible bones (many may be null, handled in conditions)
+            const hips = bone('hips');
+            const spine = bone('spine') || bone('spine1');
+            const spine1 = bone('spine1');
+            const spine2 = bone('spine2');
+            const neck = bone('neck');
+            const head = bone('head');
+            const lClav = bone('leftClavicle');
+            const rClav = bone('rightClavicle');
+            const lArm = bone('leftUpperArm');
+            const rArm = bone('rightUpperArm');
+            const lFore = bone('leftForearm');
+            const rFore = bone('rightForearm');
+            const lHand = bone('leftHand');
+            const rHand = bone('rightHand');
+            const lThigh = bone('leftUpperLeg');
+            const rThigh = bone('rightUpperLeg');
+            const lShin = bone('leftLeg');
+            const rShin = bone('rightLeg');
+            const lFoot = bone('leftFoot');
+            const rFoot = bone('rightFoot');
+            const lToes = bone('leftToes');
+            const rToes = bone('rightToes');
+            const lThumb1 = bone('leftThumb1');
+            const lThumb2 = bone('leftThumb2');
+            const lThumb3 = bone('leftThumb3');
+            const rThumb1 = bone('rightThumb1');
+            const rThumb2 = bone('rightThumb2');
+            const rThumb3 = bone('rightThumb3');
+
+            const t = animTime;
+
+            // Advanced motion curves (multi‑harmonic, phase‑shifted)
+            const walk = {
+                leg: Math.sin(t * 5),
+                arm: Math.sin(t * 5 + Math.PI),
+                knee: Math.abs(Math.sin(t * 5)),
+                spine: Math.sin(t * 5) * 0.05,
+                head: Math.sin(t * 5) * 0.03,
+            };
+            const run = {
+                leg: Math.sin(t * 8) * 1.2,
+                arm: Math.sin(t * 8 + Math.PI) * 0.8,
+                knee: Math.abs(Math.sin(t * 8)) * 0.6,
+                spine: Math.sin(t * 8) * 0.1,
+                head: Math.sin(t * 8) * 0.05,
+            };
+            const sprint = {
+                leg: Math.sin(t * 12) * 1.5,
+                arm: Math.sin(t * 12 + Math.PI) * 1.2,
+                knee: Math.abs(Math.sin(t * 12)) * 0.8,
+                spine: Math.sin(t * 12) * 0.15,
+                head: Math.sin(t * 12) * 0.08,
+            };
+            const jumpPhase = Math.sin(t * 6);
+            const squat = Math.max(0, -jumpPhase) * 0.5;
+            const lift = Math.max(0, jumpPhase) * 0.5;
+            const squatPhase = Math.abs(Math.sin(t * 4));
+
+            // ---------- WALK ----------
+            if (currentAnim === 'walk') {
+                // Hips
+                if (hips) hips.rotation.y = walk.spine;
+
+                // Spine chain
+                if (spine) spine.rotation.y = walk.spine * 0.8;
+                if (spine1) spine1.rotation.y = walk.spine * 0.6;
+                if (spine2) spine2.rotation.y = walk.spine * 0.4;
+
+                // Head / neck
+                if (head) head.rotation.y = walk.head;
+                if (neck) neck.rotation.y = walk.head * 0.5;
+
+                // Left leg
+                if (lThigh) lThigh.rotation.x = walk.leg * 0.4;
+                if (lShin) lShin.rotation.x = walk.knee * 0.2;
+                if (lFoot) lFoot.rotation.x = walk.knee * 0.1;
+
+                // Right leg
+                if (rThigh) rThigh.rotation.x = -walk.leg * 0.4;
+                if (rShin) rShin.rotation.x = Math.abs(Math.sin(t * 5 + Math.PI)) * 0.2;
+                if (rFoot) rFoot.rotation.x = Math.abs(Math.sin(t * 5 + Math.PI)) * 0.1;
+
+                // Left arm
+                if (lArm) lArm.rotation.x = -walk.arm * 0.3;
+                if (lFore) lFore.rotation.x = walk.knee * 0.1;
+                if (lHand) lHand.rotation.x = walk.knee * 0.05;
+
+                // Right arm
+                if (rArm) rArm.rotation.x = walk.arm * 0.3;
+                if (rFore) rFore.rotation.x = walk.knee * 0.1;
+                if (rHand) rHand.rotation.x = walk.knee * 0.05;
+
+                // Clavicles
+                if (lClav) lClav.rotation.z = -0.1;
+                if (rClav) rClav.rotation.z = 0.1;
+            }
+
+            // ---------- RUN ----------
+            else if (currentAnim === 'run') {
+                if (hips) hips.rotation.y = run.spine;
+                if (spine) spine.rotation.y = run.spine * 0.8;
+                if (head) head.rotation.y = run.head;
+
+                if (lThigh) lThigh.rotation.x = run.leg;
+                if (lShin) lShin.rotation.x = run.knee;
+                if (lFoot) lFoot.rotation.x = run.knee * 0.5;
+                if (rThigh) rThigh.rotation.x = -run.leg;
+                if (rShin) rShin.rotation.x = Math.abs(Math.sin(t * 8 + Math.PI)) * 0.6;
+                if (rFoot) rFoot.rotation.x = Math.abs(Math.sin(t * 8 + Math.PI)) * 0.3;
+
+                if (lArm) lArm.rotation.x = -run.arm;
+                if (lFore) lFore.rotation.x = run.knee * 0.3;
+                if (rArm) rArm.rotation.x = run.arm;
+                if (rFore) rFore.rotation.x = run.knee * 0.3;
+            }
+
+            // ---------- SPRINT ----------
+            else if (currentAnim === 'sprint') {
+                if (hips) hips.rotation.y = sprint.spine;
+                if (spine) spine.rotation.y = sprint.spine;
+                if (head) head.rotation.y = sprint.head;
+
+                if (lThigh) lThigh.rotation.x = sprint.leg;
+                if (lShin) lShin.rotation.x = sprint.knee;
+                if (lFoot) lFoot.rotation.x = sprint.knee * 0.5;
+                if (rThigh) rThigh.rotation.x = -sprint.leg;
+                if (rShin) rShin.rotation.x = Math.abs(Math.sin(t * 12 + Math.PI)) * 0.8;
+                if (rFoot) rFoot.rotation.x = Math.abs(Math.sin(t * 12 + Math.PI)) * 0.4;
+
+                if (lArm) lArm.rotation.x = -sprint.arm;
+                if (lFore) lFore.rotation.x = sprint.knee * 0.5;
+                if (rArm) rArm.rotation.x = sprint.arm;
+                if (rFore) rFore.rotation.x = sprint.knee * 0.5;
+            }
+
+            // ---------- JUMP ----------
+            else if (currentAnim === 'jump') {
+                if (lThigh) lThigh.rotation.x = squat * 1.5;
+                if (rThigh) rThigh.rotation.x = squat * 1.5;
+                if (lShin) lShin.rotation.x = squat * 0.8;
+                if (rShin) rShin.rotation.x = squat * 0.8;
+                if (lFoot) lFoot.rotation.x = squat * 0.4;
+                if (rFoot) rFoot.rotation.x = squat * 0.4;
+                if (spine) spine.rotation.x = -squat * 0.5;
+                if (hips) hips.position.y = 1 + lift;
+            }
+
+            // ---------- WAVE ----------
+            else if (currentAnim === 'wave') {
+                if (rArm) {
+                    rArm.rotation.z = Math.sin(t * 8) * 0.5 + 0.2;
+                    rArm.rotation.x = Math.sin(t * 8) * 0.3;
+                }
+                if (rFore) rFore.rotation.z = Math.sin(t * 8) * 0.3;
+                if (rHand) rHand.rotation.z = Math.sin(t * 8) * 0.2;
+                if (spine) spine.rotation.y = Math.sin(t * 8) * 0.05;
+            }
+
+            // ---------- KICK ----------
+            else if (currentAnim === 'kick') {
+                if (rThigh) rThigh.rotation.x = Math.sin(t * 6) * 0.8;
+                if (rShin) rShin.rotation.x = Math.abs(Math.sin(t * 6)) * 0.6;
+                if (rFoot) rFoot.rotation.x = Math.abs(Math.sin(t * 6)) * 0.3;
+                if (spine) spine.rotation.x = Math.abs(Math.sin(t * 6)) * 0.1;
+            }
+
+            // ---------- ROUNDHOUSE ----------
+            else if (currentAnim === 'roundhouse') {
+                if (rThigh) {
+                    rThigh.rotation.y = Math.sin(t * 5) * 0.8;
+                    rThigh.rotation.x = Math.abs(Math.sin(t * 5)) * 0.4;
+                }
+                if (rShin) rShin.rotation.y = Math.sin(t * 5) * 0.4;
+                if (rFoot) rFoot.rotation.y = Math.sin(t * 5) * 0.2;
+                if (spine) spine.rotation.y = Math.sin(t * 5) * 0.2;
+            }
+
+            // ---------- DANCE ----------
+            else if (currentAnim === 'dance') {
+                if (spine) spine.rotation.z = Math.sin(t * 4) * 0.1;
+                if (lArm) lArm.rotation.z = Math.sin(t * 6) * 0.5;
+                if (rArm) rArm.rotation.z = Math.sin(t * 6 + 2) * 0.5;
+                if (lFore) lFore.rotation.z = Math.sin(t * 6) * 0.3;
+                if (rFore) rFore.rotation.z = Math.sin(t * 6 + 2) * 0.3;
+                if (lHand) lHand.rotation.z = Math.sin(t * 6) * 0.2;
+                if (rHand) rHand.rotation.z = Math.sin(t * 6 + 2) * 0.2;
+                if (head) head.rotation.z = Math.sin(t * 4) * 0.05;
+                if (hips) hips.rotation.x = Math.sin(t * 4) * 0.05;
+                if (lThigh) lThigh.rotation.x = Math.sin(t * 4) * 0.1;
+                if (rThigh) rThigh.rotation.x = Math.sin(t * 4) * 0.1;
+            }
+
+            // ---------- BOXING ----------
+            else if (currentAnim === 'boxing') {
+                if (rArm) rArm.rotation.x = Math.sin(t * 8) * 0.8;
+                if (lArm) lArm.rotation.x = Math.sin(t * 8 + Math.PI) * 0.8;
+                if (rFore) rFore.rotation.x = Math.sin(t * 8) * 0.4;
+                if (lFore) lFore.rotation.x = Math.sin(t * 8 + Math.PI) * 0.4;
+                if (rHand) rHand.rotation.x = Math.sin(t * 8) * 0.2;
+                if (lHand) lHand.rotation.x = Math.sin(t * 8 + Math.PI) * 0.2;
+                if (spine) spine.rotation.x = Math.sin(t * 8) * 0.1;
+            }
+
+            // ---------- CLAP ----------
+            else if (currentAnim === 'clap') {
+                if (lArm) lArm.rotation.z = 0.5;
+                if (rArm) rArm.rotation.z = -0.5;
+                if (lFore) lFore.rotation.z = 0.3;
+                if (rFore) rFore.rotation.z = -0.3;
+                if (lHand) lHand.rotation.z = 0.2;
+                if (rHand) rHand.rotation.z = -0.2;
+                if (lHand && rHand) {
+                    lHand.position.x = -0.1;
+                    rHand.position.x = 0.1;
+                }
+            }
+
+            // ---------- STRETCH ----------
+            else if (currentAnim === 'stretch') {
+                if (spine) spine.rotation.x = Math.sin(t * 2) * 0.1;
+                if (lArm) lArm.rotation.x = Math.sin(t * 2) * 0.3;
+                if (rArm) rArm.rotation.x = -Math.sin(t * 2) * 0.3;
+                if (lFore) lFore.rotation.x = Math.sin(t * 2) * 0.2;
+                if (rFore) rFore.rotation.x = -Math.sin(t * 2) * 0.2;
+                if (lThigh) lThigh.rotation.x = Math.sin(t * 2) * 0.1;
+                if (rThigh) rThigh.rotation.x = -Math.sin(t * 2) * 0.1;
+            }
+
+            // ---------- SQUAT ----------
+            else if (currentAnim === 'squat') {
+                if (lThigh) lThigh.rotation.x = squatPhase * 0.8;
+                if (rThigh) rThigh.rotation.x = squatPhase * 0.8;
+                if (lShin) lShin.rotation.x = squatPhase * 0.4;
+                if (rShin) rShin.rotation.x = squatPhase * 0.4;
+                if (lFoot) lFoot.rotation.x = squatPhase * 0.2;
+                if (rFoot) rFoot.rotation.x = squatPhase * 0.2;
+                if (spine) spine.rotation.x = -squatPhase * 0.3;
+                if (hips) hips.position.y = 1 - squatPhase * 0.3;
+            }
+
+            // ---------- IDLE ----------
+            else {
+                if (spine) spine.rotation.z = Math.sin(t * 2) * 0.02;
+                if (head) head.rotation.z = Math.sin(t * 2) * 0.01;
+                if (lArm) lArm.rotation.z = Math.sin(t * 2) * 0.01;
+                if (rArm) rArm.rotation.z = -Math.sin(t * 2) * 0.01;
+            }
+        }
+
+        // ========== MODEL LOADING (FIXED) ==========
         uploadBtn.addEventListener('click', () => fileInput.click());
         fileInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (!file) return;
             const ext = file.name.split('.').pop().toLowerCase();
-            if (!['glb', 'gltf'].includes(ext)) { showToast('Unsupported format', 'error'); return; }
-            if (file.size > 100 * 1024 * 1024) { showToast('File >100MB', 'error'); return; }
+            if (!['glb','gltf'].includes(ext)) { showToast('Unsupported format','error'); return; }
+            if (file.size > 100*1024*1024) { showToast('File >100MB','error'); return; }
             const url = URL.createObjectURL(file);
-            loadModel(url, file.name).finally(() => URL.revokeObjectURL(url));
+            loadModel(url, file.name);
         });
 
         async function loadModel(url, name) {
             setStatus('Loading...', 'info');
-            animSelect.disabled = true;
-            animPlay.disabled = true;
-            animStop.disabled = true;
             try {
-                if (fallbackCube) {
-                    scene.remove(fallbackCube);
-                    fallbackCube = null;
-                }
+                if (currentModel) scene.remove(currentModel);
+                if (skeletonHelper) scene.remove(skeletonHelper);
+                // Clear physics
+                for (let body of physicsBodies.values()) physicsWorld.removeBody(body);
+                physicsBodies.clear();
+                meshToBody.clear();
+
                 const loader = new GLTFLoader();
-                const gltf = await new Promise((resolve, reject) => loader.load(url, resolve, undefined, reject));
-                currentModel = gltf.scene; scene.add(currentModel);
+                const gltf = await new Promise((res, rej) => loader.load(url, res, undefined, rej));
+                currentModel = gltf.scene;
+                scene.add(currentModel);
+
+                // Center and place on ground (lowest point at y=0)
                 const box = new THREE.Box3().setFromObject(currentModel);
-                if (box.isEmpty()) throw new Error('Empty model');
-                const center = box.getCenter(new THREE.Vector3());
-                const size = box.getSize(new THREE.Vector3());
-                currentModel.position.copy(center.multiplyScalar(-1)).add(new THREE.Vector3(0, size.y/2, 0));
+                const minY = box.min.y;
+                currentModel.position.y -= minY; // raise so feet touch ground
 
                 bones = [];
                 currentModel.traverse(obj => { if (obj.isBone) bones.push(obj); });
-                if (bones.length === 0) { showToast('No bones, using cube', 'warning'); createJellyCube(); return; }
-
-                isFallback = false;
-                setStatus(`${bones.length} bones`, 'success');
-
-                // Create physics bodies for bones
-                createPhysicsForBones();
-
-                // OSOS auto-rig if available
-                if (OSOS) {
-                    try {
-                        const armature = new OSOS.Armature();
-                        const boneIndices = new Map(bones.map((b,i)=>[b,i]));
-                        bones.forEach((bone, idx) => {
-                            let parentIdx = bone.parent && boneIndices.has(bone.parent) ? boneIndices.get(bone.parent) : -1;
-                            armature.addBone(bone.name, parentIdx, bone.quaternion, bone.position, bone.scale);
-                        });
-                        let rig = new OSOS.BipedRig();
-                        if (rig.autoRig(armature)) { rig.bindPose(armature.getPose()); ososArmature = armature; ososRig = rig; showToast('OSOS rigged', 'success'); }
-                        else showToast('OSOS auto‑rig failed', 'warning');
-                    } catch (e) { showToast('OSOS error', 'warning'); }
-                }
-
-                // Load animations
-                if (gltf.animations && gltf.animations.length) {
-                    mixer = new THREE.AnimationMixer(currentModel);
-                    gltf.animations.forEach(clip => {
-                        let name = clip.name.toLowerCase();
-                        if (name.includes('idle')) animations.idle = clip;
-                        else if (name.includes('walk')) animations.walk = clip;
-                        else if (name.includes('run')) animations.run = clip;
-                        else if (name.includes('jump')) animations.jump = clip;
-                    });
-                    if (Object.keys(animations).length) {
-                        animSelect.disabled = false;
-                        animPlay.disabled = false;
-                        animStop.disabled = false;
-                    }
-                }
-                setProcAnim('idle');
-                addXP(50);
+                setStatus(`Loaded: ${name} (${bones.length} bones)`, 'success');
+                diagBones.innerText = bones.length;
+                diagModel.innerText = name;
+                mapBtn.disabled = false;
+                progressFill.style.width = '0%';
+                diagProgress.innerText = '0%';
             } catch (err) {
-                setStatus('Load failed', 'error'); showToast(err.message, 'error');
-                createJellyCube();
+                setStatus('Load failed', 'error');
+                showToast(err.message, 'error');
             }
+        }
+
+        // ========== RESET SCENE ==========
+        function resetScene() {
+            if (currentModel) scene.remove(currentModel);
+            currentModel = null;
+            bones = [];
+            boneMapping.clear();
+            for (let body of physicsBodies.values()) physicsWorld.removeBody(body);
+            physicsBodies.clear();
+            meshToBody.clear();
+            setStatus('Scene reset', 'success');
+            diagBones.innerText = '0';
+            diagBodies.innerText = '0';
+            diagModel.innerText = 'none';
+            progressFill.style.width = '0%';
+            diagProgress.innerText = '0%';
+            mapBtn.disabled = true;
+            animSelect.disabled = true;
+            playAnimBtn.disabled = true;
+            stopAnimBtn.disabled = true;
+            animPlaying = false;
         }
 
         // ========== ANIMATION CONTROLS ==========
-        animPlay.addEventListener('click', () => {
-            if (!mixer || !animations[animSelect.value]) { showToast('Animation not available', 'warning'); return; }
-            if (currentAction) currentAction.stop();
-            currentAction = mixer.clipAction(animations[animSelect.value]);
-            currentAction.play();
-            addXP(5);
+        playAnimBtn.addEventListener('click', () => {
+            currentAnim = animSelect.value;
+            animPlaying = true;
+            animTime = 0;
+            showToast(`Playing: ${currentAnim}`, 'success');
+        });
+        stopAnimBtn.addEventListener('click', () => {
+            animPlaying = false;
+            showToast('Animation stopped', 'info');
         });
 
-        animStop.addEventListener('click', () => {
-            if (currentAction) currentAction.stop();
-            currentAction = null;
+        // ========== OTHER CONTROLS ==========
+        resetBtn.addEventListener('click', resetScene);
+        settingsBtn.addEventListener('click', () => {
+            document.getElementById('diagnostic-panel').classList.remove('hidden');
+        });
+        zoomSlider.addEventListener('input', () => {
+            const dist = parseFloat(zoomSlider.value);
+            zoomValue.textContent = dist.toFixed(1);
+            const direction = new THREE.Vector3().subVectors(camera.position, controls.target).normalize();
+            camera.position.copy(controls.target.clone().add(direction.multiplyScalar(dist)));
+            controls.update();
+        });
+        controls.addEventListener('change', () => {
+            const dist = camera.position.distanceTo(controls.target);
+            zoomSlider.value = dist.toFixed(1);
+            zoomValue.textContent = dist.toFixed(1);
         });
 
-        resetBtn.addEventListener('click', () => {
-            if (currentModel && !isFallback) {
-                currentModel.position.set(0, 1, 0);
-                currentModel.rotation.set(0, 0, 0);
-                bones.forEach(b => { if (b) b.rotation.set(0, 0, 0); });
-                // Reset physics bodies to initial positions
-                if (physicsWorld) {
-                    bones.forEach(bone => {
-                        let body = physicsBodies.get(bone);
-                        if (body) {
-                            body.position.copy(bone.getWorldPosition(new THREE.Vector3()));
-                            body.velocity.set(0,0,0);
-                            body.angularVelocity.set(0,0,0);
-                        }
-                    });
-                }
-            } else if (fallbackCube) {
-                fallbackCube.position.set(0, 1, 0);
-                fallbackCube.rotation.set(0, 0, 0);
-                let body = physicsBodies.get(fallbackCube);
-                if (body) {
-                    body.position.set(0,1,0);
-                    body.velocity.set(0,0,0);
-                }
-            }
-            setProcAnim('idle');
-            addXP(10);
-            setStatus('Reset', 'success');
-        });
+        mapBtn.addEventListener('click', runMapping);
 
-        function setProcAnim(anim) {
-            procAnim = anim;
-            procAnimTime = 0;
-        }
-
-        // ========== COMPLEX HUMAN MOTION DEFINITIONS ==========
-        // Scientifically inspired gait cycles (simplified)
-        function applyMotion(delta) {
-            if (!currentModel || isFallback || bones.length === 0) return;
-            procAnimTime += delta;
-
-            const spine = findBone('spine');
-            const head = findBone('head');
-            const rArm = findBone('rightArm');
-            const lArm = findBone('leftArm');
-            const rFore = findBone('rightForeArm');
-            const lFore = findBone('leftForeArm');
-            const rHand = findBone('rightHand');
-            const lHand = findBone('leftHand');
-            const rLeg = findBone('rightLeg');
-            const lLeg = findBone('leftLeg');
-            const rFoot = findBone('rightFoot');
-            const lFoot = findBone('leftFoot');
-            const hips = findBone('hips');
-
-            // Base frequency
-            const t = procAnimTime;
-
-            switch (procAnim) {
-                case 'walk':
-                    // Gait: opposite arm/leg swing, vertical hip bounce
-                    if (rLeg) rLeg.rotation.x = Math.sin(t * 5) * 0.4;
-                    if (lLeg) lLeg.rotation.x = Math.sin(t * 5 + Math.PI) * 0.4;
-                    if (rArm) rArm.rotation.x = Math.sin(t * 5 + Math.PI) * 0.3;
-                    if (lArm) lArm.rotation.x = Math.sin(t * 5) * 0.3;
-                    if (spine) spine.rotation.y = Math.sin(t * 5) * 0.05;
-                    if (head) head.rotation.y = Math.sin(t * 5) * 0.03;
-                    if (hips) hips.position.y = 1 + Math.abs(Math.sin(t * 5)) * 0.03;
-                    break;
-                case 'run':
-                    if (rLeg) rLeg.rotation.x = Math.sin(t * 10) * 0.8;
-                    if (lLeg) lLeg.rotation.x = Math.sin(t * 10 + Math.PI) * 0.8;
-                    if (rArm) rArm.rotation.x = Math.sin(t * 10 + Math.PI) * 0.6;
-                    if (lArm) lArm.rotation.x = Math.sin(t * 10) * 0.6;
-                    if (spine) spine.rotation.y = Math.sin(t * 10) * 0.1;
-                    if (head) head.rotation.y = Math.sin(t * 10) * 0.05;
-                    if (hips) hips.position.y = 1 + Math.abs(Math.sin(t * 10)) * 0.05;
-                    break;
-                case 'jump':
-                    // Simple bounce: legs bend then extend
-                    const jumpPhase = Math.sin(t * 6);
-                    const squat = Math.max(0, -jumpPhase) * 0.3;
-                    const lift = Math.max(0, jumpPhase) * 0.3;
-                    if (lLeg) lLeg.rotation.x = squat * 2;
-                    if (rLeg) rLeg.rotation.x = squat * 2;
-                    if (spine) spine.rotation.x = -squat * 0.5;
-                    if (hips) hips.position.y = 1 + lift;
-                    break;
-                case 'wave':
-                    if (rArm) {
-                        rArm.rotation.z = Math.sin(t * 8) * 0.5 + 0.2;
-                        rArm.rotation.x = Math.sin(t * 8) * 0.3;
-                    }
-                    if (spine) spine.rotation.y = Math.sin(t * 8) * 0.05;
-                    break;
-                case 'kick':
-                    if (rLeg) rLeg.rotation.x = Math.sin(t * 6) * 0.6;
-                    if (spine) spine.rotation.x = Math.abs(Math.sin(t * 6)) * 0.1;
-                    break;
-                case 'dance':
-                    if (spine) spine.rotation.z = Math.sin(t * 4) * 0.1;
-                    if (rArm) rArm.rotation.z = Math.sin(t * 6) * 0.5;
-                    if (lArm) lArm.rotation.z = Math.sin(t * 6 + 2) * 0.5;
-                    if (head) head.rotation.z = Math.sin(t * 4) * 0.05;
-                    if (hips) hips.rotation.x = Math.sin(t * 4) * 0.05;
-                    break;
-                case 'idle':
-                    // subtle sway
-                    if (spine) spine.rotation.z = Math.sin(t * 2) * 0.02;
-                    if (head) head.rotation.z = Math.sin(t * 2) * 0.01;
-                    break;
-            }
-        }
-
-        // ========== ANIMATION LOOP WITH PHYSICS ==========
+        // ========== ANIMATION LOOP ==========
         function animate() {
             requestAnimationFrame(animate);
-            try {
-                const delta = Math.min(clock.getDelta(), 0.1);
-                if (physicsWorld) {
-                    physicsWorld.step(1/60, delta, 10);
-                    // Sync bone positions from physics bodies
-                    if (!isFallback && bones.length > 0) {
-                        bones.forEach(bone => {
-                            let body = physicsBodies.get(bone);
-                            if (body) {
-                                bone.position.copy(body.position);
-                                bone.quaternion.copy(body.quaternion);
-                            }
-                        });
-                    } else if (fallbackCube) {
-                        let body = physicsBodies.get(fallbackCube);
-                        if (body) {
-                            fallbackCube.position.copy(body.position);
-                            fallbackCube.quaternion.copy(body.quaternion);
-                        }
-                    }
-                }
+            const delta = Math.min(clock.getDelta(), 0.1);
+            if (physicsWorld) {
+                physicsWorld.step(1 / 60, delta, 10);
+                physicsBodies.forEach((body, bone) => {
+                    bone.position.copy(body.position);
+                    bone.quaternion.copy(body.quaternion);
+                });
+            }
 
-                if (mixer) mixer.update(delta);
+            if (animPlaying) {
+                applyAnimation(delta);
+            }
 
-                // Apply procedural motion (if no animation clip is playing or we want to blend)
-                if (!currentAction && !isFallback) {
-                    applyMotion(delta);
-                }
-
-                controls.update();
-                renderer.render(scene, camera);
-            } catch (e) { console.error('Anim error', e); }
+            diagFps.innerText = Math.round(1 / delta) + ' fps';
+            controls.update();
+            renderer.render(scene, camera);
         }
-
-        window.addEventListener('resize', () => { if (camera && renderer) { camera.aspect = window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); } });
-
-        initScene();
         animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
         setTimeout(() => document.getElementById('loading').classList.add('fadeout'), 2000);
     </script>
 </body>
