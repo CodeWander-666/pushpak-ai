@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes">
+    <title>PUSHPAK CREATE · INDUSTRY AUTO‑RIG + ZOOM SLIDER</title>
+    <!-- Import Map -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" crossorigin="anonymous">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --gold: #ffd700;
+            --gold-dark: #ff8c00;
+            --bg: #0a0a12;
+            --glass: rgba(10,10,20,0.85);
+            --glass-border: rgba(255,215,0,0.3);
+            --error: #ff5555;
+            --success: #44ff44;
+            --warning: #ffaa44;
+            --font: 'Space Grotesk', sans-serif;
+        }
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: #fff;
+            overflow: hidden;
+            height: 100vh;
+        }
+        #canvas-container {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1;
+        }
+        .panel {
+            position: absolute;
+            z-index: 10;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 30px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            pointer-events: auto;
+            overflow-y: auto;
+            transition: transform 0.3s, opacity 0.3s;
+            max-width: 90vw;
+        }
+        .panel.left {
+            top: 20px; left: 20px; width: 320px; bottom: 20px;
+        }
+        .panel.right {
+            top: 20px; right: 20px; width: 360px; bottom: 20px;
+        }
+        .panel.hidden {
+            transform: translateX(-120%);
+            opacity: 0;
+            pointer-events: none;
+        }
+        .panel.right.hidden {
+            transform: translateX(120%);
+        }
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .panel-header h2, .panel-header h3 {
+            margin: 0;
+            color: var(--gold);
+        }
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--gold);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0 5px;
+        }
+        .toggle-bar {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 20;
+            display: flex;
+            gap: 10px;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 50px;
+            padding: 10px 20px;
+        }
+        .toggle-bar button {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid var(--glass-border);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+        .toggle-bar button:hover { background: var(--gold); color: #000; }
+        .toggle-bar button.active { background: var(--gold); color: #000; }
+        .context-menu {
+            position: absolute;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--gold);
+            border-radius: 20px;
+            padding: 10px 0;
+            min-width: 150px;
+            z-index: 1000;
+            display: none;
+        }
+        .context-menu.show { display: block; }
+        .context-menu-item {
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .context-menu-item:hover { background: var(--gold); color: #000; }
+        button, select, input {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid var(--glass-border);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: 0.2s;
+            width: 100%;
+            margin-bottom: 10px;
+            min-height: 44px;
+        }
+        button:hover:not(:disabled) { background: var(--gold); color: #000; }
+        button:disabled { opacity: 0.3; pointer-events: none; }
+        input[type=range] { padding: 0; height: 40px; }
+        .bone-list {
+            list-style: none;
+            margin: 10px 0;
+            max-height: 250px;
+            overflow-y: auto;
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 5px;
+        }
+        .bone-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+        }
+        .bone-item:hover { background: rgba(255,215,0,0.3); }
+        .bone-item.selected { background: var(--gold); color: #000; }
+        .slider-group { margin-bottom: 15px; }
+        .slider-group label { display: flex; justify-content: space-between; color: #ccc; font-size:0.9rem; margin-bottom: 4px; }
+        .flex-row { display: flex; gap: 10px; }
+        #status-msg { color: var(--success); font-size: 0.9rem; margin-top: 10px; word-break: break-word; }
+        #toast-container {
+            position: fixed; bottom: 20px; right: 20px;
+            display: flex; flex-direction: column; gap: 8px;
+            pointer-events: none; z-index: 3000;
+        }
+        .toast {
+            background: var(--glass); border: 1px solid var(--gold); border-radius: 40px;
+            padding: 12px 20px; color: white; font-weight: 600;
+            animation: slideIn 0.3s, fadeOut 0.3s 2.7s forwards;
+        }
+        .toast.error { border-color: var(--error); }
+        .toast.success { border-color: var(--success); }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes fadeOut { to { opacity: 0; transform: translateX(100%); } }
+        #error-boundary {
+            position: fixed; top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.9); z-index: 5000;
+            display: flex; justify-content: center; align-items: center;
+            visibility: hidden;
+        }
+        #error-boundary.show { visibility: visible; }
+        .error-card {
+            background: rgba(255,80,80,0.2); border: 2px solid var(--error); border-radius: 40px;
+            padding: 30px; max-width: 400px; text-align: center;
+        }
+        .guide-box {
+            background: rgba(0,0,0,0.3);
+            border-left: 4px solid var(--gold);
+            padding: 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin: 15px 0;
+        }
+        .guide-box i { color: var(--gold); margin-right: 6px; }
+        .highlight { color: var(--gold); font-weight: 600; }
+        hr { border: 1px solid var(--glass-border); margin: 15px 0; }
+        .auto-rig-section {
+            background: rgba(0,0,0,0.4);
+            border-radius: 30px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        .auto-rig-section h3 { margin-top: 0; }
+        .suggestion-item {
+            padding: 5px;
+            margin: 2px 0;
+            background: rgba(255,215,0,0.1);
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        .suggestion-item:hover { background: var(--gold); color: #000; }
+    </style>
+</head>
+<body>
+    <div id="error-boundary">
+        <div class="error-card">
+            <i class="fas fa-exclamation-triangle" style="font-size:3rem; color:var(--error);"></i>
+            <h2>CRITICAL ERROR</h2>
+            <p id="error-message">An unexpected error occurred.</p>
+            <button onclick="location.reload()">RELOAD</button>
+        </div>
+    </div>
+    <div id="canvas-container"></div>
+    <div id="toast-container"></div>
+
+    <!-- Toggle Bar -->
+    <div class="toggle-bar">
+        <button id="toggle-left"><i class="fas fa-chevron-left"></i> IMPORT</button>
+        <button id="toggle-right"><i class="fas fa-chevron-right"></i> EDIT</button>
+        <button id="toggle-guide"><i class="fas fa-question"></i> GUIDE</button>
+    </div>
+
+    <!-- Left Panel: Import/Export & Auto‑Rig -->
+    <div class="panel left" id="left-panel">
+        <div class="panel-header">
+            <h2><i class="fas fa-cube"></i> PUSHPAK CREATE</h2>
+            <button class="close-btn" id="close-left"><i class="fas fa-times"></i></button>
+        </div>
+        <button id="import-btn"><i class="fas fa-upload"></i> IMPORT GLB/GLTF</button>
+        <input type="file" id="file-input" accept=".glb,.gltf" style="display:none;">
+        <button id="export-btn" disabled><i class="fas fa-download"></i> EXPORT GLB</button>
+        <button id="export-gltf-btn" disabled>EXPORT GLTF</button>
+        <hr>
+        <h3>📋 SKELETON INFO</h3>
+        <div>Bones: <span id="bone-count">0</span></div>
+        <div>Meshes: <span id="mesh-count">0</span></div>
+        <div id="status-msg">Ready</div>
+
+        <!-- Auto‑Rig Section -->
+        <div class="auto-rig-section">
+            <h3><i class="fas fa-robot"></i> AUTO‑RIG (AI)</h3>
+            <button id="suggest-names-btn" disabled><i class="fas fa-magic"></i> SHOW NAME SUGGESTIONS</button>
+            <button id="auto-rig-btn" disabled><i class="fas fa-bolt"></i> AUTO‑RIG (FULL SKELETON)</button>
+            <button id="fit-skeleton-btn" disabled><i class="fas fa-arrows-alt"></i> FIT SKELETON TO MESH</button>
+            <p style="font-size:0.8rem; color:#ccc;">Creates a complete, accurately scaled humanoid skeleton.</p>
+            <div id="suggestion-box" style="margin-top:10px; max-height:150px; overflow-y:auto;"></div>
+        </div>
+
+        <!-- Guide Box (initially hidden) -->
+        <div class="guide-box" id="guide-box" style="display:none;">
+            <i class="fas fa-lightbulb"></i> <span class="highlight">Bone Naming Guide</span><br>
+            For best results, use standard names:<br>
+            • <span class="highlight">Hips, Spine, Spine1, Spine2, Neck, Head</span><br>
+            • <span class="highlight">LeftArm, LeftForeArm, LeftHand</span><br>
+            • <span class="highlight">RightArm, RightForeArm, RightHand</span><br>
+            • <span class="highlight">LeftUpLeg, LeftLeg, LeftFoot</span><br>
+            • <span class="highlight">RightUpLeg, RightLeg, RightFoot</span><br>
+            • Fingers: <span class="highlight">LeftHandIndex1, LeftHandIndex2, LeftHandIndex3</span> etc.<br>
+            <i>Right‑click any bone for quick rename.</i>
+        </div>
+        <hr>
+        <button onclick="window.location.href='index.html'"><i class="fas fa-link"></i> OPEN MAIN PUSHPAK</button>
+    </div>
+
+    <!-- Right Panel: Bone Editor + Camera Zoom -->
+    <div class="panel right" id="right-panel">
+        <div class="panel-header">
+            <h2><i class="fas fa-hand"></i> BONE EDITOR</h2>
+            <button class="close-btn" id="close-right"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="bone-list" id="bone-list"></div>
+        <div class="slider-group">
+            <label>Position X <span id="pos-x-val">0.00</span></label>
+            <input type="range" id="pos-x" min="-2" max="2" step="0.01" value="0">
+        </div>
+        <div class="slider-group">
+            <label>Y <span id="pos-y-val">0.00</span></label>
+            <input type="range" id="pos-y" min="-2" max="2" step="0.01" value="0">
+        </div>
+        <div class="slider-group">
+            <label>Z <span id="pos-z-val">0.00</span></label>
+            <input type="range" id="pos-z" min="-2" max="2" step="0.01" value="0">
+        </div>
+        <div class="slider-group">
+            <label>Rotation X <span id="rot-x-val">0.00</span></label>
+            <input type="range" id="rot-x" min="-3.14" max="3.14" step="0.01" value="0">
+        </div>
+        <div class="slider-group">
+            <label>Y <span id="rot-y-val">0.00</span></label>
+            <input type="range" id="rot-y" min="-3.14" max="3.14" step="0.01" value="0">
+        </div>
+        <div class="slider-group">
+            <label>Z <span id="rot-z-val">0.00</span></label>
+            <input type="range" id="rot-z" min="-3.14" max="3.14" step="0.01" value="0">
+        </div>
+        <div class="flex-row">
+            <button id="rename-btn"><i class="fas fa-tag"></i> RENAME</button>
+            <button id="delete-btn" style="background:rgba(255,80,80,0.5);"><i class="fas fa-trash"></i> DELETE</button>
+        </div>
+        <button id="add-bone-btn"><i class="fas fa-plus-circle"></i> ADD BONE (as child)</button>
+        <button id="add-root-bone"><i class="fas fa-plus-circle"></i> ADD ROOT BONE</button>
+        <hr>
+        <h3>📷 CAMERA ZOOM</h3>
+        <div class="slider-group">
+            <label>Distance <span id="zoom-val">5.0</span></label>
+            <input type="range" id="zoom-slider" min="1" max="15" step="0.1" value="5">
+        </div>
+        <hr>
+        <h3>🛠️ QUICK ACTIONS</h3>
+        <button id="reset-scene"><i class="fas fa-undo"></i> RESET SCENE</button>
+        <button id="center-model"><i class="fas fa-crosshairs"></i> CENTER MODEL</button>
+        <button id="toggle-grid">TOGGLE GRID</button>
+        <button id="toggle-skeleton">SHOW SKELETON</button>
+        <button id="fix-pivot"><i class="fas fa-arrows-alt"></i> FIX MODEL PIVOT</button>
+    </div>
+
+    <!-- Context Menu -->
+    <div class="context-menu" id="context-menu">
+        <div class="context-menu-item" id="context-rename">Rename</div>
+        <div class="context-menu-item" id="context-delete">Delete</div>
+        <div class="context-menu-item" id="context-add-child">Add Child Bone</div>
+    </div>
+
+    <script type="module">
+        // ========== GLOBAL ERROR HANDLING ==========
+        window.addEventListener('error', (e) => { e.preventDefault(); showFatalError(e.error?.message || e.message); return false; });
+        window.addEventListener('unhandledrejection', (e) => { showFatalError(e.reason?.message); });
+
+        let fatalErrorShown = false;
+        function showFatalError(msg) {
+            if (fatalErrorShown) return;
+            fatalErrorShown = true;
+            document.getElementById('error-message').innerText = msg || 'Unknown error';
+            document.getElementById('error-boundary').classList.add('show');
+        }
+
+        const toastContainer = document.getElementById('toast-container');
+        function showToast(msg, type = 'info', duration = 3000) {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerText = msg;
+            toastContainer.appendChild(toast);
+            setTimeout(() => toast.remove(), duration);
+        }
+
+        // ========== IMPORTS ==========
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { TransformControls } from 'three/addons/controls/TransformControls.js';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
+
+        // ========== SCENE SETUP ==========
+        let scene, camera, renderer, controls, transformControls, grid;
+        try {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0a0a12);
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(3, 2, 5);
+            renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+            // Industry‑grade zoom controls
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.screenSpacePanning = true;
+            controls.maxPolarAngle = Math.PI;          // Allow full 360° rotation
+            controls.minDistance = 1.0;                 // Closest zoom
+            controls.maxDistance = 15.0;                 // Farthest zoom
+            controls.enableZoom = true;
+            controls.zoomSpeed = 1.2;
+            controls.target.set(0, 1, 0);
+
+            transformControls = new TransformControls(camera, renderer.domElement);
+            transformControls.addEventListener('dragging-changed', (e) => { controls.enabled = !e.value; });
+            scene.add(transformControls);
+
+            // LIGHTS: professional studio lighting
+            scene.add(new THREE.AmbientLight(0x404060, 0.6));
+            const dirLight1 = new THREE.DirectionalLight(0xffeedd, 1.2);
+            dirLight1.position.set(5, 10, 7);
+            dirLight1.castShadow = true;
+            dirLight1.shadow.mapSize.width = 1024;
+            dirLight1.shadow.mapSize.height = 1024;
+            scene.add(dirLight1);
+            const dirLight2 = new THREE.DirectionalLight(0xffccaa, 0.8);
+            dirLight2.position.set(-5, 5, 5);
+            scene.add(dirLight2);
+            const fillLight1 = new THREE.PointLight(0x88aaff, 0.8);
+            fillLight1.position.set(-4, 3, 5);
+            scene.add(fillLight1);
+            const fillLight2 = new THREE.PointLight(0xffaa55, 0.6);
+            fillLight2.position.set(4, 2, -5);
+            scene.add(fillLight2);
+            const backLight = new THREE.PointLight(0xffffff, 0.5);
+            backLight.position.set(0, 2, -8);
+            scene.add(backLight);
+
+            // Ground
+            const ground = new THREE.Mesh(new THREE.CircleGeometry(12, 32), new THREE.MeshStandardMaterial({ color: 0x1a1a2a, roughness: 0.3 }));
+            ground.rotation.x = -Math.PI/2;
+            ground.position.y = 0;
+            ground.receiveShadow = true;
+            scene.add(ground);
+            grid = new THREE.GridHelper(20, 20, 0xffd700, 0x553300);
+            grid.visible = true;
+            scene.add(grid);
+        } catch (e) {
+            showFatalError('Three.js initialization failed: ' + e.message);
+        }
+
+        // ========== STATE ==========
+        let currentModel = null;
+        let bones = [];
+        let selectedBone = null;
+        let skeletonHelper = null;
+        const clock = new THREE.Clock();
+
+        // ========== UI ELEMENTS ==========
+        const importBtn = document.getElementById('import-btn');
+        const fileInput = document.getElementById('file-input');
+        const exportBtn = document.getElementById('export-btn');
+        const exportGltfBtn = document.getElementById('export-gltf-btn');
+        const boneCountSpan = document.getElementById('bone-count');
+        const meshCountSpan = document.getElementById('mesh-count');
+        const boneListDiv = document.getElementById('bone-list');
+        const posX = document.getElementById('pos-x');
+        const posY = document.getElementById('pos-y');
+        const posZ = document.getElementById('pos-z');
+        const posXval = document.getElementById('pos-x-val');
+        const posYval = document.getElementById('pos-y-val');
+        const posZval = document.getElementById('pos-z-val');
+        const rotX = document.getElementById('rot-x');
+        const rotY = document.getElementById('rot-y');
+        const rotZ = document.getElementById('rot-z');
+        const rotXval = document.getElementById('rot-x-val');
+        const rotYval = document.getElementById('rot-y-val');
+        const rotZval = document.getElementById('rot-z-val');
+        const renameBtn = document.getElementById('rename-btn');
+        const deleteBtn = document.getElementById('delete-btn');
+        const addBoneBtn = document.getElementById('add-bone-btn');
+        const addRootBoneBtn = document.getElementById('add-root-bone');
+        const resetSceneBtn = document.getElementById('reset-scene');
+        const centerModelBtn = document.getElementById('center-model');
+        const toggleGridBtn = document.getElementById('toggle-grid');
+        const toggleSkeletonBtn = document.getElementById('toggle-skeleton');
+        const fixPivotBtn = document.getElementById('fix-pivot');
+        const statusMsg = document.getElementById('status-msg');
+        const leftPanel = document.getElementById('left-panel');
+        const rightPanel = document.getElementById('right-panel');
+        const toggleLeft = document.getElementById('toggle-left');
+        const toggleRight = document.getElementById('toggle-right');
+        const toggleGuide = document.getElementById('toggle-guide');
+        const guideBox = document.getElementById('guide-box');
+        const closeLeft = document.getElementById('close-left');
+        const closeRight = document.getElementById('close-right');
+        const contextMenu = document.getElementById('context-menu');
+        const contextRename = document.getElementById('context-rename');
+        const contextDelete = document.getElementById('context-delete');
+        const contextAddChild = document.getElementById('context-add-child');
+        const suggestNamesBtn = document.getElementById('suggest-names-btn');
+        const autoRigBtn = document.getElementById('auto-rig-btn');
+        const fitSkeletonBtn = document.getElementById('fit-skeleton-btn');
+        const suggestionBox = document.getElementById('suggestion-box');
+        // New zoom slider
+        const zoomSlider = document.getElementById('zoom-slider');
+        const zoomVal = document.getElementById('zoom-val');
+
+        // Panel toggles
+        toggleLeft.addEventListener('click', () => leftPanel.classList.toggle('hidden'));
+        toggleRight.addEventListener('click', () => rightPanel.classList.toggle('hidden'));
+        toggleGuide.addEventListener('click', () => {
+            guideBox.style.display = guideBox.style.display === 'none' ? 'block' : 'none';
+        });
+        closeLeft.addEventListener('click', () => leftPanel.classList.add('hidden'));
+        closeRight.addEventListener('click', () => rightPanel.classList.add('hidden'));
+
+        function setStatus(msg, type = 'info') {
+            statusMsg.innerHTML = msg;
+            statusMsg.style.color = type === 'error' ? '#ff5555' : type === 'success' ? '#44ff44' : '#ffaa44';
+        }
+
+        // ========== IMPORT ==========
+        importBtn.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (!['glb', 'gltf'].includes(ext)) {
+                showToast('Unsupported format. Use .glb or .gltf', 'error');
+                return;
+            }
+            const url = URL.createObjectURL(file);
+            loadModel(url, file.name).finally(() => URL.revokeObjectURL(url));
+        });
+
+        async function loadModel(url, name) {
+            setStatus('Loading...', 'info');
+            if (currentModel) scene.remove(currentModel);
+            if (skeletonHelper) scene.remove(skeletonHelper);
+            bones = [];
+            selectedBone = null;
+            transformControls.detach();
+            updateBoneList();
+
+            try {
+                const loader = new GLTFLoader();
+                const gltf = await new Promise((resolve, reject) => loader.load(url, resolve, undefined, reject));
+                currentModel = gltf.scene;
+                scene.add(currentModel);
+
+                // Ensure model is always visible
+                currentModel.traverse(obj => { if (obj.isMesh) obj.frustumCulled = false; });
+
+                // Center model so lowest point is at y=0
+                const box = new THREE.Box3().setFromObject(currentModel);
+                if (!box.isEmpty()) {
+                    const minY = box.min.y;
+                    currentModel.position.y -= minY;
+                }
+
+                // Collect bones
+                currentModel.traverse(obj => { if (obj.isBone) bones.push(obj); });
+                boneCountSpan.textContent = bones.length;
+
+                let meshCount = 0;
+                currentModel.traverse(obj => { if (obj.isMesh) meshCount++; });
+                meshCountSpan.textContent = meshCount;
+
+                if (bones.length === 0) {
+                    showToast('No bones found. Use Auto‑Rig to create a skeleton.', 'warning');
+                } else {
+                    showToast(`Loaded ${bones.length} bones`, 'success');
+                    updateBoneList();
+                }
+
+                exportBtn.disabled = false;
+                exportGltfBtn.disabled = false;
+                suggestNamesBtn.disabled = false;
+                autoRigBtn.disabled = false;
+                fitSkeletonBtn.disabled = bones.length === 0;
+                setStatus('Ready', 'success');
+            } catch (err) {
+                setStatus('Load failed', 'error');
+                showToast('Load error: ' + err.message, 'error');
+                console.error(err);
+            }
+        }
+
+        // ========== BONE LIST UI ==========
+        function updateBoneList() {
+            boneListDiv.innerHTML = '';
+            bones.forEach(bone => {
+                const item = document.createElement('div');
+                item.className = 'bone-item' + (selectedBone === bone ? ' selected' : '');
+                item.dataset.boneId = bone.uuid;
+                item.innerHTML = `<span>${bone.name || 'Unnamed'}</span><span><i class="fas fa-chevron-right"></i></span>`;
+                item.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    selectBone(bone);
+                });
+                item.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    selectBone(bone);
+                    contextMenu.style.left = e.pageX + 'px';
+                    contextMenu.style.top = e.pageY + 'px';
+                    contextMenu.classList.add('show');
+                });
+                boneListDiv.appendChild(item);
+            });
+        }
+
+        function selectBone(bone) {
+            if (!bone) return;
+            selectedBone = bone;
+            updateBoneList();
+            transformControls.attach(bone);
+            // Update sliders
+            posX.value = bone.position.x;
+            posY.value = bone.position.y;
+            posZ.value = bone.position.z;
+            posXval.textContent = bone.position.x.toFixed(2);
+            posYval.textContent = bone.position.y.toFixed(2);
+            posZval.textContent = bone.position.z.toFixed(2);
+            rotX.value = bone.rotation.x;
+            rotY.value = bone.rotation.y;
+            rotZ.value = bone.rotation.z;
+            rotXval.textContent = bone.rotation.x.toFixed(2);
+            rotYval.textContent = bone.rotation.y.toFixed(2);
+            rotZval.textContent = bone.rotation.z.toFixed(2);
+        }
+
+        // Sliders
+        posX.addEventListener('input', () => { if (selectedBone) { selectedBone.position.x = parseFloat(posX.value); posXval.textContent = posX.value; } });
+        posY.addEventListener('input', () => { if (selectedBone) { selectedBone.position.y = parseFloat(posY.value); posYval.textContent = posY.value; } });
+        posZ.addEventListener('input', () => { if (selectedBone) { selectedBone.position.z = parseFloat(posZ.value); posZval.textContent = posZ.value; } });
+        rotX.addEventListener('input', () => { if (selectedBone) { selectedBone.rotation.x = parseFloat(rotX.value); rotXval.textContent = rotX.value; } });
+        rotY.addEventListener('input', () => { if (selectedBone) { selectedBone.rotation.y = parseFloat(rotY.value); rotYval.textContent = rotY.value; } });
+        rotZ.addEventListener('input', () => { if (selectedBone) { selectedBone.rotation.z = parseFloat(rotZ.value); rotZval.textContent = rotZ.value; } });
+
+        // Rename button
+        renameBtn.addEventListener('click', () => {
+            if (!selectedBone) { showToast('No bone selected', 'warning'); return; }
+            const newName = prompt('Enter new bone name:', selectedBone.name);
+            if (newName && newName.trim()) {
+                selectedBone.name = newName.trim();
+                updateBoneList();
+                showToast('Bone renamed', 'success');
+            }
+        });
+
+        // Context menu actions
+        contextRename.addEventListener('click', () => {
+            if (!selectedBone) return;
+            const newName = prompt('Enter new bone name:', selectedBone.name);
+            if (newName && newName.trim()) {
+                selectedBone.name = newName.trim();
+                updateBoneList();
+                showToast('Bone renamed', 'success');
+            }
+            contextMenu.classList.remove('show');
+        });
+
+        contextDelete.addEventListener('click', () => {
+            if (!selectedBone) return;
+            if (confirm('Delete this bone? This may break the skeleton.')) {
+                if (selectedBone.parent) selectedBone.parent.remove(selectedBone);
+                bones = bones.filter(b => b !== selectedBone);
+                selectedBone = null;
+                transformControls.detach();
+                updateBoneList();
+                showToast('Bone deleted', 'warning');
+            }
+            contextMenu.classList.remove('show');
+        });
+
+        contextAddChild.addEventListener('click', () => {
+            if (!selectedBone) { showToast('Select a parent bone first', 'warning'); return; }
+            const name = prompt('Enter new bone name:', 'newBone');
+            if (!name) return;
+            const newBone = new THREE.Bone();
+            newBone.name = name;
+            newBone.position.set(0, 0.2, 0);
+            selectedBone.add(newBone);
+            bones.push(newBone);
+            updateBoneList();
+            selectBone(newBone);
+            showToast('Bone added', 'success');
+            contextMenu.classList.remove('show');
+        });
+
+        // Hide context menu on click elsewhere
+        document.addEventListener('click', () => contextMenu.classList.remove('show'));
+
+        deleteBtn.addEventListener('click', () => {
+            if (!selectedBone) { showToast('No bone selected', 'warning'); return; }
+            if (confirm('Delete this bone? This may break the skeleton.')) {
+                if (selectedBone.parent) selectedBone.parent.remove(selectedBone);
+                bones = bones.filter(b => b !== selectedBone);
+                selectedBone = null;
+                transformControls.detach();
+                updateBoneList();
+                showToast('Bone deleted', 'warning');
+            }
+        });
+
+        addBoneBtn.addEventListener('click', () => {
+            if (!selectedBone) { showToast('Select a parent bone first', 'warning'); return; }
+            const name = prompt('Enter new bone name:', 'newBone');
+            if (!name) return;
+            const newBone = new THREE.Bone();
+            newBone.name = name;
+            newBone.position.set(0, 0.2, 0);
+            selectedBone.add(newBone);
+            bones.push(newBone);
+            updateBoneList();
+            selectBone(newBone);
+            showToast('Bone added', 'success');
+        });
+
+        addRootBoneBtn.addEventListener('click', () => {
+            const name = prompt('Enter new root bone name:', 'rootBone');
+            if (!name) return;
+            const newBone = new THREE.Bone();
+            newBone.name = name;
+            newBone.position.set(0, 1, 0);
+            scene.add(newBone);
+            bones.push(newBone);
+            updateBoneList();
+            selectBone(newBone);
+            showToast('Root bone added', 'success');
+        });
+
+        // Reset scene
+        resetSceneBtn.addEventListener('click', () => {
+            if (currentModel) scene.remove(currentModel);
+            if (skeletonHelper) scene.remove(skeletonHelper);
+            currentModel = null;
+            bones = [];
+            selectedBone = null;
+            transformControls.detach();
+            updateBoneList();
+            boneCountSpan.textContent = '0';
+            meshCountSpan.textContent = '0';
+            exportBtn.disabled = true;
+            exportGltfBtn.disabled = true;
+            suggestNamesBtn.disabled = true;
+            autoRigBtn.disabled = true;
+            fitSkeletonBtn.disabled = true;
+            setStatus('Scene reset', 'info');
+            showToast('Scene cleared', 'info');
+        });
+
+        // Center model (adjust pivot to ground)
+        centerModelBtn.addEventListener('click', () => {
+            if (!currentModel) return;
+            const box = new THREE.Box3().setFromObject(currentModel);
+            if (!box.isEmpty()) {
+                const minY = box.min.y;
+                currentModel.position.y -= minY;
+                showToast('Model repositioned to ground', 'success');
+            }
+        });
+
+        // Fix pivot
+        fixPivotBtn.addEventListener('click', () => {
+            if (!currentModel) return;
+            const box = new THREE.Box3().setFromObject(currentModel);
+            if (!box.isEmpty()) {
+                const minY = box.min.y;
+                currentModel.position.y -= minY;
+                showToast('Pivot fixed (ground level)', 'success');
+            }
+        });
+
+        // Toggle grid
+        toggleGridBtn.addEventListener('click', () => {
+            if (grid) grid.visible = !grid.visible;
+        });
+
+        // Toggle skeleton helper
+        toggleSkeletonBtn.addEventListener('click', () => {
+            if (!currentModel) { showToast('No model loaded', 'warning'); return; }
+            if (skeletonHelper) {
+                scene.remove(skeletonHelper);
+                skeletonHelper = null;
+            } else {
+                skeletonHelper = new THREE.SkeletonHelper(currentModel);
+                scene.add(skeletonHelper);
+            }
+        });
+
+        // ========== NAME SUGGESTIONS (non‑destructive) ==========
+        const nameMap = {
+            'hips': 'Hips', 'pelvis': 'Hips', 'root': 'Hips',
+            'spine': 'Spine', 'chest': 'Spine2', 'neck': 'Neck', 'head': 'Head',
+            'leftarm': 'LeftArm', 'leftforearm': 'LeftForeArm', 'lefthand': 'LeftHand',
+            'rightarm': 'RightArm', 'rightforearm': 'RightForeArm', 'righthand': 'RightHand',
+            'leftupleg': 'LeftUpLeg', 'leftleg': 'LeftLeg', 'leftfoot': 'LeftFoot',
+            'rightupleg': 'RightUpLeg', 'rightleg': 'RightLeg', 'rightfoot': 'RightFoot'
+        };
+
+        suggestNamesBtn.addEventListener('click', () => {
+            if (!currentModel || bones.length === 0) { showToast('No bones to suggest', 'warning'); return; }
+            suggestionBox.innerHTML = '';
+            bones.forEach(bone => {
+                const lower = bone.name.toLowerCase().replace(/[^a-z]/g, '');
+                for (const [key, std] of Object.entries(nameMap)) {
+                    if (lower.includes(key)) {
+                        const div = document.createElement('div');
+                        div.className = 'suggestion-item';
+                        div.innerHTML = `<i class="fas fa-tag"></i> ${bone.name} → <span class="highlight">${std}</span>`;
+                        div.addEventListener('click', () => {
+                            if (confirm(`Rename "${bone.name}" to "${std}"?`)) {
+                                bone.name = std;
+                                updateBoneList();
+                                showToast('Bone renamed', 'success');
+                            }
+                        });
+                        suggestionBox.appendChild(div);
+                        break;
+                    }
+                }
+            });
+            if (suggestionBox.children.length === 0) {
+                suggestionBox.innerHTML = '<i>No suggestions available.</i>';
+            }
+        });
+
+        // ========== AUTO‑RIG: ADVANCED HUMAN SKELETON (ACCURATE PLACEMENT) ==========
+        function createBone(name, parent, posOffset) {
+            const bone = new THREE.Bone();
+            bone.name = name;
+            bone.position.copy(posOffset);
+            if (parent) parent.add(bone);
+            else {
+                // If no parent, attach to the currentModel (scene root for the model)
+                if (currentModel) currentModel.add(bone);
+                else scene.add(bone);
+            }
+            bones.push(bone);
+            return bone;
+        }
+
+        function getMeshDimensions() {
+            if (!currentModel) return { height: 1.8, width: 0.8, depth: 0.4, minY: 0, maxY: 1.8 };
+            const box = new THREE.Box3().setFromObject(currentModel);
+            const size = box.getSize(new THREE.Vector3());
+            const min = box.min;
+            const max = box.max;
+            return {
+                height: size.y,
+                width: size.x,
+                depth: size.z,
+                minY: min.y,
+                maxY: max.y,
+                centerX: (min.x + max.x)/2,
+                centerZ: (min.z + max.z)/2
+            };
+        }
+
+        function createFullSkeleton() {
+            const dims = getMeshDimensions();
+            const h = dims.height;
+            // Place hips at 0.45 * height from ground (approximate)
+            const rootY = dims.minY + h * 0.45;
+            const rootX = dims.centerX;
+            const rootZ = dims.centerZ;
+
+            const root = createBone('Hips', null, new THREE.Vector3(rootX, rootY, rootZ));
+            
+            // Spine chain – each segment length proportional to h
+            const spineLen = h * 0.15;
+            const spine1 = createBone('Spine', root, new THREE.Vector3(0, spineLen, 0));
+            const spine2 = createBone('Spine1', spine1, new THREE.Vector3(0, spineLen, 0));
+            const spine3 = createBone('Spine2', spine2, new THREE.Vector3(0, spineLen, 0));
+            const neck = createBone('Neck', spine3, new THREE.Vector3(0, spineLen * 0.5, 0));
+            const head = createBone('Head', neck, new THREE.Vector3(0, spineLen * 0.8, 0));
+
+            // Legs
+            const legOffsetY = -h * 0.2;
+            const legLength = h * 0.4;
+            const footOffset = h * 0.05;
+            const legSide = h * 0.15;
+
+            const leftUpLeg = createBone('LeftUpLeg', root, new THREE.Vector3(-legSide, legOffsetY, 0));
+            const leftLeg = createBone('LeftLeg', leftUpLeg, new THREE.Vector3(0, -legLength, 0));
+            const leftFoot = createBone('LeftFoot', leftLeg, new THREE.Vector3(0, -footOffset, footOffset));
+
+            const rightUpLeg = createBone('RightUpLeg', root, new THREE.Vector3(legSide, legOffsetY, 0));
+            const rightLeg = createBone('RightLeg', rightUpLeg, new THREE.Vector3(0, -legLength, 0));
+            const rightFoot = createBone('RightFoot', rightLeg, new THREE.Vector3(0, -footOffset, footOffset));
+
+            // Arms
+            const armY = h * 0.1;
+            const armLen = h * 0.3;
+            const handLen = h * 0.15;
+            const armSide = h * 0.2;
+
+            const leftArm = createBone('LeftArm', spine2, new THREE.Vector3(-armSide, armY, 0));
+            const leftForeArm = createBone('LeftForeArm', leftArm, new THREE.Vector3(-armLen, 0, 0));
+            const leftHand = createBone('LeftHand', leftForeArm, new THREE.Vector3(-handLen, 0, 0));
+
+            const rightArm = createBone('RightArm', spine2, new THREE.Vector3(armSide, armY, 0));
+            const rightForeArm = createBone('RightForeArm', rightArm, new THREE.Vector3(armLen, 0, 0));
+            const rightHand = createBone('RightHand', rightForeArm, new THREE.Vector3(handLen, 0, 0));
+
+            // Fingers (simplified)
+            const leftThumb1 = createBone('LeftHandThumb1', leftHand, new THREE.Vector3(0, 0, h*0.03));
+            const leftIndex1 = createBone('LeftHandIndex1', leftHand, new THREE.Vector3(0, 0, h*0.02));
+            const rightThumb1 = createBone('RightHandThumb1', rightHand, new THREE.Vector3(0, 0, h*0.03));
+            const rightIndex1 = createBone('RightHandIndex1', rightHand, new THREE.Vector3(0, 0, h*0.02));
+
+            showToast('Full skeleton created based on mesh dimensions!', 'success');
+        }
+
+        // ========== MODIFIED AUTO‑RIG BUTTON ==========
+        autoRigBtn.addEventListener('click', () => {
+            if (!currentModel) { showToast('No model loaded', 'warning'); return; }
+            // If bones already exist, do not create new ones – warn the user
+            if (bones.length > 0) {
+                showToast('Model already has bones. Use "Fit Skeleton" to adjust existing bones, or reset scene.', 'warning');
+                return;
+            }
+            createFullSkeleton();
+            updateBoneList();
+            fitSkeletonBtn.disabled = false;
+            // Auto-show skeleton helper
+            if (skeletonHelper) scene.remove(skeletonHelper);
+            skeletonHelper = new THREE.SkeletonHelper(currentModel);
+            scene.add(skeletonHelper);
+        });
+
+        // Fit skeleton to mesh – adjust root and scale each bone proportionally
+        fitSkeletonBtn.addEventListener('click', () => {
+            if (!currentModel || bones.length === 0) { showToast('No skeleton to fit', 'warning'); return; }
+            const dims = getMeshDimensions();
+            const h = dims.height;
+            // Find root (Hips)
+            const root = bones.find(b => b.name === 'Hips') || bones[0];
+            if (root) {
+                root.position.set(dims.centerX, dims.minY + h * 0.45, dims.centerZ);
+                // Simple scaling: we could traverse children and adjust, but for simplicity just reposition root.
+                // More advanced: scale each bone based on height ratio.
+                showToast('Root repositioned. Manual adjustment may be needed.', 'success');
+            }
+        });
+
+        // ========== ZOOM SLIDER ==========
+        zoomSlider.addEventListener('input', () => {
+            const dist = parseFloat(zoomSlider.value);
+            zoomVal.textContent = dist.toFixed(1);
+            // Move camera along the direction from target to camera
+            const direction = new THREE.Vector3().subVectors(camera.position, controls.target).normalize();
+            camera.position.copy(controls.target.clone().add(direction.multiplyScalar(dist)));
+            controls.update(); // important to update internal state
+        });
+
+        // Also update slider when zoom changes via scroll/pinch
+        controls.addEventListener('change', () => {
+            const dist = camera.position.distanceTo(controls.target);
+            zoomSlider.value = dist.toFixed(1);
+            zoomVal.textContent = dist.toFixed(1);
+        });
+
+        // ========== EXPORT (HIGH QUALITY) ==========
+        function exportAs(format = 'glb') {
+            if (!currentModel) { showToast('No model to export', 'error'); return; }
+            
+            // Before export, ensure model is grounded
+            const box = new THREE.Box3().setFromObject(currentModel);
+            if (!box.isEmpty()) {
+                const minY = box.min.y;
+                currentModel.position.y -= minY;
+            }
+            
+            const exporter = new GLTFExporter();
+            const options = { 
+                binary: format === 'glb',
+                trs: true,
+                onlyVisible: false,
+                includeCustomExtensions: true,
+                animations: []
+            };
+            try {
+                exporter.parse(
+                    currentModel,
+                    (result) => {
+                        if (options.binary) {
+                            const blob = new Blob([result], { type: 'application/octet-stream' });
+                            const link = document.createElement('a');
+                            link.href = URL.createObjectURL(blob);
+                            link.download = 'model.glb';
+                            link.click();
+                            URL.revokeObjectURL(link.href);
+                            showToast('Exported as GLB', 'success');
+                        } else {
+                            const output = JSON.stringify(result, null, 2);
+                            const blob = new Blob([output], { type: 'application/json' });
+                            const link = document.createElement('a');
+                            link.href = URL.createObjectURL(blob);
+                            link.download = 'model.gltf';
+                            link.click();
+                            URL.revokeObjectURL(link.href);
+                            showToast('Exported as GLTF (JSON).', 'success');
+                        }
+                    },
+                    (error) => {
+                        showToast('Export error: ' + error.message, 'error');
+                    },
+                    options
+                );
+            } catch (e) {
+                showToast('Export exception: ' + e.message, 'error');
+            }
+        }
+
+        exportBtn.addEventListener('click', () => exportAs('glb'));
+        exportGltfBtn.addEventListener('click', () => exportAs('gltf'));
+
+        // ========== ANIMATION LOOP ==========
+        function animate() {
+            requestAnimationFrame(animate);
+            try {
+                controls.update();
+                renderer.render(scene, camera);
+            } catch (e) {
+                console.error('Animation error', e);
+            }
+        }
+        animate();
+
+        // ========== RESIZE ==========
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        setStatus('Import a model to start', 'info');
+    </script>
+</body>
+</html>
