@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes">
-    <title>PUSHPAK · ULTIMATE BONE CRACKER</title>
+    <title>PUSHPAK-AI · ULTIMATE </title>
     <!-- Import Map -->
     <script type="importmap">
         {
@@ -202,6 +202,16 @@
         }
         @keyframes spin { to{ transform:rotate(360deg); } }
         #xp-display { font-size:0.9rem; }
+        /* AI mapping loading indicator (extra) */
+        .mapping-loader {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .mapping-loader i {
+            animation: pulse 1.2s infinite;
+        }
+        @keyframes pulse { 0% { opacity:1; } 50% { opacity:0.3; } }
     </style>
 </head>
 <body>
@@ -639,56 +649,91 @@
             processArm(rightArms, 'right');
         }
 
-        // ========== MAPPING WITH PROGRESS ==========
-        async function runMapping() {
+        // ========== ASYNC MAPPING WITH PROGRESS & LOADING INDICATOR ==========
+        let isMapping = false;  // prevent concurrent runs
+
+        async function runMappingChunked() {
             if (!currentModel || bones.length === 0) {
                 showToast('No model loaded', 'error');
                 return;
             }
-            setStatus('Mapping...', 'info');
+            if (isMapping) {
+                showToast('Mapping already in progress', 'warning');
+                return;
+            }
+            isMapping = true;
+            mapBtn.disabled = true;  // disable during mapping
+            setStatus('<span class="mapping-loader"><i class="fas fa-spinner fa-pulse"></i> AI Mapping loading...</span>', 'info');
+            
             boneMapping.clear();
             const totalBones = bones.length;
             let mapped = 0;
 
-            // First pass: name-based (covers 99.9%)
-            bones.forEach(bone => {
-                const role = findRoleByName(bone.name);
-                if (role) {
-                    boneMapping.set(bone, role);
-                    mapped++;
+            // First pass: name-based (split into chunks)
+            const chunkSize = 30; // process 30 bones per frame
+            let index = 0;
+
+            const processNameChunk = () => {
+                const end = Math.min(index + chunkSize, totalBones);
+                for (let i = index; i < end; i++) {
+                    const bone = bones[i];
+                    const role = findRoleByName(bone.name);
+                    if (role) {
+                        boneMapping.set(bone, role);
+                        mapped++;
+                    }
                 }
-            });
-            updateProgress(mapped / totalBones);
+                index = end;
+                updateProgress(mapped / totalBones);
+                
+                if (index < totalBones) {
+                    requestAnimationFrame(processNameChunk);
+                } else {
+                    // Name-based pass done, now proceed to heuristics
+                    requestAnimationFrame(runHeuristicsPass);
+                }
+            };
 
-            // Second pass: heuristics for any remaining
-            const normalized = normalizePositions();
-            const boneIndexMap = new Map(bones.map((b, i) => [b, i]));
+            const runHeuristicsPass = () => {
+                // Second pass: heuristics for any remaining
+                const normalized = normalizePositions();
+                const boneIndexMap = new Map(bones.map((b, i) => [b, i]));
 
-            let hips = bones.find(b => boneMapping.get(b) === 'hips');
-            if (!hips) {
-                hips = findHipsByHeuristics(bones, normalized);
+                let hips = bones.find(b => boneMapping.get(b) === 'hips');
+                if (!hips) {
+                    hips = findHipsByHeuristics(bones, normalized);
+                    if (hips && !boneMapping.has(hips)) {
+                        boneMapping.set(hips, 'hips');
+                        mapped++;
+                    }
+                }
+                updateProgress(mapped / totalBones);
+
                 if (hips) {
-                    boneMapping.set(hips, 'hips');
-                    mapped++;
+                    assignSpineChain(hips, normalized, boneIndexMap, boneMapping);
+                    // recount mapped after spine
+                    mapped = bones.filter(b => boneMapping.has(b)).length;
+                    updateProgress(mapped / totalBones);
+                    
+                    assignLimbs(hips, normalized, boneIndexMap, boneMapping);
+                    mapped = bones.filter(b => boneMapping.has(b)).length;
+                    updateProgress(mapped / totalBones);
                 }
-            }
-            updateProgress(mapped / totalBones);
 
-            if (hips) {
-                assignSpineChain(hips, normalized, boneIndexMap, boneMapping);
-                mapped = bones.filter(b => boneMapping.has(b)).length;
-                updateProgress(mapped / totalBones);
-                assignLimbs(hips, normalized, boneIndexMap, boneMapping);
-                mapped = bones.filter(b => boneMapping.has(b)).length;
-                updateProgress(mapped / totalBones);
-            }
+                // Final update
+                setStatus(`Mapping complete: ${mapped}/${totalBones} bones`, 'success');
+                diagBones.innerText = totalBones;
+                diagProgress.innerText = Math.round((mapped/totalBones)*100) + '%';
+                addXP(50);
+                animSelect.disabled = false;
+                playAnimBtn.disabled = false;
+                stopAnimBtn.disabled = false;
+                mapBtn.disabled = false;  // re-enable
+                isMapping = false;
+            };
 
-            setStatus(`Mapping complete: ${mapped}/${totalBones} bones`, 'success');
-            diagBones.innerText = totalBones;
-            addXP(50);
-            animSelect.disabled = false;
-            playAnimBtn.disabled = false;
-            stopAnimBtn.disabled = false;
+            // Start first chunk
+            requestAnimationFrame(processNameChunk);
         }
 
         function updateProgress(ratio) {
@@ -1090,7 +1135,8 @@
             zoomValue.textContent = dist.toFixed(1);
         });
 
-        mapBtn.addEventListener('click', runMapping);
+        // Use the new async chunked mapping
+        mapBtn.addEventListener('click', runMappingChunked);
 
         // ========== ANIMATION LOOP ==========
         function animate() {
