@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes">
-    <title>PUSHPAK-AI · ULTIMATE </title>
+    <title>PUSHPAK · ULTIMATE BONE CRACKER</title>
     <!-- Import Map -->
     <script type="importmap">
         {
@@ -516,10 +516,12 @@
             const regexStr = unique.map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
             boneMappings[role] = new RegExp(regexStr, 'i');
         }
+        // Precompile role-regex list for faster matching (performance critical)
+        const roleRegexList = Object.entries(boneMappings);
 
         function findRoleByName(boneName) {
             const lower = boneName.toLowerCase();
-            for (const [role, regex] of Object.entries(boneMappings)) {
+            for (const [role, regex] of roleRegexList) {
                 if (regex.test(lower)) return role;
             }
             return null;
@@ -670,7 +672,7 @@
             let mapped = 0;
 
             // First pass: name-based (split into chunks)
-            const chunkSize = 30; // process 30 bones per frame
+            const chunkSize = 100; // increased for faster completion (still yields UI)
             let index = 0;
 
             const processNameChunk = () => {
